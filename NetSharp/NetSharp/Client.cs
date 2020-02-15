@@ -123,15 +123,20 @@ namespace NetSharp
         /// </summary>
         public void Disconnect()
         {
-            this.SendSimple(new DisconnectPacket());
+            SendSimpleAsync(new DisconnectPacket(), Timeout.InfiniteTimeSpan).Wait();
 
             socket.Shutdown(SocketShutdown.Both);
-            socket.Disconnect(true);
+
+            if (socketOptions is TcpSocketOptions)
+            {
+                socket.Disconnect(true);
+            }
+
             socket.Close();
         }
 
         /// <inheritdoc />
-        public abstract Task SendBytesAsync(byte[] buffer, TimeSpan timeout);
+        public abstract Task<bool> SendBytesAsync(byte[] buffer, TimeSpan timeout);
 
         /// <inheritdoc />
         public abstract Task<byte[]> SendBytesWithResponseAsync(byte[] buffer, TimeSpan timeout);
@@ -141,7 +146,7 @@ namespace NetSharp
             where Req : IRequestPacket, new() where Rep : IResponsePacket<Req>, new();
 
         /// <inheritdoc />
-        public abstract Task SendSimpleAsync<Req>(Req request, TimeSpan timeout) where Req : IRequestPacket, new();
+        public abstract Task<bool> SendSimpleAsync<Req>(Req request, TimeSpan timeout) where Req : IRequestPacket, new();
 
         /// <inheritdoc />
         public async Task<bool> TryBindAsync(IPAddress? localAddress, int? localPort, TimeSpan timeout)

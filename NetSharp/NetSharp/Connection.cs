@@ -17,16 +17,6 @@ namespace NetSharp
     public abstract class Connection : IDisposable
     {
         /// <summary>
-        /// Cancellation token source for the <see cref="DoReceivePacketAsync"/> method.
-        /// </summary>
-        private readonly CancellationTokenSource readBytesCancellationTokenSource;
-
-        /// <summary>
-        /// Cancellation token source for the <see cref="DoSendPacketAsync"/> method.
-        /// </summary>
-        private readonly CancellationTokenSource writeBytesCancellationTokenSource;
-
-        /// <summary>
         /// Represents a packet that was not received correctly.
         /// </summary>
         protected static readonly Packet NullPacket = new Packet(new byte[0], 0, NetworkErrorCode.Error);
@@ -48,9 +38,6 @@ namespace NetSharp
         protected Connection()
         {
             logger = new Logger(Stream.Null);
-
-            readBytesCancellationTokenSource = new CancellationTokenSource();
-            writeBytesCancellationTokenSource = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -71,12 +58,6 @@ namespace NetSharp
         {
             if (disposing)
             {
-                readBytesCancellationTokenSource?.Cancel();
-                readBytesCancellationTokenSource?.Dispose();
-
-                writeBytesCancellationTokenSource?.Cancel();
-                writeBytesCancellationTokenSource?.Dispose();
-
                 logger.Dispose();
             }
         }
@@ -92,13 +73,12 @@ namespace NetSharp
         /// <returns>The packet that was received. <see cref="NullPacket"/> if not received correctly.</returns>
         protected async Task<Packet> DoReceivePacketAsync(Socket remoteSocket, SocketFlags socketFlags, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+
             try
             {
-                readBytesCancellationTokenSource.CancelAfter(timeout);
-
                 Packet request =
-                    await NetworkOperations.ReadPacketAsync(remoteSocket, socketFlags,
-                        readBytesCancellationTokenSource.Token);
+                    await NetworkOperations.ReadPacketAsync(remoteSocket, socketFlags, cts.Token);
 
                 OnBytesReceived(remoteSocket.RemoteEndPoint, request.TotalSize);
 
@@ -121,6 +101,10 @@ namespace NetSharp
                 logger.LogException($"Exception while reading bytes from {remoteSocket.RemoteEndPoint}:", ex);
                 return NullPacket;
             }
+            finally
+            {
+                cts.Dispose();
+            }
         }
 
         /// <summary>
@@ -138,13 +122,12 @@ namespace NetSharp
         protected async Task<(Packet request, TransmissionResult packetResult)> DoReceivePacketFromAsync(
             Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+
             try
             {
-                readBytesCancellationTokenSource.CancelAfter(timeout);
-
                 (Packet request, TransmissionResult packetResult) result =
-                   await NetworkOperations.ReadPacketFromAsync(socket, remoteEndPoint, socketFlags,
-                       readBytesCancellationTokenSource.Token);
+                   await NetworkOperations.ReadPacketFromAsync(socket, remoteEndPoint, socketFlags, cts.Token);
 
                 OnBytesReceived(remoteEndPoint, result.request.TotalSize);
 
@@ -166,6 +149,10 @@ namespace NetSharp
                 logger.LogException($"Exception while reading bytes from {remoteEndPoint}:", ex);
                 return (NullPacket, NullTransmissionResult);
             }
+            finally
+            {
+                cts.Dispose();
+            }
         }
 
         /// <summary>
@@ -180,12 +167,11 @@ namespace NetSharp
         /// <returns>Whether the packet was successfully sent.</returns>
         protected async Task<bool> DoSendPacketAsync(Socket remoteSocket, Packet packet, SocketFlags socketFlags, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+
             try
             {
-                writeBytesCancellationTokenSource.CancelAfter(timeout);
-
-                await NetworkOperations.WritePacketAsync(remoteSocket, packet, socketFlags,
-                    writeBytesCancellationTokenSource.Token);
+                await NetworkOperations.WritePacketAsync(remoteSocket, packet, socketFlags, cts.Token);
 
                 OnBytesSent(remoteSocket.RemoteEndPoint, packet.TotalSize);
 
@@ -208,6 +194,10 @@ namespace NetSharp
                 logger.LogException($"Exception while sending bytes to {remoteSocket.RemoteEndPoint}:", ex);
                 return false;
             }
+            finally
+            {
+                cts.Dispose();
+            }
         }
 
         /// <summary>
@@ -224,19 +214,19 @@ namespace NetSharp
         protected async Task<bool> DoSendPacketToAsync(Socket socket, EndPoint remoteEndPoint, Packet packet,
             SocketFlags socketFlags, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+
             try
             {
-                writeBytesCancellationTokenSource.CancelAfter(timeout);
-
                 if (packet.TotalSize > Constants.UdpMaxBufferSize)
                 {
-                    throw new Exception($"The given UDP packet exceeded the maximum allowed size of {Constants.UdpMaxBufferSize}, " +
-                                        "and could not be sent. Consider splitting up the packet into multiple, smaller packets " +
-                                        "that are less likely to get lost due to fragmentation, or using TCP instead.");
+                    throw new Exception(
+                        $"The given UDP packet exceeded the maximum allowed size of {Constants.UdpMaxBufferSize}, " +
+                        "and could not be sent. Consider splitting up the packet into multiple, smaller packets " +
+                        "that are less likely to get lost due to fragmentation, or using TCP instead.");
                 }
 
-                await NetworkOperations.WritePacketToAsync(socket, remoteEndPoint, packet, socketFlags,
-                    writeBytesCancellationTokenSource.Token);
+                await NetworkOperations.WritePacketToAsync(socket, remoteEndPoint, packet, socketFlags, cts.Token);
 
                 OnBytesSent(remoteEndPoint, packet.TotalSize);
 
@@ -257,6 +247,10 @@ namespace NetSharp
             {
                 logger.LogException($"Exception while sending bytes to {remoteEndPoint}:", ex);
                 return false;
+            }
+            finally
+            {
+                cts.Dispose();
             }
         }
 

@@ -240,7 +240,7 @@ namespace NetSharp
                 bindSocketCancellationTokenSource?.Cancel();
                 bindSocketCancellationTokenSource?.Dispose();
 
-                socket?.Dispose();
+                socket.Dispose();
             }
 
             base.Dispose(disposing);
@@ -270,9 +270,9 @@ namespace NetSharp
                 {
                     logger.LogMessage("Closing and releasing all resources associated with client handler socket");
 
-                    clientHandlerArgs.ClientSocket.Close(1);
                     clientHandlerArgs.ClientSocket.Shutdown(SocketShutdown.Both);
                     clientHandlerArgs.ClientSocket.Disconnect(true);
+                    clientHandlerArgs.ClientSocket.Close(1);
                     clientHandlerArgs.ClientSocket.Dispose();
                 }
             }
@@ -301,20 +301,20 @@ namespace NetSharp
                 if (complexPacketHandlers.ContainsKey(packetType))
                 {
                     IResponsePacket<IRequestPacket> response =
-                        (IResponsePacket<IRequestPacket>)complexPacketHandlers[packetType]
-                            .DynamicInvoke(requestPacket, remoteEndPoint);
+                        complexPacketHandlers[packetType].Invoke(requestPacket, remoteEndPoint);
 
                     return response;
                 }
 
                 if (simplePacketHandlers.ContainsKey(packetType))
                 {
-                    simplePacketHandlers[packetType].DynamicInvoke(requestPacket, remoteEndPoint);
+                    simplePacketHandlers[packetType].Invoke(requestPacket, remoteEndPoint);
                     return null;
                 }
-#if DEBUG
+
+                #if DEBUG
                 logger.LogWarning($"No packet handler was registered for packet of type {packetType}");
-#endif
+                #endif
             }
             catch (Exception ex)
             {

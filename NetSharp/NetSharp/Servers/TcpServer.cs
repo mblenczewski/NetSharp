@@ -24,7 +24,7 @@ namespace NetSharp.Servers
         /// <inheritdoc />
         protected override async Task HandleClientAsync(ClientHandlerArgs args)
         {
-            using Socket clientHandlerSocket = args.ClientSocket ?? new Socket(SocketType.Unknown, ProtocolType.Unknown);
+            Socket clientHandlerSocket = args.ClientSocket ?? new Socket(SocketType.Unknown, ProtocolType.Unknown);
 
             EndPoint remoteEp = clientHandlerSocket.RemoteEndPoint;
 

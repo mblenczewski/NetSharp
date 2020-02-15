@@ -26,7 +26,8 @@ namespace NetSharp.Interfaces
         /// </summary>
         /// <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
         /// <param name="timeout">The timeout after which to cancel the transmission attempt.</param>
-        public Task SendBytesAsync(byte[] buffer, TimeSpan timeout);
+        /// <returns>Whether the transmission attempt was successful.</returns>
+        public Task<bool> SendBytesAsync(byte[] buffer, TimeSpan timeout);
 
         /// <summary>
         /// Sends the given byte buffer to the connected remote endpoint and waits for the response asynchronously.
@@ -61,7 +62,8 @@ namespace NetSharp.Interfaces
         /// <typeparam name="Req">The type of request packet to send.</typeparam>
         /// <param name="request">The request packet to send.</param>
         /// <param name="timeout">The timeout for which to wait for the operation to complete.</param>
-        public Task SendSimpleAsync<Req>(Req request, TimeSpan timeout) where Req : IRequestPacket, new();
+        /// <returns>Whether the transmission attempt was successful.</returns>
+        public Task<bool> SendSimpleAsync<Req>(Req request, TimeSpan timeout) where Req : IRequestPacket, new();
 
         /// <summary>
         /// Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.

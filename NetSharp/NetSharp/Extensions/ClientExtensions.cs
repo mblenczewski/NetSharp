@@ -17,8 +17,8 @@ namespace NetSharp.Extensions
         /// </summary>
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
-        public static void SendBytes(this Client instance, byte[] buffer) =>
-            instance.SendBytesAsync(buffer, Timeout.InfiniteTimeSpan).Wait();
+        public static bool SendBytes(this Client instance, byte[] buffer) =>
+            instance.SendBytesAsync(buffer, Timeout.InfiniteTimeSpan).Result;
 
         /// <summary>
         /// Sends the given byte buffer to the connected remote endpoint. Blocks until the bytes are all sent, whilst
@@ -27,8 +27,8 @@ namespace NetSharp.Extensions
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
         /// <param name="timeout">The timeout after which to cancel the transmission attempt.</param>
-        public static void SendBytes(this Client instance, byte[] buffer, TimeSpan timeout) =>
-            instance.SendBytesAsync(buffer, timeout).Wait();
+        public static bool SendBytes(this Client instance, byte[] buffer, TimeSpan timeout) =>
+            instance.SendBytesAsync(buffer, timeout).Result;
 
         /// <summary>
         /// Sends the given byte buffer to the connected remote endpoint asynchronously. Does not block, and does not
@@ -36,7 +36,7 @@ namespace NetSharp.Extensions
         /// </summary>
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
-        public static async Task SendBytesAsync(this Client instance, byte[] buffer) =>
+        public static async Task<bool> SendBytesAsync(this Client instance, byte[] buffer) =>
             await instance.SendBytesAsync(buffer, Timeout.InfiniteTimeSpan);
 
         /// <summary>
@@ -115,8 +115,8 @@ namespace NetSharp.Extensions
         /// <typeparam name="Req">The type of request packet to send.</typeparam>
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="request">The request packet to send.</param>
-        public static void SendSimple<Req>(this Client instance, Req request) where Req : IRequestPacket, new() =>
-            instance.SendSimpleAsync(request, Timeout.InfiniteTimeSpan);
+        public static bool SendSimple<Req>(this Client instance, Req request) where Req : IRequestPacket, new() =>
+            instance.SendSimpleAsync(request, Timeout.InfiniteTimeSpan).Result;
 
         /// <summary>
         /// Sends the given request without listening for a response, blocking until it is sent.
@@ -126,8 +126,8 @@ namespace NetSharp.Extensions
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="request">The request packet to send.</param>
         /// <param name="timeout">The timeout for which to wait for the operation to complete.</param>
-        public static void SendSimple<Req>(this Client instance, Req request, TimeSpan timeout) where Req : IRequestPacket, new() =>
-            instance.SendSimpleAsync(request, timeout);
+        public static bool SendSimple<Req>(this Client instance, Req request, TimeSpan timeout) where Req : IRequestPacket, new() =>
+            instance.SendSimpleAsync(request, timeout).Result;
 
         /// <summary>
         /// Sends the given request asynchronously without listening for a response, not blocking until it is sent.
@@ -136,7 +136,7 @@ namespace NetSharp.Extensions
         /// <typeparam name="Req">The type of request packet to send.</typeparam>
         /// <param name="instance">The instance on which this extension method should be called.</param>
         /// <param name="request">The request packet to send.</param>
-        public static async Task SendSimpleAsync<Req>(this Client instance, Req request) where Req : IRequestPacket, new() =>
+        public static async Task<bool> SendSimpleAsync<Req>(this Client instance, Req request) where Req : IRequestPacket, new() =>
             await instance.SendSimpleAsync(request, Timeout.InfiniteTimeSpan);
 
         /// <summary>

@@ -20,10 +20,10 @@ namespace NetSharp.Clients
         }
 
         /// <inheritdoc />
-        public override async Task SendBytesAsync(byte[] buffer, TimeSpan timeout)
+        public override async Task<bool> SendBytesAsync(byte[] buffer, TimeSpan timeout)
         {
             SimpleDataPacket packet = new SimpleDataPacket(buffer);
-            await SendSimpleAsync(packet, timeout);
+            return await SendSimpleAsync(packet, timeout);
         }
 
         /// <inheritdoc />
@@ -57,14 +57,14 @@ namespace NetSharp.Clients
         }
 
         /// <inheritdoc />
-        public override async Task SendSimpleAsync<Req>(Req request, TimeSpan timeout)
+        public override async Task<bool> SendSimpleAsync<Req>(Req request, TimeSpan timeout)
         {
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
             request.BeforeSerialisation();
             ReadOnlyMemory<byte> serialisedRequest = request.Serialise();
             Packet rawRequest = new Packet(serialisedRequest, packetTypeId, NetworkErrorCode.Ok);
-            await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
+            return await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
         }
     }
 }

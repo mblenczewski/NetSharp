@@ -125,23 +125,20 @@ namespace NetSharp.Servers
                 {
                     continue;
                 }
-
-                if (!activeClients.TryGetValue(clientEndPoint, out BufferBlock<Packet> clientPacketBuffer))
+                
+                if (!activeClients.ContainsKey(clientEndPoint))
                 {
                     ClientHandlerArgs args = ClientHandlerArgs.ForUdpClientHandler(in clientEndPoint);
 
                     activeClients.TryAdd(clientEndPoint, new BufferBlock<Packet>());
-                    activeClients[clientEndPoint].Post(request);
 
                     await Task.Factory.StartNew(DoHandleClientAsync, args,
-                        serverShutdownCancellationTokenSource.Token,
-                        TaskCreationOptions.LongRunning,
-                        TaskScheduler.Current);
-
-                    continue;
+                                   serverShutdownCancellationTokenSource.Token,
+                                   TaskCreationOptions.LongRunning,
+                                   TaskScheduler.Current);
                 }
 
-                clientPacketBuffer.Post(request);
+                activeClients[clientEndPoint].Post(request);
             }
 
             OnServerStopped();

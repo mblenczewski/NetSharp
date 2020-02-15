@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Packets;
@@ -23,15 +24,24 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The result of the receive operation.</returns>
-        public static async Task<TransmissionResult> ReadAsync(Socket socket, int count, SocketFlags socketFlags,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<TransmissionResult> ReadAsync(Socket socket, int count, SocketFlags socketFlags,
             CancellationToken cancellationToken)
         {
-            byte[] byteBuffer = new byte[count];
+            return Task.Factory.StartNew(() =>
+            {
+                byte[] byteBuffer = new byte[count];
+                int receivedBytesCount = 0;
 
-            int receivedByteCount = await socket.ReceiveAsync(byteBuffer, socketFlags, cancellationToken);
+                while (count > receivedBytesCount)
+                {
+                    Span<byte> receivedBytes = new Span<byte>(byteBuffer, receivedBytesCount, count - receivedBytesCount);
 
-            return new TransmissionResult(new Memory<byte>(byteBuffer, 0, receivedByteCount), receivedByteCount,
-                socket.RemoteEndPoint);
+                    receivedBytesCount += socket.Receive(receivedBytes, socketFlags);
+                }
+
+                return new TransmissionResult(byteBuffer, receivedBytesCount, socket.RemoteEndPoint);
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -44,10 +54,11 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The result of the receive operation.</returns>
-        public static async Task<TransmissionResult> ReadFromAsync(Socket socket, EndPoint remoteEndPoint,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task<TransmissionResult> ReadFromAsync(Socket socket, EndPoint remoteEndPoint,
             SocketFlags socketFlags, CancellationToken cancellationToken)
         {
-            return await Task.Factory.StartNew(() =>
+            return Task.Factory.StartNew(() =>
             {
                 byte[] byteBuffer = new byte[Constants.UdpMaxBufferSize];
 
@@ -69,6 +80,7 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The read packet.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static async Task<Packet> ReadPacketAsync(Socket socket, SocketFlags socketFlags, CancellationToken cancellationToken)
         {
             TransmissionResult packetHeaderResult = await ReadAsync(socket, Packet.HeaderSize, socketFlags, cancellationToken);
@@ -103,6 +115,7 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The read packet and associated transmission results.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static async Task<(Packet packet, TransmissionResult packetResult)> ReadPacketFromAsync(
             Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, CancellationToken cancellationToken)
         {
@@ -121,18 +134,22 @@ namespace NetSharp.Utils
         /// <param name="buffer">The buffer that should be written to the network.</param>
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
-        public static async Task WriteAsync(Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task WriteAsync(Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags,
             CancellationToken cancellationToken)
         {
-            int bytesToSend = buffer.Length;
-            int sentBytesCount = 0;
-
-            while (bytesToSend > sentBytesCount)
+            return Task.Factory.StartNew(() =>
             {
-                ReadOnlyMemory<byte> bufferSegment = buffer.Slice(sentBytesCount, bytesToSend - sentBytesCount);
+                int bytesToSend = buffer.Length;
+                int sentBytesCount = 0;
 
-                sentBytesCount += await socket.SendAsync(bufferSegment, socketFlags, cancellationToken);
-            }
+                while (bytesToSend > sentBytesCount)
+                {
+                    ReadOnlySpan<byte> bufferSegment = buffer.Span.Slice(sentBytesCount, bytesToSend - sentBytesCount);
+
+                    sentBytesCount += socket.Send(bufferSegment, socketFlags);
+                }
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -144,11 +161,10 @@ namespace NetSharp.Utils
         /// <param name="packet">The packet that should be written to the network.</param>
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
-        public static async Task WritePacketAsync(Socket socket, Packet packet, SocketFlags socketFlags,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task WritePacketAsync(Socket socket, Packet packet, SocketFlags socketFlags,
             CancellationToken cancellationToken)
-        {
-            await WriteAsync(socket, Packet.Serialise(packet), socketFlags, cancellationToken);
-        }
+            => WriteAsync(socket, Packet.Serialise(packet), socketFlags, cancellationToken);
 
         /// <summary>
         /// Writes the given packet asynchronously to the given remote endpoint, via the given socket.
@@ -160,11 +176,10 @@ namespace NetSharp.Utils
         /// <param name="packet">The packet that should be written to the remote endpoint.</param>
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
-        public static async Task WritePacketToAsync(Socket socket, EndPoint remoteEndPoint, Packet packet,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task WritePacketToAsync(Socket socket, EndPoint remoteEndPoint, Packet packet,
             SocketFlags socketFlags, CancellationToken cancellationToken)
-        {
-            await WriteToAsync(socket, remoteEndPoint, Packet.Serialise(packet), socketFlags, cancellationToken);
-        }
+            => WriteToAsync(socket, remoteEndPoint, Packet.Serialise(packet), socketFlags, cancellationToken);
 
         /// <summary>
         /// Writes the given buffer asynchronously to the given remote endpoint, via the given socket.
@@ -176,21 +191,20 @@ namespace NetSharp.Utils
         /// <param name="buffer">The buffer that should be written to the network.</param>
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
-        public static async Task WriteToAsync(Socket socket, EndPoint remoteEndPoint, ReadOnlyMemory<byte> buffer,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Task WriteToAsync(Socket socket, EndPoint remoteEndPoint, ReadOnlyMemory<byte> buffer,
             SocketFlags socketFlags, CancellationToken cancellationToken)
         {
-            await Task.Factory.StartNew(async () =>
+            return Task.Factory.StartNew(() =>
             {
-                byte[] heapAllocatedBuffer = buffer.ToArray();
                 int bytesToSend = buffer.Length;
                 int sentBytesCount = 0;
 
                 while (bytesToSend > sentBytesCount)
                 {
-                    ArraySegment<byte> bufferSegment =
-                        new ArraySegment<byte>(heapAllocatedBuffer, sentBytesCount, bytesToSend - sentBytesCount);
+                    ReadOnlySpan<byte> bufferSegment = buffer.Span.Slice(sentBytesCount, bytesToSend - sentBytesCount);
 
-                    sentBytesCount += await socket.SendToAsync(bufferSegment, socketFlags, remoteEndPoint);
+                    sentBytesCount += socket.SendTo(bufferSegment.ToArray(), socketFlags, remoteEndPoint);
                 }
             }, cancellationToken);
         }
