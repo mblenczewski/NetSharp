@@ -1557,6 +1557,11 @@
             Holds currently connected and active clients, as well as their current received packet queues.
             </summary>
         </member>
+        <member name="F:NetSharp.Servers.UdpServer.clientChannelOptions">
+            <summary>
+            The options that should be applied to every channel created to handle a client.
+            </summary>
+        </member>
         <member name="M:NetSharp.Servers.UdpServer.#ctor">
             <inheritdoc />
         </member>
@@ -1787,13 +1792,14 @@
             <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
             <returns>The result of the receive operation.</returns>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Utils.NetworkOperations.ReadFromAsync(System.Net.Sockets.Socket,System.Int32,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Reads a datagram asynchronously from the given remote endpoint, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read, and the given <see cref="T:System.Threading.CancellationToken"/>
             is used to allow for asynchronous task cancellation.
             </summary>
             <param name="socket">The socket which should read data from the network.</param>
+            <param name="count">The number of bytes to read from the network.</param>
             <param name="remoteEndPoint">The remote endpoint from which data should be read.</param>
             <param name="socketFlags">The socket flags associated with the receive operation.</param>
             <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>

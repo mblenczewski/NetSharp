@@ -147,7 +147,7 @@ namespace NetSharpExamples
             await using Stream serverOutputStream = File.OpenWrite(serverLogFile);
 
             using Server server = new UdpServer();
-            server.ChangeLoggingStream(Console.OpenStandardOutput());
+            server.ChangeLoggingStream(Console.OpenStandardOutput(), LogLevel.Warn);
             //server.ChangeLoggingStream(serverOutputStream, LogLevel.Error);
 
             Console.WriteLine("Starting server...");

@@ -25,7 +25,7 @@ namespace NetSharp.Utils
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The result of the receive operation.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<TransmissionResult> ReadAsync(Socket socket, int count, SocketFlags socketFlags,
+        internal static Task<TransmissionResult> ReadAsync(Socket socket, int count, SocketFlags socketFlags,
             CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>
@@ -50,24 +50,30 @@ namespace NetSharp.Utils
         /// is used to allow for asynchronous task cancellation.
         /// </summary>
         /// <param name="socket">The socket which should read data from the network.</param>
+        /// <param name="count">The number of bytes to read from the network.</param>
         /// <param name="remoteEndPoint">The remote endpoint from which data should be read.</param>
         /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         /// <returns>The result of the receive operation.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task<TransmissionResult> ReadFromAsync(Socket socket, EndPoint remoteEndPoint,
+        internal static Task<TransmissionResult> ReadFromAsync(Socket socket, int count, EndPoint remoteEndPoint,
             SocketFlags socketFlags, CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>
             {
-                byte[] byteBuffer = new byte[Constants.UdpMaxBufferSize];
-
+                byte[] byteBuffer = new byte[count];
                 EndPoint actualRemoteEndPoint = remoteEndPoint;
+                int receivedBytesCount = 0;
 
-                int receivedByteCount = socket.ReceiveFrom(byteBuffer, socketFlags, ref actualRemoteEndPoint);
+                while (count > receivedBytesCount)
+                {
+                    IPPacketInformation _;
 
-                return new TransmissionResult(new Memory<byte>(byteBuffer, 0, receivedByteCount), receivedByteCount,
-                    actualRemoteEndPoint);
+                    receivedBytesCount += socket.ReceiveMessageFrom(byteBuffer, receivedBytesCount,
+                        count - receivedBytesCount, ref socketFlags, ref actualRemoteEndPoint, out _);
+                }
+
+                return new TransmissionResult(byteBuffer, receivedBytesCount, actualRemoteEndPoint);
             }, cancellationToken);
         }
 
@@ -119,10 +125,28 @@ namespace NetSharp.Utils
         public static async Task<(Packet packet, TransmissionResult packetResult)> ReadPacketFromAsync(
             Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, CancellationToken cancellationToken)
         {
-            TransmissionResult packetResult =
-                await ReadFromAsync(socket, remoteEndPoint, socketFlags, cancellationToken);
+            TransmissionResult packetHeaderResult =
+                await ReadFromAsync(socket, Packet.HeaderSize, remoteEndPoint, socketFlags, cancellationToken);
 
-            return (Packet.Deserialise(packetResult.Buffer), packetResult);
+            int packetSize = EndianAwareBitConverter.ToInt32(packetHeaderResult.Buffer.Span.Slice(0, sizeof(int)));
+
+            if (packetSize == 0)
+            {
+                return (Packet.Deserialise(packetHeaderResult.Buffer), packetHeaderResult);
+            }
+
+            TransmissionResult packetDataResult =
+                await ReadFromAsync(socket, packetSize, packetHeaderResult.RemoteEndPoint, socketFlags, cancellationToken);
+
+            byte[] serialisedPacket = new byte[Packet.HeaderSize + packetSize];
+
+            Memory<byte> serialisedPacketHeader = new Memory<byte>(serialisedPacket, 0, Packet.HeaderSize);
+            packetHeaderResult.Buffer.CopyTo(serialisedPacketHeader);
+
+            Memory<byte> serialisedPacketData = new Memory<byte>(serialisedPacket, Packet.HeaderSize, packetSize);
+            packetDataResult.Buffer.CopyTo(serialisedPacketData);
+
+            return (Packet.Deserialise(serialisedPacket), packetDataResult);
         }
 
         /// <summary>
@@ -135,7 +159,7 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task WriteAsync(Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags,
+        internal static Task WriteAsync(Socket socket, ReadOnlyMemory<byte> buffer, SocketFlags socketFlags,
             CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>
@@ -192,7 +216,7 @@ namespace NetSharp.Utils
         /// <param name="socketFlags">The socket flags associated with the send operation.</param>
         /// <param name="cancellationToken">The cancellation token to use for asynchronous cancellation.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Task WriteToAsync(Socket socket, EndPoint remoteEndPoint, ReadOnlyMemory<byte> buffer,
+        internal static Task WriteToAsync(Socket socket, EndPoint remoteEndPoint, ReadOnlyMemory<byte> buffer,
             SocketFlags socketFlags, CancellationToken cancellationToken)
         {
             return Task.Factory.StartNew(() =>

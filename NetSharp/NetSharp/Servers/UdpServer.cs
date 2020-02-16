@@ -2,8 +2,8 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using NetSharp.Interfaces;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
@@ -20,19 +20,28 @@ namespace NetSharp.Servers
         /// <summary>
         /// Holds currently connected and active clients, as well as their current received packet queues.
         /// </summary>
-        private readonly ConcurrentDictionary<EndPoint, BufferBlock<Packet>> activeClients;
+        private readonly ConcurrentDictionary<EndPoint, Channel<Packet>> activeClients;
+
+        /// <summary>
+        /// The options that should be applied to every channel created to handle a client.
+        /// </summary>
+        private static readonly UnboundedChannelOptions clientChannelOptions = new UnboundedChannelOptions
+                                                                              {
+                                                                                  SingleReader = true,
+                                                                                  SingleWriter = true
+                                                                              };
 
         /// <inheritdoc />
         public UdpServer() : base(SocketType.Dgram, ProtocolType.Udp, SocketOptionManager.Udp)
         {
-            activeClients = new ConcurrentDictionary<EndPoint, BufferBlock<Packet>>();
+            activeClients = new ConcurrentDictionary<EndPoint, Channel<Packet>>();
         }
 
         /// <inheritdoc />
         protected override async Task HandleClientAsync(ClientHandlerArgs args)
         {
             EndPoint clientEndPoint = args.ClientEndPoint;
-            BufferBlock<Packet> clientPacketBuffer = activeClients[clientEndPoint];
+            Channel<Packet> clientPacketBuffer = activeClients[clientEndPoint];
 
             logger.LogMessage($"Initialised client handler for client socket: [Remote EP: {clientEndPoint}]");
 
@@ -41,7 +50,7 @@ namespace NetSharp.Servers
                 do
                 {
                     // receive a single raw packet from the network
-                    Packet rawRequest = await clientPacketBuffer.ReceiveAsync(serverShutdownCancellationTokenSource.Token);
+                    Packet rawRequest = await clientPacketBuffer.Reader.ReadAsync(serverShutdownCancellationTokenSource.Token);
 
                     if (rawRequest.Equals(NullPacket) || rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
                     {
@@ -89,8 +98,15 @@ namespace NetSharp.Servers
 
                 logger.LogMessage($"Stopping client handler for client socket: [Remote EP: {clientEndPoint}]");
 
-                activeClients.TryRemove(clientEndPoint, out BufferBlock<Packet> remainingPackets);
-                logger.LogMessage($"Client handler has {remainingPackets.Count} packets left, which will be dropped");
+                if (activeClients.TryRemove(clientEndPoint, out Channel<Packet> packetChannel))
+                {
+                    packetChannel.Writer.Complete();
+                    logger.LogMessage($"Shutting down packet channel for client socket: [Remote EP: {clientEndPoint}]");
+                }
+                else
+                {
+                    logger.LogMessage($"Couldn't shut down packet channel for client socket: [Remote EP: {clientEndPoint}]");
+                }
             }
             catch (TaskCanceledException) { logger.LogMessage("Client handling was cancelled via a task cancellation."); }
             catch (OperationCanceledException) { logger.LogMessage("Client handling was cancelled via an operation cancellation."); }
@@ -130,7 +146,7 @@ namespace NetSharp.Servers
                 {
                     ClientHandlerArgs args = ClientHandlerArgs.ForUdpClientHandler(in clientEndPoint);
 
-                    activeClients.TryAdd(clientEndPoint, new BufferBlock<Packet>());
+                    activeClients.TryAdd(clientEndPoint, Channel.CreateUnbounded<Packet>(clientChannelOptions));
 
                     await Task.Factory.StartNew(DoHandleClientAsync, args,
                                    serverShutdownCancellationTokenSource.Token,
@@ -138,7 +154,7 @@ namespace NetSharp.Servers
                                    TaskScheduler.Current);
                 }
 
-                activeClients[clientEndPoint].Post(request);
+                await activeClients[clientEndPoint].Writer.WriteAsync(request);
             }
 
             OnServerStopped();
