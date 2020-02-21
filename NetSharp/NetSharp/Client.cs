@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +18,23 @@ namespace NetSharp
     public abstract class Client : Connection, IClient, IDisposable
     {
         /// <summary>
-        /// Provides <see cref="CancellationToken"/> instances for cancelling methods after a timeout period.
+        /// Initialises a new instance of the <see cref="Client"/> class.
         /// </summary>
-        protected readonly CancellationTokenSource cancellationTokenSource;
+        private Client()
+        {
+            remoteEndPoint = new IPEndPoint(IPAddress.None, IPEndPoint.MinPort);
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            socketOptions = new DefaultSocketOptions(ref socket);
+        }
+
+        /// <summary>
+        /// Destroys an instance of the <see cref="Client"/> class.
+        /// </summary>
+        ~Client()
+        {
+            Dispose(false);
+        }
 
         /// <summary>
         /// The <see cref="Socket"/> underlying the connection.
@@ -35,19 +50,6 @@ namespace NetSharp
         /// The remote endpoint with which this client communicates.
         /// </summary>
         protected EndPoint remoteEndPoint;
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="Client"/> class.
-        /// </summary>
-        private Client()
-        {
-            cancellationTokenSource = new CancellationTokenSource();
-
-            remoteEndPoint = new IPEndPoint(IPAddress.None, IPEndPoint.MinPort);
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-            socketOptions = new DefaultSocketOptions(ref socket);
-        }
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Client"/> class.
@@ -68,28 +70,6 @@ namespace NetSharp
         }
 
         /// <summary>
-        /// Destroys an instance of the <see cref="Client"/> class.
-        /// </summary>
-        ~Client()
-        {
-            Dispose(false);
-        }
-
-        /// <inheritdoc />
-        public event Action<EndPoint>? Connected;
-
-        /// <inheritdoc />
-        public event Action<EndPoint>? Disconnected;
-
-        /// <summary>
-        /// The configured socket options for the underlying connection.
-        /// </summary>
-        public SocketOptions SocketOptions
-        {
-            get { return socketOptions; }
-        }
-
-        /// <summary>
         /// Disposes of this <see cref="Client"/> instance.
         /// </summary>
         /// <param name="disposing">Whether this instance is being disposed.</param>
@@ -97,8 +77,7 @@ namespace NetSharp
         {
             if (disposing)
             {
-                cancellationTokenSource?.Dispose();
-                socket?.Dispose();
+                socket.Dispose();
             }
 
             base.Dispose(disposing);
@@ -117,6 +96,20 @@ namespace NetSharp
         /// <param name="endPoint">The remote endpoint with which a connection was lost.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void OnDisconnected(EndPoint endPoint) => Disconnected?.Invoke(endPoint);
+
+        /// <inheritdoc />
+        public event Action<EndPoint>? Connected;
+
+        /// <inheritdoc />
+        public event Action<EndPoint>? Disconnected;
+
+        /// <summary>
+        /// The configured socket options for the underlying connection.
+        /// </summary>
+        public SocketOptions SocketOptions
+        {
+            get { return socketOptions; }
+        }
 
         /// <summary>
         /// Disconnects the client from the remote endpoint.
@@ -149,41 +142,43 @@ namespace NetSharp
         public abstract Task<bool> SendSimpleAsync<Req>(Req request, TimeSpan timeout) where Req : IRequestPacket, new();
 
         /// <inheritdoc />
-        public async Task<bool> TryBindAsync(IPAddress? localAddress, int? localPort, TimeSpan timeout)
+        public Task<bool> TryBindAsync(IPAddress? localAddress, int? localPort, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
             EndPoint localEndPoint = new IPEndPoint(localAddress ?? IPAddress.Any, localPort ?? 0);
 
             try
             {
-                cancellationTokenSource.CancelAfter(timeout);
-
-                return await Task.Run(() =>
+                return Task.Run(() =>
                 {
                     socket.Bind(localEndPoint);
 
                     return true;
-                }, cancellationTokenSource.Token);
+                }, cts.Token);
             }
             catch (TaskCanceledException)
             {
-                return false;
+                return Task.FromResult(false);
             }
             catch (SocketException ex)
             {
                 logger.LogException($"Socket exception on binding socket to {localEndPoint}:", ex);
-                return false;
+                return Task.FromResult(false);
+            }
+            finally
+            {
+                cts.Dispose();
             }
         }
 
         /// <inheritdoc />
         public async Task<bool> TryConnectAsync(IPAddress remoteAddress, int remotePort, TimeSpan timeout)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(timeout);
             remoteEndPoint = new IPEndPoint(remoteAddress, remotePort);
 
             try
             {
-                cancellationTokenSource.CancelAfter(timeout);
-
                 return await Task.Run(async () =>
                 {
                     await socket.ConnectAsync(remoteEndPoint);
@@ -194,7 +189,7 @@ namespace NetSharp
                     OnConnected(SocketOptions.RemoteIPEndPoint);
 
                     return true;
-                }, cancellationTokenSource.Token);
+                }, cts.Token);
             }
             catch (TaskCanceledException)
             {
@@ -204,6 +199,10 @@ namespace NetSharp
             {
                 logger.LogException($"Socket exception on connection to {remoteEndPoint}:", ex);
                 return false;
+            }
+            finally
+            {
+                cts.Dispose();
             }
         }
     }

@@ -63,7 +63,7 @@ namespace NetSharp.Packets
         {
             Span<byte> serialisedType = buffer.Slice(sizeof(int), sizeof(uint)).Span;
             Span<byte> serialisedErrorCode = buffer.Slice(sizeof(int) + sizeof(uint), sizeof(uint)).Span;
-            Memory<byte> serialisedData = buffer.Slice(HeaderSize);
+            ReadOnlyMemory<byte> serialisedData = buffer.Slice(HeaderSize);
 
             return new Packet(serialisedData,
                 EndianAwareBitConverter.ToUInt32(serialisedType),

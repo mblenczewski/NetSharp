@@ -15,11 +15,10 @@ namespace NetSharpExamples
 {
     internal class Program
     {
+        private static int newtorkTimeout = 10;
         private static IPAddress serverAddress;
 
         private static int serverPort;
-
-        private static int newtorkTimeout = 1_000_000;
 
         private static async Task Main()
         {
@@ -61,7 +60,7 @@ namespace NetSharpExamples
         {
             TimeSpan socketTimeout = TimeSpan.FromSeconds(newtorkTimeout);
 
-            const int clientCount = 1;
+            const int clientCount = 10;
             const int sentPacketCount = 1_000_000;
 
             static Client ClientFactory()
@@ -134,7 +133,7 @@ namespace NetSharpExamples
                     {
                         Console.WriteLine("Socket could not be bound");
                     }
-                }, TaskCreationOptions.LongRunning).Result;
+                }, TaskCreationOptions.LongRunning);
             }
 
             Console.ReadLine();

@@ -17,15 +17,9 @@ namespace NetSharp.Servers
     public sealed class TcpServer : Server
     {
         /// <inheritdoc />
-        public TcpServer() : base(SocketType.Stream, ProtocolType.Tcp, SocketOptionManager.Tcp)
-        {
-        }
-
-        /// <inheritdoc />
-        protected override async Task HandleClientAsync(ClientHandlerArgs args)
+        protected override async Task HandleClientAsync(ClientHandlerArgs args, CancellationToken cancellationToken)
         {
             Socket clientHandlerSocket = args.ClientSocket ?? new Socket(SocketType.Unknown, ProtocolType.Unknown);
-
             EndPoint remoteEp = clientHandlerSocket.RemoteEndPoint;
 
             logger.LogMessage($"Initialised client handler for client socket: [Remote EP: {remoteEp}]");
@@ -35,12 +29,14 @@ namespace NetSharp.Servers
                 do
                 {
                     // receive a single raw packet from the network
-                    Packet rawRequest =
-                        await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None, Timeout.InfiniteTimeSpan);
+                    Packet rawRequest = await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None,
+                        Timeout.InfiniteTimeSpan, cancellationToken);
 
-                    if (rawRequest.Equals(NullPacket) || rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
+                    if (rawRequest.Equals(NullPacket) ||
+                        rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
                     {
-                        logger.LogMessage($"Received a disconnect packet from client socket: [Remote EP: {remoteEp}]");
+                        logger.LogMessage(
+                            $"Received a disconnect packet from client socket: [Remote EP: {remoteEp}]");
                         break;
                     }
 
@@ -65,36 +61,46 @@ namespace NetSharp.Servers
 
                     if (responsePacketType == null)
                     {
-                        logger.LogError($"Response packet type for request packet of type {requestPacketType} is null");
+                        logger.LogError(
+                            $"Response packet type for request packet of type {requestPacketType} is null");
                         continue;
                     }
 
                     uint responsePacketTypeId = PacketRegistry.GetPacketId(responsePacketType);
 
                     responsePacket.BeforeSerialisation();
-                    Packet rawResponse = new Packet(responsePacket.Serialise(), responsePacketTypeId, NetworkErrorCode.Ok);
+                    Packet rawResponse = new Packet(responsePacket.Serialise(), responsePacketTypeId,
+                        NetworkErrorCode.Ok);
 
                     // echo back the processed raw response to the network
-                    bool sentCorrectly =
-                        await DoSendPacketAsync(clientHandlerSocket, rawResponse, SocketFlags.None, DefaultNetworkOperationTimeout);
+                    bool sentCorrectly = await DoSendPacketAsync(clientHandlerSocket, rawResponse, SocketFlags.None,
+                        NetworkOperationTimeout, cancellationToken);
 
                     if (!sentCorrectly)
                     {
-                        logger.LogMessage($"Could not send response back to client socket: [Remote EP: {remoteEp}]");
+                        logger.LogMessage(
+                            $"Could not send response back to client socket: [Remote EP: {remoteEp}]");
                         break;
                     }
 
                     logger.LogMessage($"Sent {rawResponse.TotalSize} bytes to {remoteEp}");
                 } while (true);
-
+            }
+            finally
+            {
                 logger.LogMessage($"Stopping client handler for client socket: [Remote EP: {remoteEp}]");
             }
-            catch (TaskCanceledException) { logger.LogMessage("Client handling was cancelled via a task cancellation."); }
-            catch (OperationCanceledException) { logger.LogMessage("Client handling was cancelled via an operation cancellation."); }
-            catch (Exception ex)
-            {
-                logger.LogException("Exception during client socket handling:", ex);
-            }
+        }
+
+        /// <inheritdoc />
+        public TcpServer(TimeSpan networkOperationTimeout) : base(SocketType.Stream, ProtocolType.Tcp,
+            SocketOptionManager.Tcp, networkOperationTimeout)
+        {
+        }
+
+        /// <inheritdoc />
+        public TcpServer() : this(DefaultNetworkOperationTimeout)
+        {
         }
 
         /// <inheritdoc />
@@ -120,10 +126,8 @@ namespace NetSharp.Servers
                 Socket clientSocket = await socket.AcceptAsync();
                 ClientHandlerArgs args = ClientHandlerArgs.ForTcpClientHandler(in clientSocket);
 
-                await Task.Factory.StartNew(DoHandleClientAsync, args,
-                    serverShutdownCancellationTokenSource.Token,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Current);
+                await Task.Factory.StartNew(DoHandleClientAsync, args, serverShutdownCancellationToken,
+                    TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             OnServerStopped();

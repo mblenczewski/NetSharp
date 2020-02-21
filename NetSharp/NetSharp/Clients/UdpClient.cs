@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;

@@ -40,11 +40,6 @@ namespace NetSharp
     public abstract class Server : Connection, IServer, IDisposable
     {
         /// <summary>
-        /// Cancellation token source for the <see cref="TryBindAsync(IPAddress,int)"/> method.
-        /// </summary>
-        private readonly CancellationTokenSource bindSocketCancellationTokenSource;
-
-        /// <summary>
         /// Maps a packet type id to the complex packet handler for that packet type.
         /// </summary>
         private readonly ConcurrentDictionary<uint, Func<IRequestPacket, EndPoint, IResponsePacket<IRequestPacket>>>
@@ -57,39 +52,14 @@ namespace NetSharp
         private readonly ConcurrentDictionary<uint, RawRequestPacketDeserialiser> requestPacketDeserialisers;
 
         /// <summary>
+        /// Cancellation token source to stop handling client sockets when the server should be shut down.
+        /// </summary>
+        private readonly CancellationTokenSource serverShutdownCancellationTokenSource;
+
+        /// <summary>
         /// Maps a packet type id to the simple packet handler for that packet type.
         /// </summary>
         private readonly ConcurrentDictionary<uint, Action<IRequestPacket, EndPoint>> simplePacketHandlers;
-
-        /// <summary>
-        /// The maximum number of connections that are allowed in the connection backlog.
-        /// </summary>
-        protected const int PendingConnectionBacklog = 100;
-
-        /// <summary>
-        /// The default timeout value for all network operations.
-        /// </summary>
-        protected static readonly TimeSpan DefaultNetworkOperationTimeout = TimeSpan.FromMilliseconds(10_000);
-
-        /// <summary>
-        /// Cancellation token source to stop handling client sockets when the server should be shut down.
-        /// </summary>
-        protected readonly CancellationTokenSource serverShutdownCancellationTokenSource;
-
-        /// <summary>
-        /// The <see cref="Socket"/> underlying the connection.
-        /// </summary>
-        protected readonly Socket socket;
-
-        /// <summary>
-        /// Backing field for the <see cref="SocketOptions"/> property.
-        /// </summary>
-        protected readonly SocketOptions socketOptions;
-
-        /// <summary>
-        /// Whether the server should be ran.
-        /// </summary>
-        protected volatile bool runServer;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Server"/> class.
@@ -97,7 +67,8 @@ namespace NetSharp
         private Server()
         {
             serverShutdownCancellationTokenSource = new CancellationTokenSource();
-            bindSocketCancellationTokenSource = new CancellationTokenSource();
+
+            serverShutdownCancellationToken = serverShutdownCancellationTokenSource.Token;
 
             requestPacketDeserialisers = new ConcurrentDictionary<uint, RawRequestPacketDeserialiser>();
 
@@ -109,24 +80,6 @@ namespace NetSharp
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socketOptions = new DefaultSocketOptions(ref socket);
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="Server"/> class.
-        /// </summary>
-        /// <param name="socketType">The socket type for the underlying socket.</param>
-        /// <param name="protocolType">The protocol type for the underlying socket.</param>
-        /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager) : this()
-        {
-            socket = new Socket(AddressFamily.InterNetwork, socketType, protocolType);
-
-            socketOptions = socketManager switch
-            {
-                SocketOptionManager.Tcp => new TcpSocketOptions(ref socket) as SocketOptions,
-                SocketOptionManager.Udp => new UdpSocketOptions(ref socket) as SocketOptions,
-                _ => new DefaultSocketOptions(ref socket),
-            };
         }
 
         /// <summary>
@@ -143,35 +96,6 @@ namespace NetSharp
         /// <param name="rawPacket">The raw packet that was received from the network.</param>
         /// <returns>The deserialised instance of the packet.</returns>
         private delegate IRequestPacket RawRequestPacketDeserialiser(in Packet rawPacket);
-
-        /// <summary>
-        /// Signifies that a connection with a remote endpoint has been made.
-        /// </summary>
-        public event Action<EndPoint>? ClientConnected;
-
-        //protected IResponsePacket<IRequestPacket> DeserialiseResponsePacket(in Packet)
-        /// <summary>
-        /// Signifies that a connection with a remote endpoint has been lost.
-        /// </summary>
-        public event Action<EndPoint>? ClientDisconnected;
-
-        /// <summary>
-        /// Signifies that the server was started and clients will start being accepted.
-        /// </summary>
-        public event Action? ServerStarted;
-
-        /// <summary>
-        /// Signifies that the server was stopped and clients will stop being accepted.
-        /// </summary>
-        public event Action? ServerStopped;
-
-        /// <summary>
-        /// The configured socket options for the underlying connection.
-        /// </summary>
-        public SocketOptions SocketOptions
-        {
-            get { return socketOptions; }
-        }
 
         /// <summary>
         /// Registers packet handlers for every internal library packet.
@@ -211,6 +135,69 @@ namespace NetSharp
         }
 
         /// <summary>
+        /// The maximum number of connections that are allowed in the connection backlog.
+        /// </summary>
+        protected const int PendingConnectionBacklog = 100;
+
+        /// <summary>
+        /// The default timeout value for all network operations.
+        /// </summary>
+        protected static readonly TimeSpan DefaultNetworkOperationTimeout = TimeSpan.FromMilliseconds(10_000);
+
+        /// <summary>
+        /// The cancellation token that will be set when the server must be shut down.
+        /// </summary>
+        protected readonly CancellationToken serverShutdownCancellationToken;
+
+        /// <summary>
+        /// The <see cref="Socket"/> underlying the connection.
+        /// </summary>
+        protected readonly Socket socket;
+
+        /// <summary>
+        /// Backing field for the <see cref="SocketOptions"/> property.
+        /// </summary>
+        protected readonly SocketOptions socketOptions;
+
+        /// <summary>
+        /// Whether the server should be ran.
+        /// </summary>
+        protected volatile bool runServer;
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="Server"/> class.
+        /// </summary>
+        /// <param name="socketType">The socket type for the underlying socket.</param>
+        /// <param name="protocolType">The protocol type for the underlying socket.</param>
+        /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
+        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager)
+            : this(socketType, protocolType, socketManager, DefaultNetworkOperationTimeout)
+        {
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="Server"/> class.
+        /// </summary>
+        /// <param name="socketType">The socket type for the underlying socket.</param>
+        /// <param name="protocolType">The protocol type for the underlying socket.</param>
+        /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
+        /// <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
+        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager,
+            TimeSpan networkOperationTimeout) : this()
+        {
+            socket = new Socket(AddressFamily.InterNetwork, socketType, protocolType);
+
+            socketOptions = socketManager switch
+            {
+                SocketOptionManager.Tcp => new TcpSocketOptions(ref socket) as SocketOptions,
+                SocketOptionManager.Udp => new UdpSocketOptions(ref socket) as SocketOptions,
+                _ => new DefaultSocketOptions(ref socket),
+            };
+
+            NetworkOperationTimeout = networkOperationTimeout;
+        }
+
+        /// <summary>
         /// Deserialises the given <see cref="Packet"/> struct into an <see cref="IRequestPacket"/> implementor.
         /// </summary>
         /// <param name="packetType">The type id of packet that we should deserialise to.</param>
@@ -237,8 +224,8 @@ namespace NetSharp
         {
             if (disposing)
             {
-                bindSocketCancellationTokenSource?.Cancel();
-                bindSocketCancellationTokenSource?.Dispose();
+                serverShutdownCancellationTokenSource?.Cancel();
+                serverShutdownCancellationTokenSource?.Dispose();
 
                 socket.Dispose();
             }
@@ -256,10 +243,10 @@ namespace NetSharp
 
             try
             {
-                await HandleClientAsync(clientHandlerArgs);
+                await HandleClientAsync(clientHandlerArgs, serverShutdownCancellationTokenSource.Token);
             }
-            catch (TaskCanceledException) { logger.LogMessage("Client handling was cancelled via a task cancellation."); }
-            catch (OperationCanceledException) { logger.LogMessage("Client handling was cancelled via an operation cancellation."); }
+            catch (TaskCanceledException) { logger.LogWarning("Client handling was cancelled via a task cancellation."); }
+            catch (OperationCanceledException) { logger.LogWarning("Client handling was cancelled via an operation cancellation."); }
             catch (Exception ex)
             {
                 logger.LogException("Exception during client handling", ex);
@@ -282,7 +269,8 @@ namespace NetSharp
         /// Handles a new client asynchronously.
         /// </summary>
         /// <param name="args">The client handler arguments that should be passed to the client handler.</param>
-        protected abstract Task HandleClientAsync(ClientHandlerArgs args);
+        /// <param name="cancellationToken">Cancellation token set when the server is shutting down.</param>
+        protected abstract Task HandleClientAsync(ClientHandlerArgs args, CancellationToken cancellationToken);
 
         /// <summary>
         /// Handles the given request packet with a registered packet handler. In this case, a complex packet handler
@@ -312,9 +300,9 @@ namespace NetSharp
                     return null;
                 }
 
-                #if DEBUG
+#if DEBUG
                 logger.LogWarning($"No packet handler was registered for packet of type {packetType}");
-                #endif
+#endif
             }
             catch (Exception ex)
             {
@@ -411,16 +399,18 @@ namespace NetSharp
         /// <returns>Whether the binding was successful or not.</returns>
         protected async Task<bool> TryBindAsync(EndPoint localEndPoint, TimeSpan timeout)
         {
+            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            CancellationTokenSource cts =
+                CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, serverShutdownCancellationToken);
+
             try
             {
-                bindSocketCancellationTokenSource.CancelAfter(timeout);
-
                 return await Task.Run(() =>
                 {
                     socket.Bind(localEndPoint);
 
                     return true;
-                }, bindSocketCancellationTokenSource.Token);
+                }, cts.Token);
             }
             catch (TaskCanceledException)
             {
@@ -431,6 +421,91 @@ namespace NetSharp
                 logger.LogException($"Socket exception on binding socket to {localEndPoint}:", ex);
                 return false;
             }
+            finally
+            {
+                cts.Dispose();
+                timeoutCancellationTokenSource.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Holds information about the arguments passed to every client handler task.
+        /// </summary>
+        protected readonly struct ClientHandlerArgs
+        {
+            /// <summary>
+            /// Initialises a new instance of the <see cref="ClientHandlerArgs"/> struct.
+            /// </summary>
+            /// <param name="remoteEndPoint">The remote endpoint of the client that should be handled.</param>
+            /// <param name="handlerSocket">The handler socket of the client that should be handled.</param>
+            private ClientHandlerArgs(EndPoint remoteEndPoint, Socket? handlerSocket)
+            {
+                ClientEndPoint = remoteEndPoint;
+
+                ClientSocket = handlerSocket;
+            }
+
+            /// <summary>
+            /// The remote endpoint for the client being handled.
+            /// </summary>
+            public readonly EndPoint ClientEndPoint;
+
+            /// <summary>
+            /// The client handler socket for the client being handled. Is only set if using TCP.
+            /// </summary>
+            public readonly Socket? ClientSocket;
+
+            /// <summary>
+            /// Constructs a new instance of the <see cref="ClientHandlerArgs"/> for a TCP client.
+            /// </summary>
+            /// <returns>A new instance of the <see cref="ClientHandlerArgs"/>, setup for a TCP client.</returns>
+            public static ClientHandlerArgs ForTcpClientHandler(in Socket clientHandlerSocket)
+            {
+                return new ClientHandlerArgs(clientHandlerSocket.RemoteEndPoint, clientHandlerSocket);
+            }
+
+            /// <summary>
+            /// Constructs a new instance of the <see cref="ClientHandlerArgs"/> for a UDP client.
+            /// </summary>
+            /// <returns>A new instance of the <see cref="ClientHandlerArgs"/>, setup for a UDP client.</returns>
+            public static ClientHandlerArgs ForUdpClientHandler(in EndPoint clientEndPoint)
+            {
+                return new ClientHandlerArgs(clientEndPoint, null);
+            }
+        }
+
+        /// <summary>
+        /// Signifies that a connection with a remote endpoint has been made.
+        /// </summary>
+        public event Action<EndPoint>? ClientConnected;
+
+        //protected IResponsePacket<IRequestPacket> DeserialiseResponsePacket(in Packet)
+        /// <summary>
+        /// Signifies that a connection with a remote endpoint has been lost.
+        /// </summary>
+        public event Action<EndPoint>? ClientDisconnected;
+
+        /// <summary>
+        /// Signifies that the server was started and clients will start being accepted.
+        /// </summary>
+        public event Action? ServerStarted;
+
+        /// <summary>
+        /// Signifies that the server was stopped and clients will stop being accepted.
+        /// </summary>
+        public event Action? ServerStopped;
+
+        /// <summary>
+        /// The timeout value for network operations such as sending bytes or receiving bytes over the network.
+        /// </summary>
+        public TimeSpan NetworkOperationTimeout { get; protected set; }
+
+        /// <summary>
+        /// The configured socket options for the underlying connection.
+        /// </summary>
+        public SocketOptions SocketOptions
+        {
+            get { return socketOptions; }
         }
 
         /// <inheritdoc />
@@ -571,52 +646,6 @@ namespace NetSharp
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// Holds information about the arguments passed to every client handler task.
-        /// </summary>
-        protected readonly struct ClientHandlerArgs
-        {
-            /// <summary>
-            /// The remote endpoint for the client being handled.
-            /// </summary>
-            public readonly EndPoint ClientEndPoint;
-
-            /// <summary>
-            /// The client handler socket for the client being handled. Is only set if using TCP.
-            /// </summary>
-            public readonly Socket? ClientSocket;
-
-            /// <summary>
-            /// Initialises a new instance of the <see cref="ClientHandlerArgs"/> struct.
-            /// </summary>
-            /// <param name="remoteEndPoint">The remote endpoint of the client that should be handled.</param>
-            /// <param name="handlerSocket">The handler socket of the client that should be handled.</param>
-            private ClientHandlerArgs(EndPoint remoteEndPoint, Socket? handlerSocket)
-            {
-                ClientEndPoint = remoteEndPoint;
-
-                ClientSocket = handlerSocket;
-            }
-
-            /// <summary>
-            /// Constructs a new instance of the <see cref="ClientHandlerArgs"/> for a TCP client.
-            /// </summary>
-            /// <returns>A new instance of the <see cref="ClientHandlerArgs"/>, setup for a TCP client.</returns>
-            public static ClientHandlerArgs ForTcpClientHandler(in Socket clientHandlerSocket)
-            {
-                return new ClientHandlerArgs(clientHandlerSocket.RemoteEndPoint, clientHandlerSocket);
-            }
-
-            /// <summary>
-            /// Constructs a new instance of the <see cref="ClientHandlerArgs"/> for a UDP client.
-            /// </summary>
-            /// <returns>A new instance of the <see cref="ClientHandlerArgs"/>, setup for a UDP client.</returns>
-            public static ClientHandlerArgs ForUdpClientHandler(in EndPoint clientEndPoint)
-            {
-                return new ClientHandlerArgs(clientEndPoint, null);
-            }
         }
     }
 }

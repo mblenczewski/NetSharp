@@ -34,7 +34,7 @@ namespace NetSharp.Logging
     /// <summary>
     /// A simple logger capable of writing text to a stream.
     /// </summary>
-    public struct Logger : IDisposable
+    public readonly struct Logger : IDisposable
     {
         /// <summary>
         /// The stream to which messages will be logged.
@@ -42,25 +42,26 @@ namespace NetSharp.Logging
         private readonly Stream loggingStream;
 
         /// <summary>
+        /// The minimum severity that log messages need to be logged to the underlying stream.
+        /// </summary>
+        private readonly LogLevel minimumSeverity;
+
+        /// <summary>
         /// The text writer we will use to log messages to the underlying stream.
         /// </summary>
         private readonly StreamWriter writer;
 
         /// <summary>
-        /// The minimum severity that log messages need to be logged to the underlying stream.
-        /// </summary>
-        private LogLevel minimumSeverity;
-
-        /// <summary>
         /// Initialises a new instance of the <see cref="Logger"/> struct.
         /// </summary>
-        /// <param name="streamToLogTo">The stream that the logger instance should log messages to.</param>
-        public Logger(Stream streamToLogTo)
+        /// <param name="outputStream">The stream that the logger instance should log messages to.</param>
+        /// <param name="minimumLogSeverity">The minimum log level that will be logged to the output stream.</param>
+        public Logger(Stream outputStream, LogLevel minimumLogSeverity = LogLevel.Info)
         {
-            loggingStream = streamToLogTo;
+            loggingStream = outputStream;
             writer = new StreamWriter(loggingStream, Encoding.Default) { AutoFlush = true };
 
-            minimumSeverity = LogLevel.Info;
+            minimumSeverity = minimumLogSeverity;
         }
 
         /// <inheritdoc />
@@ -189,11 +190,5 @@ namespace NetSharp.Logging
         /// </summary>
         /// <param name="message">The warning that should be logged.</param>
         public async Task LogWarningAsync(string message) => await LogAsync(message, null, LogLevel.Warn);
-
-        /// <summary>
-        /// Sets the minimum severity level that new messages need to be logged to the underlying stream.
-        /// </summary>
-        /// <param name="minimumSeverityLevel">The new minimum severity level.</param>
-        public void SetMinimumLogSeverity(LogLevel minimumSeverityLevel) => minimumSeverity = minimumSeverityLevel;
     }
 }
