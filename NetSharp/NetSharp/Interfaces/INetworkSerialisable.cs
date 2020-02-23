@@ -17,6 +17,6 @@ namespace NetSharp.Interfaces
         /// Serialises the object instance into a byte array.
         /// </summary>
         /// <returns>The memory containing the serialised object instance.</returns>
-        ReadOnlyMemory<byte> Serialise();
+        Memory<byte> Serialise();
     }
 }

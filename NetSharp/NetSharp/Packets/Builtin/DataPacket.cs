@@ -12,7 +12,7 @@ namespace NetSharp.Packets.Builtin
         /// <summary>
         /// The data that should be transferred across the network.
         /// </summary>
-        public ReadOnlyMemory<byte> RequestBuffer;
+        public Memory<byte> RequestBuffer;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="DataPacket"/> class.
@@ -26,7 +26,7 @@ namespace NetSharp.Packets.Builtin
         /// Initialises a new instance of the <see cref="DataPacket"/> class.
         /// </summary>
         /// <param name="buffer">The data that this request packet should contain.</param>
-        public DataPacket(ReadOnlyMemory<byte> buffer)
+        public DataPacket(Memory<byte> buffer)
         {
             RequestBuffer = buffer;
         }
@@ -44,11 +44,11 @@ namespace NetSharp.Packets.Builtin
         /// <inheritdoc />
         public void Deserialise(ReadOnlyMemory<byte> serialisedObject)
         {
-            RequestBuffer = serialisedObject;
+            RequestBuffer = serialisedObject.ToArray();
         }
 
         /// <inheritdoc />
-        public ReadOnlyMemory<byte> Serialise()
+        public Memory<byte> Serialise()
         {
             return RequestBuffer;
         }

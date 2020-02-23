@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -30,13 +31,13 @@ namespace NetSharp.Servers
         /// <summary>
         /// Holds currently connected and active clients, as well as their current received packet queues.
         /// </summary>
-        private readonly ConcurrentDictionary<EndPoint, Channel<Packet>> activeClients;
+        private readonly ConcurrentDictionary<EndPoint, Channel<SerialisedPacket>> activeClients;
 
         /// <inheritdoc />
         protected override async Task HandleClientAsync(ClientHandlerArgs args, CancellationToken cancellationToken)
         {
             EndPoint clientEndPoint = args.ClientEndPoint;
-            Channel<Packet> clientPacketBuffer = activeClients[clientEndPoint];
+            Channel<SerialisedPacket> clientPacketBuffer = activeClients[clientEndPoint];
 
             logger.LogMessage($"Initialised client handler for client socket: [Remote EP: {clientEndPoint}]");
 
@@ -45,9 +46,9 @@ namespace NetSharp.Servers
                 do
                 {
                     // receive a single raw packet from the network
-                    Packet rawRequest = await clientPacketBuffer.Reader.ReadAsync(cancellationToken);
+                    SerialisedPacket rawRequest = await clientPacketBuffer.Reader.ReadAsync(cancellationToken);
 
-                    if (rawRequest.Equals(NullPacket) ||
+                    if (rawRequest.Equals(SerialisedPacket.Null) ||
                         rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
                     {
                         logger.LogMessage(
@@ -59,29 +60,32 @@ namespace NetSharp.Servers
                     Type requestPacketType = PacketRegistry.GetPacketType(rawRequest.Type);
 
                     // the request packet is only null if no packet handler was registered for it
-                    if (requestPacket == null) continue;
+                    if (requestPacket == default) continue;
+
+                    logger.LogMessage($"Received {rawRequest.Contents.Length} bytes from {clientEndPoint}");
+
+                    logger.LogMessage($"Received request: {Encoding.UTF8.GetString(rawRequest.Contents.Span)}");
 
                     IResponsePacket<IRequestPacket>? responsePacket =
                         HandleRequestPacket(rawRequest.Type, requestPacket, clientEndPoint);
 
                     // the response packet is only null if the given request packet was registered as a 'simple' request packet
-                    if (responsePacket == null) continue;
+                    if (responsePacket == default) continue;
 
                     Type? responsePacketType =
                         PacketRegistry.GetResponsePacketType(requestPacketType);
 
-                    if (responsePacketType == null)
+                    if (responsePacketType == default)
                     {
                         logger.LogError(
                             $"Response packet type for request packet of type {requestPacketType} is null");
                         continue;
                     }
 
-                    uint responsePacketTypeId = PacketRegistry.GetPacketId(responsePacketType);
-
-                    responsePacket.BeforeSerialisation();
-                    Packet rawResponse = new Packet(responsePacket.Serialise(), responsePacketTypeId,
-                        NetworkErrorCode.Ok);
+                    SerialisedPacket rawResponse = SerialisedPacket.From(responsePacket);
+                    // uint responsePacketTypeId = PacketRegistry.GetPacketId(responsePacketType);
+                    // responsePacket.BeforeSerialisation();
+                    // SerialisedPacket rawResponse = new SerialisedPacket(responsePacket.Serialise(), responsePacketTypeId);
 
                     // echo back the processed raw response to the network
                     bool sentCorrectly = await DoSendPacketToAsync(socket, clientEndPoint, rawResponse, SocketFlags.None,
@@ -91,7 +95,6 @@ namespace NetSharp.Servers
                     {
                         logger.LogWarning(
                             $"Could not send response back to client socket: [Remote EP: {clientEndPoint}]");
-                        break;
                     }
                 } while (true);
             }
@@ -99,7 +102,7 @@ namespace NetSharp.Servers
             {
                 logger.LogMessage($"Stopping client handler for client socket: [Remote EP: {clientEndPoint}]");
 
-                if (activeClients.TryRemove(clientEndPoint, out Channel<Packet> packetChannel))
+                if (activeClients.TryRemove(clientEndPoint, out Channel<SerialisedPacket> packetChannel))
                 {
                     packetChannel.Writer.Complete();
                     logger.LogMessage(
@@ -117,7 +120,7 @@ namespace NetSharp.Servers
         public UdpServer(TimeSpan networkOperationTimeout) : base(SocketType.Dgram, ProtocolType.Udp, SocketOptionManager.Udp,
             networkOperationTimeout)
         {
-            activeClients = new ConcurrentDictionary<EndPoint, Channel<Packet>>();
+            activeClients = new ConcurrentDictionary<EndPoint, Channel<SerialisedPacket>>();
         }
 
         /// <inheritdoc />
@@ -128,7 +131,7 @@ namespace NetSharp.Servers
         /// <inheritdoc />
         public override async Task RunAsync(EndPoint localEndPoint)
         {
-            bool bound = await TryBindAsync(localEndPoint);
+            bool bound = await TryBindAsync(localEndPoint, Timeout.InfiniteTimeSpan);
 
             if (!bound)
             {
@@ -142,12 +145,12 @@ namespace NetSharp.Servers
             while (runServer)
             {
                 EndPoint nullEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                (Packet request, TransmissionResult packetResult) =
+                (SerialisedPacket request, EndPoint remoteEndPoint) =
                     await DoReceivePacketFromAsync(socket, nullEndPoint, SocketFlags.None, Timeout.InfiniteTimeSpan,
                         serverShutdownCancellationToken);
-                EndPoint clientEndPoint = packetResult.RemoteEndPoint;
+                EndPoint clientEndPoint = remoteEndPoint;
 
-                if (request.Equals(NullPacket) || packetResult.Equals(NullTransmissionResult))
+                if (request.Equals(SerialisedPacket.Null))
                 {
                     continue;
                 }
@@ -156,7 +159,7 @@ namespace NetSharp.Servers
                 {
                     ClientHandlerArgs args = ClientHandlerArgs.ForUdpClientHandler(in clientEndPoint);
 
-                    activeClients.TryAdd(clientEndPoint, Channel.CreateUnbounded<Packet>(clientChannelOptions));
+                    activeClients.TryAdd(clientEndPoint, Channel.CreateUnbounded<SerialisedPacket>(clientChannelOptions));
 
                     await Task.Factory.StartNew(DoHandleClientAsync, args, serverShutdownCancellationToken,
                         TaskCreationOptions.LongRunning, TaskScheduler.Default);

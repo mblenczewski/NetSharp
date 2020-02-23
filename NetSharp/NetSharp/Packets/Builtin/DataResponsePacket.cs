@@ -12,7 +12,7 @@ namespace NetSharp.Packets.Builtin
         /// <summary>
         /// The data that should be transferred across the network.
         /// </summary>
-        public ReadOnlyMemory<byte> ResponseBuffer;
+        public Memory<byte> ResponseBuffer;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="DataResponsePacket"/> class.
@@ -26,7 +26,7 @@ namespace NetSharp.Packets.Builtin
         /// Initialises a new instance of the <see cref="DataResponsePacket"/> class.
         /// </summary>
         /// <param name="buffer">The data that this response packet should contain.</param>
-        public DataResponsePacket(ReadOnlyMemory<byte> buffer)
+        public DataResponsePacket(Memory<byte> buffer)
         {
             ResponseBuffer = buffer;
         }
@@ -47,11 +47,11 @@ namespace NetSharp.Packets.Builtin
         /// <inheritdoc />
         public void Deserialise(ReadOnlyMemory<byte> serialisedObject)
         {
-            ResponseBuffer = serialisedObject;
+            ResponseBuffer = serialisedObject.ToArray();
         }
 
         /// <inheritdoc />
-        public ReadOnlyMemory<byte> Serialise()
+        public Memory<byte> Serialise()
         {
             return ResponseBuffer;
         }

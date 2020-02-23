@@ -25,9 +25,9 @@ namespace NetSharp.Packets.Builtin
         }
 
         /// <inheritdoc />
-        public ReadOnlyMemory<byte> Serialise()
+        public Memory<byte> Serialise()
         {
-            return ReadOnlyMemory<byte>.Empty;
+            return Memory<byte>.Empty;
         }
     }
 }

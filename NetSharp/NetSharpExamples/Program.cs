@@ -15,7 +15,7 @@ namespace NetSharpExamples
 {
     internal class Program
     {
-        private static int newtorkTimeout = 10;
+        private static int newtorkTimeout = 1_000_000;
         private static IPAddress serverAddress;
 
         private static int serverPort;
@@ -60,7 +60,7 @@ namespace NetSharpExamples
         {
             TimeSpan socketTimeout = TimeSpan.FromSeconds(newtorkTimeout);
 
-            const int clientCount = 10;
+            const int clientCount = 1;
             const int sentPacketCount = 1_000_000;
 
             static Client ClientFactory()
@@ -73,6 +73,8 @@ namespace NetSharpExamples
                 await Task.Factory.StartNew(async () =>
                 {
                     using Client client = ClientFactory();
+
+                    client.ChangeLoggingStream(Console.OpenStandardOutput(), LogLevel.Warn);
 
                     if (await client.TryBindAsync(null, null, socketTimeout))
                     {
@@ -99,7 +101,7 @@ namespace NetSharpExamples
 
                                 //Console.WriteLine($"[{j}] Sent message to server.");
 
-                                //byte[] response = await client.SendBytesWithResponseAsync(message);
+                                //byte[] response = await client.SendBytesWithResponseAsync(message, socketTimeout);
                                 //Console.WriteLine($"[{j}] Received response: {Encoding.UTF8.GetString(response)}");
 
                                 //await Task.Delay(new Random(DateTime.Now.Millisecond).Next(200, 500));

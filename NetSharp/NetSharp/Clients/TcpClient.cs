@@ -41,13 +41,13 @@ namespace NetSharp.Clients
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
             request.BeforeSerialisation();
-            ReadOnlyMemory<byte> serialisedRequest = request.Serialise();
-            Packet rawRequest = new Packet(serialisedRequest, packetTypeId, NetworkErrorCode.Ok);
+            Memory<byte> serialisedRequest = request.Serialise();
+            SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
             await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
 
-            Packet rawResponsePacket = await DoReceivePacketAsync(socket, SocketFlags.None, timeout);
+            SerialisedPacket rawResponsePacket = await DoReceivePacketAsync(socket, SocketFlags.None, timeout);
             Rep responsePacket = new Rep();
-            responsePacket.Deserialise(rawResponsePacket.Buffer);
+            responsePacket.Deserialise(rawResponsePacket.Contents);
             responsePacket.AfterDeserialisation();
 
             return responsePacket;
@@ -59,8 +59,8 @@ namespace NetSharp.Clients
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
             request.BeforeSerialisation();
-            ReadOnlyMemory<byte> serialisedRequest = request.Serialise();
-            Packet rawRequest = new Packet(serialisedRequest, packetTypeId, NetworkErrorCode.Ok);
+            Memory<byte> serialisedRequest = request.Serialise();
+            SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
             return await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
         }
     }

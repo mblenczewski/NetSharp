@@ -139,16 +139,6 @@
             Base class for connections, holding methods shared between the <see cref="T:NetSharp.Client"/> and <see cref="T:NetSharp.Server"/> classes.
             </summary>
         </member>
-        <member name="F:NetSharp.Connection.NullPacket">
-            <summary>
-            Represents a packet that was not received correctly.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.NullTransmissionResult">
-            <summary>
-            Represents a transmission result of an incorrect transmission.
-            </summary>
-        </member>
         <member name="F:NetSharp.Connection.logger">
             <summary>
             The logger to which the server can log messages.
@@ -169,13 +159,13 @@
             <summary>
             Listens for a packet to be received from the network.
             </summary>
-            <param name="remoteSocket">The remote socket from which to receive data.</param>
+            <param name="socket">The remote socket from which to receive data.</param>
             <param name="socketFlags">The socket flags associated with the read operation.</param>
             <param name="timeout">
             The timespan within which the packet should be received. After this timespan elapses, the receive task is cancelled.
             </param>
             <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-            <returns>The packet that was received. <see cref="F:NetSharp.Connection.NullPacket"/> if not received correctly.</returns>
+            <returns>The packet that was received. <see cref="!:NullPacket"/> if not received correctly.</returns>
         </member>
         <member name="M:NetSharp.Connection.DoReceivePacketFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
@@ -189,10 +179,10 @@
             </param>
             <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
             <returns>
-            The packet that was received and the associated transmission result. <see cref="F:NetSharp.Connection.NullPacket"/> if not received correctly.
+            The packet that was received and the associated transmission result. <see cref="!:NullPacket"/> if not received correctly.
             </returns>
         </member>
-        <member name="M:NetSharp.Connection.DoSendPacketAsync(System.Net.Sockets.Socket,NetSharp.Packets.Packet,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Connection.DoSendPacketAsync(System.Net.Sockets.Socket,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
             Sends the given packet to the network.
             </summary>
@@ -205,7 +195,7 @@
             <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
             <returns>Whether the packet was successfully sent.</returns>
         </member>
-        <member name="M:NetSharp.Connection.DoSendPacketToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.Packet,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Connection.DoSendPacketToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
             Sends the given packet to the network.
             </summary>
@@ -469,6 +459,86 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="localAddress">The local IP address to bind to.</param>
             <param name="localPort">The local port to bind to.</param>
+        </member>
+        <member name="T:NetSharp.Extensions.SocketExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:System.Net.Sockets.Socket"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
+            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveFromAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
+            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveFromAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveMessageFromAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
+            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveMessageFromAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketExtensions.SendAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
+            <inheritdoc cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketExtensions.SendToAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
+            <inheritdoc cref="M:System.Net.Sockets.Socket.SendToAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
+        </member>
+        <member name="T:NetSharp.Extensions.SocketTask">
+            <summary>
+            Custom awaitable to ease the use of sockets with the TAP pattern.
+            Credit goes to https://devblogs.microsoft.com/pfxteam/awaiting-socket-operations/.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Extensions.SocketTask.SentinelAction">
+            <summary>
+            Representing a null action.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Extensions.SocketTask.continuationAction">
+            <summary>
+            The action that should be invoked upon the completion of the socket task.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Extensions.SocketTask.eventArgs">
+            <summary>
+            The underlying socket event args for this socket task.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Extensions.SocketTask.wasCompleted">
+            <summary>
+            Whether this socket task was completed.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketTask.Reset">
+            <summary>
+            Resets this socket task to its default state, and sets <see cref="F:NetSharp.Extensions.SocketTask.continuationAction"/> to <c>default</c>.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketTask.#ctor(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Extensions.SocketTask"/> class.
+            </summary>
+            <param name="asyncEventArgs">The socket event args that this socket task should wrap. Must not be <c>null</c>.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown if the given <paramref name="asyncEventArgs"/> were <c>null</c>.</exception>
+        </member>
+        <member name="P:NetSharp.Extensions.SocketTask.IsCompleted">
+            <summary>
+            Whether this socket task has been completed.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketTask.GetAwaiter">
+            <summary>
+            Returns this socket task instance.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketTask.GetResult">
+            <summary>
+            Throws a <see cref="T:System.Net.Sockets.SocketException"/> if the wrapped <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.SocketError"/>
+            is not equal to <see cref="F:System.Net.Sockets.SocketError.Success"/>.
+            </summary>
+            <exception cref="T:System.Net.Sockets.SocketException">
+            Thrown if the wrapped <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> did not complete successfully.
+            </exception>
+        </member>
+        <member name="M:NetSharp.Extensions.SocketTask.OnCompleted(System.Action)">
+            <inheritdoc />
         </member>
         <member name="T:NetSharp.Interfaces.IClient">
             <summary>
@@ -859,7 +929,7 @@
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataPacket"/> class.
             </summary>
         </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.#ctor(System.ReadOnlyMemory{System.Byte})">
+        <member name="M:NetSharp.Packets.Builtin.DataPacket.#ctor(System.Memory{System.Byte})">
             <summary>
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataPacket"/> class.
             </summary>
@@ -892,7 +962,7 @@
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataResponsePacket"/> class.
             </summary>
         </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.#ctor(System.ReadOnlyMemory{System.Byte})">
+        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.#ctor(System.Memory{System.Byte})">
             <summary>
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataResponsePacket"/> class.
             </summary>
@@ -982,7 +1052,7 @@
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.SimpleDataPacket"/> class.
             </summary>
         </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.#ctor(System.ReadOnlyMemory{System.Byte})">
+        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.#ctor(System.Memory{System.Byte})">
             <summary>
             Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.SimpleDataPacket"/> class.
             </summary>
@@ -1015,63 +1085,92 @@
             A generic error occurred during packet transmission.
             </summary>
         </member>
-        <member name="T:NetSharp.Packets.Packet">
+        <member name="T:NetSharp.Packets.NetworkPacket">
             <summary>
-            Represents a packet that is transmitted over the network.
+            Represents a low-level packet that is transmitted over the network.
             </summary>
         </member>
-        <member name="F:NetSharp.Packets.Packet.HeaderSize">
+        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacketHeader,NetSharp.Packets.NetworkPacketFooter)">
             <summary>
-            The size of the packet header in bytes.
+            Initialises a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
+            </summary>
+            <param name="data">The data that should be transmitted in the packet.</param>
+            <param name="header">The header for the packet.</param>
+            <param name="footer">The footer for the packet.</param>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacket.PacketSize">
+            <summary>
+            The size of each packet, including its header, footer, and data segment.
             </summary>
         </member>
-        <member name="F:NetSharp.Packets.Packet.Buffer">
+        <member name="F:NetSharp.Packets.NetworkPacket.DataSegmentSize">
+            <summary>
+            The number of bytes allocated in each packet for user data.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacket.FooterSize">
+            <summary>
+            The number of bytes taken up in each packet by its footer.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacket.HeaderSize">
+            <summary>
+            The number of bytes taken up in each packet by its header.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacket.DataBuffer">
             <summary>
             The data held in this packet.
             </summary>
         </member>
-        <member name="F:NetSharp.Packets.Packet.Count">
+        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},System.Int32,System.UInt32,NetSharp.Packets.NetworkErrorCode,System.Boolean)">
             <summary>
-            The size of the packet's data.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.Packet.ErrorCode">
-            <summary>
-            The error code for this packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.Packet.Type">
-            <summary>
-            The packet type.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Packet.#ctor(System.ReadOnlyMemory{System.Byte},System.UInt32,NetSharp.Packets.NetworkErrorCode)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Packet"/> struct.
+            Initialises a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
             </summary>
             <param name="data">The data that should be transmitted in the packet.</param>
+            <param name="dataLength">The number of bytes that are held in the given data buffer.</param>
             <param name="type">The packet type.</param>
             <param name="errorCode">The error code associated with this transmission.</param>
+            <param name="hasSucceedingPacket">Whether this packet has a succeeding packet in the packet chain.</param>
         </member>
-        <member name="P:NetSharp.Packets.Packet.TotalSize">
-            <summary>
-            Returns the total size of the serialised packet (including the header) in bytes.
-            </summary>
-            <returns>The total size of the serialised packet (including the header) in bytes.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.Packet.Deserialise(System.Memory{System.Byte})">
+        <member name="M:NetSharp.Packets.NetworkPacket.Deserialise(System.Memory{System.Byte})">
             <summary>
             Deserialises the given buffer into a packet instance.
             </summary>
             <param name="buffer">The byte buffer to serialise.</param>
             <returns>The deserialised packet instance.</returns>
         </member>
-        <member name="M:NetSharp.Packets.Packet.Serialise(NetSharp.Packets.Packet)">
+        <member name="M:NetSharp.Packets.NetworkPacket.Serialise(NetSharp.Packets.NetworkPacket)">
             <summary>
             Serialises the given packet instance into a single byte buffer.
             </summary>
             <param name="instance">The packet instance to serialise.</param>
             <returns>The byte buffer that represents the packet instance.</returns>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacketFooter.Size">
+            <summary>
+            The number of bytes taken up by a packet footer.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacketHeader.Size">
+            <summary>
+            The number of bytes taken up by a packet header.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacketHeader.DataLength">
+            <summary>
+            The number of bytes of data held in the packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacketHeader.ErrorCode">
+            <summary>
+            The error code for this packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacketHeader.Type">
+            <summary>
+            The packet type.
+            </summary>
         </member>
         <member name="T:NetSharp.Packets.PacketRegistry">
             <summary>
@@ -1107,11 +1206,6 @@
         <member name="F:NetSharp.Packets.PacketRegistry.currentAutomaticPacketTypeIdCounter">
             <summary>
             The current id for registered packets.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.#cctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.PacketRegistry"/> class.
             </summary>
         </member>
         <member name="M:NetSharp.Packets.PacketRegistry.GetNewPacketTypeId(System.Type)">
@@ -1215,6 +1309,11 @@
             The response packet type can be null; then the request packet type is treated as a 'simple' packet.
             </param>
         </member>
+        <member name="M:NetSharp.Packets.PacketRegistry.#cctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Packets.PacketRegistry"/> class.
+            </summary>
+        </member>
         <member name="T:NetSharp.Packets.PacketTypeIdAttribute">
             <summary>
             Allows the placing of a custom packet type on a class or struct. This is used if the class or struct
@@ -1231,6 +1330,24 @@
             <summary>
             The custom type id that the decorated packet type should have. This overrides the automatically generated id.
             </summary>
+        </member>
+        <member name="M:NetSharp.Packets.SerialisedPacket.From``1(``0)">
+            <summary>
+            Serialises the given serialisable packet instance and returns the <see cref="T:NetSharp.Packets.SerialisedPacket"/> instance
+            that was generated. This method invokes <see cref="M:NetSharp.Interfaces.IPacket.BeforeSerialisation"/>.
+            </summary>
+            <typeparam name="T">The packet type that will be serialised.</typeparam>
+            <param name="serialisable">The packet instance that should be serialised.</param>
+            <returns>The serialised instance.</returns>
+        </member>
+        <member name="M:NetSharp.Packets.SerialisedPacket.To``1(NetSharp.Packets.SerialisedPacket@)">
+            <summary>
+            Deserialises and returns a packet instance of the given type from the <see cref="T:NetSharp.Packets.SerialisedPacket"/> instance
+            that was given. This method invokes <see cref="M:NetSharp.Interfaces.IPacket.AfterDeserialisation"/>.
+            </summary>
+            <typeparam name="T">The packet type to which the packet should be deserialised.</typeparam>
+            <param name="instance">The serialised packet instance that should be deserialised.</param>
+            <returns>The deserialised instance.</returns>
         </member>
         <member name="T:NetSharp.ComplexPacketHandler`2">
             <summary>
@@ -1347,9 +1464,9 @@
             <param name="socketManager">The <see cref="T:NetSharp.Utils.Socket_Options.SocketOptions"/> manager to use.</param>
             <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
         </member>
-        <member name="M:NetSharp.Server.DeserialiseRequestPacket(System.UInt32,NetSharp.Packets.Packet@)">
+        <member name="M:NetSharp.Server.DeserialiseRequestPacket(System.UInt32,NetSharp.Packets.SerialisedPacket@)">
             <summary>
-            Deserialises the given <see cref="T:NetSharp.Packets.Packet"/> struct into an <see cref="T:NetSharp.Interfaces.IRequestPacket"/> implementor.
+            Deserialises the given <see cref="T:NetSharp.Packets.NetworkPacket"/> struct into an <see cref="T:NetSharp.Interfaces.IRequestPacket"/> implementor.
             </summary>
             <param name="packetType">The type id of packet that we should deserialise to.</param>
             <param name="rawRequestPacket">The packet that should be deserialised.</param>
@@ -1363,13 +1480,13 @@
         </member>
         <member name="M:NetSharp.Server.DoHandleClientAsync(System.Object)">
             <summary>
-            Provides a task that represents the handling of a client.
+            Provides a task that represents the handling of a client. Calls the abstract <see cref="M:NetSharp.Server.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)"/> method.
             </summary>
             <param name="clientHandlerArgsObj">The object representing the passed <see cref="T:NetSharp.Server.ClientHandlerArgs"/> instance.</param>
         </member>
         <member name="M:NetSharp.Server.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
             <summary>
-            Handles a new client asynchronously.
+            Handles a client asynchronously.
             </summary>
             <param name="args">The client handler arguments that should be passed to the client handler.</param>
             <param name="cancellationToken">Cancellation token set when the server is shutting down.</param>
@@ -1406,49 +1523,13 @@
             Invokes the <see cref="E:NetSharp.Server.ServerStopped"/> event.
             </summary>
         </member>
-        <member name="M:NetSharp.Server.TryBind(System.Net.IPAddress,System.Int32)">
+        <member name="M:NetSharp.Server.TryBind(System.Net.EndPoint,System.TimeSpan)">
             <summary>
-            Attempts to synchronously bind the underlying socket to the given local address and port. Blocks. Does not timeout.
-            </summary>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="M:NetSharp.Server.TryBind(System.Net.IPAddress,System.Int32,System.TimeSpan)">
-            <summary>
-            Attempts to synchronously bind the underlying socket to the given local address and port. Blocks.
+            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
             If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="M:NetSharp.Server.TryBindAsync(System.Net.IPAddress,System.Int32)">
-            <summary>
-            Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
-            Does not timeout.
-            </summary>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="M:NetSharp.Server.TryBindAsync(System.Net.IPAddress,System.Int32,System.TimeSpan)">
-            <summary>
-            Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="M:NetSharp.Server.TryBindAsync(System.Net.EndPoint)">
-            <summary>
-            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
-            Does not timeout.
             </summary>
             <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
         <member name="M:NetSharp.Server.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
@@ -1789,8 +1870,15 @@
             <summary>
             Helper class for asynchronously performing common network operations, for both the UDP and TCP protocols.
             </summary>
+            TODO: Implement cancellation support for network operations
+            TODO: Somehow dont run into the exception below
+            [Excep] Socket exception while reading bytes from 0.0.0.0:0: System.Net.Sockets.SocketException (10040): Komunikat wys┼éany na gniazdo datagramu by┼é wi─Ökszy ni┼╝ wewn─Ötrzny bufor lub przekracza┼é inny sieciowy limit albo bufor u┼╝ywany do odbierania datagram├│w by┼é mniejszy ni┼╝ sam datagram.
+            at NetSharp.Extensions.SocketTask.GetResult() in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Extensions\SocketExtensions.cs:line 158
+            at NetSharp.Utils.NetworkOperations.ReadFromAsync(Socket socket, Int32 count, EndPoint remoteEndPoint, SocketFlags socketFlags) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Utils\NetworkOperations.cs:line 78
+            at NetSharp.Utils.NetworkOperations.ReadPacketFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, CancellationToken cancellationToken) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Utils\NetworkOperations.cs:line 225
+            at NetSharp.Connection.DoReceivePacketFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, TimeSpan timeout, CancellationToken cancellationToken) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Connection.cs:line 114
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.Read(System.Net.Sockets.Socket,System.Int32,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.ReadAsync(System.Net.Sockets.Socket,System.Int32,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Reads the specified amount of data from the network, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
@@ -1800,7 +1888,7 @@
             <param name="socketFlags">The socket flags associated with the receive operation.</param>
             <returns>The result of the receive operation.</returns>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadFrom(System.Net.Sockets.Socket,System.Int32,System.Net.EndPoint,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.ReadFromAsync(System.Net.Sockets.Socket,System.Int32,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Reads a datagram segment of the given length from the given remote endpoint, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
@@ -1811,7 +1899,7 @@
             <param name="socketFlags">The socket flags associated with the receive operation.</param>
             <returns>The result of the receive operation.</returns>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.Write(System.Net.Sockets.Socket,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.WriteAsync(System.Net.Sockets.Socket,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Writes the given data buffer to the network, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write, and the given <see cref="T:System.Threading.CancellationToken"/>
@@ -1821,7 +1909,7 @@
             <param name="buffer">The buffer that should be written to the network.</param>
             <param name="socketFlags">The socket flags associated with the send operation.</param>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WriteTo(System.Net.Sockets.Socket,System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.WriteToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Writes the given data buffer to the given remote endpoint, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write, and the given <see cref="T:System.Threading.CancellationToken"/>
@@ -1832,16 +1920,17 @@
             <param name="buffer">The buffer that should be written to the network.</param>
             <param name="socketFlags">The socket flags associated with the send operation.</param>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacket(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacketAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Reads a packet from network, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
             </summary>
             <param name="socket">The socket which should read the packet from the network.</param>
             <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <returns>The read packet.</returns>
+            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
+            <returns>The read packet, and the endpoint from which it was read.</returns>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacketFrom(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacketFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Reads a packet from the given remote endpoint, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
@@ -1849,26 +1938,29 @@
             <param name="socket">The socket which should read the packet from the network.</param>
             <param name="remoteEndPoint">The remote endpoint from which a packet should be read.</param>
             <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <returns>The read packet and associated transmission results.</returns>
+            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
+            <returns>The read packet, and the endpoint from which it was read.</returns>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WritePacket(System.Net.Sockets.Socket,NetSharp.Packets.Packet,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.WritePacketAsync(System.Net.Sockets.Socket,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Writes the given packet to the network, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write.
             </summary>
             <param name="socket">The socket which should write data to the network.</param>
-            <param name="packet">The packet that should be written to the network.</param>
+            <param name="serialisedPacket">The packet that should be written to the network.</param>
             <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
         </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WritePacketTo(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.Packet,System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Utils.NetworkOperations.WritePacketToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <summary>
             Writes the given packet to the given remote endpoint, via the given socket.
             The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write.
             </summary>
             <param name="socket">The socket which should write data to the network.</param>
             <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
-            <param name="packet">The packet that should be written to the remote endpoint.</param>
+            <param name="serialisedPacket">The packet that should be written to the remote endpoint.</param>
             <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
         </member>
         <member name="T:NetSharp.Utils.Socket_Options.DefaultSocketOptions">
             <summary>

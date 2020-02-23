@@ -45,18 +45,6 @@ namespace NetSharp.Packets
         private static uint currentAutomaticPacketTypeIdCounter = AutomaticPacketTypeIdStartPoint;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="PacketRegistry"/> class.
-        /// </summary>
-        static PacketRegistry()
-        {
-            idToPacketTypeMap = new BiDictionary<uint, Type>();
-
-            requestToResponseMap = new BiDictionary<Type, Type>();
-
-            RegisterPacketSourceAssembly(LibraryAssembly);
-        }
-
-        /// <summary>
         /// Fetches the packet type id of the given packet type. If the packet type is declared outside of the library
         /// assembly, then its value is incremented by the <see cref="AutomaticPacketTypeIdStartPoint"/> value. This ensure that
         /// there are no clashes between the packet type ids of packets declared in the library and external packets.
@@ -177,7 +165,7 @@ namespace NetSharp.Packets
         /// <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
         internal static Type? GetResponsePacketType<TRequest>() where TRequest : IRequestPacket
         {
-            return requestToResponseMap.TryGetValue(typeof(TRequest), out Type responsePacketType) ? responsePacketType : null;
+            return requestToResponseMap.TryGetValue(typeof(TRequest), out Type responsePacketType) ? responsePacketType : default;
         }
 
         /// <summary>
@@ -187,7 +175,7 @@ namespace NetSharp.Packets
         /// <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
         internal static Type? GetResponsePacketType(Type requestPacketType)
         {
-            return requestToResponseMap.TryGetValue(requestPacketType, out Type responsePacketType) ? responsePacketType : null;
+            return requestToResponseMap.TryGetValue(requestPacketType, out Type responsePacketType) ? responsePacketType : default;
         }
 
         /// <summary>
@@ -282,6 +270,18 @@ namespace NetSharp.Packets
             {
                 RegisterPacketType(requestPacketType, responsePacketType);
             }
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="PacketRegistry"/> class.
+        /// </summary>
+        static PacketRegistry()
+        {
+            idToPacketTypeMap = new BiDictionary<uint, Type>();
+
+            requestToResponseMap = new BiDictionary<Type, Type>();
+
+            RegisterPacketSourceAssembly(LibraryAssembly);
         }
     }
 }

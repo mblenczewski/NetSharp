@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NetSharp.Interfaces;
 using NetSharp.Logging;
 using NetSharp.Packets;
 using NetSharp.Utils;
@@ -16,17 +17,6 @@ namespace NetSharp
     /// </summary>
     public abstract class Connection : IDisposable
     {
-        /// <summary>
-        /// Represents a packet that was not received correctly.
-        /// </summary>
-        protected static readonly Packet NullPacket = new Packet(new byte[0], 0, NetworkErrorCode.Error);
-
-        /// <summary>
-        /// Represents a transmission result of an incorrect transmission.
-        /// </summary>
-        protected static readonly TransmissionResult NullTransmissionResult =
-            new TransmissionResult(new byte[0], -1, new IPEndPoint(IPAddress.None, IPEndPoint.MinPort));
-
         /// <summary>
         /// The logger to which the server can log messages.
         /// </summary>
@@ -55,45 +45,38 @@ namespace NetSharp
         /// <summary>
         /// Listens for a packet to be received from the network.
         /// </summary>
-        /// <param name="remoteSocket">The remote socket from which to receive data.</param>
+        /// <param name="socket">The remote socket from which to receive data.</param>
         /// <param name="socketFlags">The socket flags associated with the read operation.</param>
         /// <param name="timeout">
         /// The timespan within which the packet should be received. After this timespan elapses, the receive task is cancelled.
         /// </param>
         /// <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
         /// <returns>The packet that was received. <see cref="NullPacket"/> if not received correctly.</returns>
-        protected Task<Packet> DoReceivePacketAsync(Socket remoteSocket, SocketFlags socketFlags, TimeSpan timeout,
+        protected async Task<SerialisedPacket> DoReceivePacketAsync(Socket socket, SocketFlags socketFlags, TimeSpan timeout,
             CancellationToken cancellationToken = default)
         {
-            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
-            CancellationTokenSource cts =
+            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
             try
             {
-                return Task.Factory.StartNew(() =>
-                {
-                    Packet request = NetworkOperations.ReadPacket(remoteSocket, socketFlags);
+                (SerialisedPacket packet, EndPoint endPoint) =
+                    await NetworkOperations.ReadPacketAsync(socket, socketFlags, cts.Token);
 
-                    OnBytesReceived(remoteSocket.RemoteEndPoint, request.TotalSize);
+                OnBytesReceived(endPoint, packet.Contents.Length);
 
-                    return request;
-                }, cts.Token);
+                return packet;
             }
             catch (SocketException ex)
             {
-                logger.LogException($"Socket exception while reading bytes from {remoteSocket.RemoteEndPoint}:", ex);
-                return Task.FromResult(NullPacket);
+                logger.LogException($"Socket exception while reading bytes from {socket.RemoteEndPoint}:", ex);
+                return SerialisedPacket.Null;
             }
             catch (Exception ex)
             {
-                logger.LogException($"Exception while reading bytes from {remoteSocket.RemoteEndPoint}:", ex);
-                return Task.FromResult(NullPacket);
-            }
-            finally
-            {
-                cts.Dispose();
-                timeoutCancellationTokenSource.Dispose();
+                logger.LogException($"Exception while reading bytes from {socket.RemoteEndPoint}:", ex);
+                return SerialisedPacket.Null;
             }
         }
 
@@ -110,39 +93,31 @@ namespace NetSharp
         /// <returns>
         /// The packet that was received and the associated transmission result. <see cref="NullPacket"/> if not received correctly.
         /// </returns>
-        protected Task<(Packet request, TransmissionResult packetResult)> DoReceivePacketFromAsync(Socket socket,
-            EndPoint remoteEndPoint, SocketFlags socketFlags, TimeSpan timeout, CancellationToken cancellationToken = default)
+        protected async Task<(SerialisedPacket packet, EndPoint remoteEndPoint)> DoReceivePacketFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags,
+            TimeSpan timeout, CancellationToken cancellationToken = default)
         {
-            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
-            CancellationTokenSource cts =
+            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
             try
             {
-                return Task.Factory.StartNew(() =>
-                {
-                    (Packet request, TransmissionResult packetResult) result =
-                        NetworkOperations.ReadPacketFrom(socket, remoteEndPoint, socketFlags);
+                (SerialisedPacket packet, EndPoint endPoint) =
+                    await NetworkOperations.ReadPacketFromAsync(socket, remoteEndPoint, socketFlags, cts.Token);
 
-                    OnBytesReceived(result.packetResult.RemoteEndPoint, result.request.TotalSize);
+                OnBytesReceived(endPoint, packet.Contents.Length);
 
-                    return result;
-                }, cts.Token);
+                return (packet, remoteEndPoint);
             }
             catch (SocketException ex)
             {
                 logger.LogException($"Socket exception while reading bytes from {remoteEndPoint}:", ex);
-                return Task.FromResult((NullPacket, NullTransmissionResult));
+                return (SerialisedPacket.Null, new IPEndPoint(IPAddress.None, IPEndPoint.MinPort));
             }
             catch (Exception ex)
             {
                 logger.LogException($"Exception while reading bytes from {remoteEndPoint}:", ex);
-                return Task.FromResult((NullPacket, NullTransmissionResult));
-            }
-            finally
-            {
-                cts.Dispose();
-                timeoutCancellationTokenSource.Dispose();
+                return (SerialisedPacket.Null, new IPEndPoint(IPAddress.None, IPEndPoint.MinPort));
             }
         }
 
@@ -157,38 +132,30 @@ namespace NetSharp
         /// </param>
         /// <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
         /// <returns>Whether the packet was successfully sent.</returns>
-        protected Task<bool> DoSendPacketAsync(Socket remoteSocket, Packet packet, SocketFlags socketFlags, TimeSpan timeout,
+        protected async Task<bool> DoSendPacketAsync(Socket remoteSocket, SerialisedPacket packet, SocketFlags socketFlags, TimeSpan timeout,
             CancellationToken cancellationToken = default)
         {
-            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
-            CancellationTokenSource cts =
+            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
             try
             {
-                return Task.Factory.StartNew(() =>
-                {
-                    NetworkOperations.WritePacket(remoteSocket, packet, socketFlags);
+                await NetworkOperations.WritePacketAsync(remoteSocket, packet, socketFlags, cts.Token);
 
-                    OnBytesSent(remoteSocket.RemoteEndPoint, packet.TotalSize);
+                OnBytesSent(remoteSocket.RemoteEndPoint, packet.Contents.Length);
 
-                    return true;
-                }, cts.Token);
+                return true;
             }
             catch (SocketException ex)
             {
                 logger.LogException($"Socket exception while sending bytes to {remoteSocket.RemoteEndPoint}:", ex);
-                return Task.FromResult(false);
+                return false;
             }
             catch (Exception ex)
             {
                 logger.LogException($"Exception while sending bytes to {remoteSocket.RemoteEndPoint}:", ex);
-                return Task.FromResult(false);
-            }
-            finally
-            {
-                cts.Dispose();
-                timeoutCancellationTokenSource.Dispose();
+                return false;
             }
         }
 
@@ -204,38 +171,30 @@ namespace NetSharp
         /// </param>
         /// <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
         /// <returns>Whether the packet was successfully sent.</returns>
-        protected Task<bool> DoSendPacketToAsync(Socket socket, EndPoint remoteEndPoint, Packet packet, SocketFlags socketFlags,
+        protected async Task<bool> DoSendPacketToAsync(Socket socket, EndPoint remoteEndPoint, SerialisedPacket packet, SocketFlags socketFlags,
             TimeSpan timeout, CancellationToken cancellationToken = default)
         {
-            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
-            CancellationTokenSource cts =
+            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
             try
             {
-                return Task.Factory.StartNew(() =>
-                {
-                    NetworkOperations.WritePacketTo(socket, remoteEndPoint, packet, socketFlags);
+                await NetworkOperations.WritePacketToAsync(socket, remoteEndPoint, packet, socketFlags, cts.Token);
 
-                    OnBytesSent(remoteEndPoint, packet.TotalSize);
+                OnBytesSent(remoteEndPoint, packet.Contents.Length);
 
-                    return true;
-                }, cts.Token);
+                return true;
             }
             catch (SocketException ex)
             {
                 logger.LogException($"Socket exception while sending bytes to {remoteEndPoint}:", ex);
-                return Task.FromResult(false);
+                return false;
             }
             catch (Exception ex)
             {
                 logger.LogException($"Exception while sending bytes to {remoteEndPoint}:", ex);
-                return Task.FromResult(false);
-            }
-            finally
-            {
-                cts.Dispose();
-                timeoutCancellationTokenSource.Dispose();
+                return false;
             }
         }
 

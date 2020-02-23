@@ -29,10 +29,10 @@ namespace NetSharp.Servers
                 do
                 {
                     // receive a single raw packet from the network
-                    Packet rawRequest = await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None,
+                    SerialisedPacket rawRequest = await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None,
                         Timeout.InfiniteTimeSpan, cancellationToken);
 
-                    if (rawRequest.Equals(NullPacket) ||
+                    if (rawRequest.Equals(SerialisedPacket.Null) ||
                         rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
                     {
                         logger.LogMessage(
@@ -44,33 +44,32 @@ namespace NetSharp.Servers
                     Type requestPacketType = PacketRegistry.GetPacketType(rawRequest.Type);
 
                     // the request packet is only null if no packet handler was registered for it
-                    if (requestPacket == null) continue;
+                    if (requestPacket == default) continue;
 
-                    logger.LogMessage($"Received {rawRequest.Count} bytes from {remoteEp}");
+                    logger.LogMessage($"Received {rawRequest.Contents.Length} bytes from {remoteEp}");
 
-                    logger.LogMessage($"Received request: {Encoding.UTF8.GetString(rawRequest.Buffer.Span)}");
+                    logger.LogMessage($"Received request: {Encoding.UTF8.GetString(rawRequest.Contents.Span)}");
 
                     IResponsePacket<IRequestPacket>? responsePacket =
                         HandleRequestPacket(rawRequest.Type, requestPacket, remoteEp);
 
                     // the response packet is only null if the given request packet was registered as a 'simple' request packet
-                    if (responsePacket == null) continue;
+                    if (responsePacket == default) continue;
 
                     Type? responsePacketType =
                         PacketRegistry.GetResponsePacketType(requestPacketType);
 
-                    if (responsePacketType == null)
+                    if (responsePacketType == default)
                     {
                         logger.LogError(
                             $"Response packet type for request packet of type {requestPacketType} is null");
                         continue;
                     }
 
-                    uint responsePacketTypeId = PacketRegistry.GetPacketId(responsePacketType);
-
-                    responsePacket.BeforeSerialisation();
-                    Packet rawResponse = new Packet(responsePacket.Serialise(), responsePacketTypeId,
-                        NetworkErrorCode.Ok);
+                    SerialisedPacket rawResponse = SerialisedPacket.From(responsePacket);
+                    // uint responsePacketTypeId = PacketRegistry.GetPacketId(responsePacketType);
+                    // responsePacket.BeforeSerialisation();
+                    // SerialisedPacket rawResponse = new SerialisedPacket(responsePacket.Serialise(), responsePacketTypeId);
 
                     // echo back the processed raw response to the network
                     bool sentCorrectly = await DoSendPacketAsync(clientHandlerSocket, rawResponse, SocketFlags.None,
@@ -80,10 +79,9 @@ namespace NetSharp.Servers
                     {
                         logger.LogMessage(
                             $"Could not send response back to client socket: [Remote EP: {remoteEp}]");
-                        break;
                     }
 
-                    logger.LogMessage($"Sent {rawResponse.TotalSize} bytes to {remoteEp}");
+                    logger.LogMessage($"Sent {rawResponse.Contents.Length} bytes to {remoteEp}");
                 } while (true);
             }
             finally
@@ -106,7 +104,7 @@ namespace NetSharp.Servers
         /// <inheritdoc />
         public override async Task RunAsync(EndPoint localEndPoint)
         {
-            bool bound = await TryBindAsync(localEndPoint);
+            bool bound = await TryBindAsync(localEndPoint, Timeout.InfiniteTimeSpan);
 
             logger.LogMessage($"Is server socket bound: {bound}");
 

@@ -95,7 +95,7 @@ namespace NetSharp
         /// </summary>
         /// <param name="rawPacket">The raw packet that was received from the network.</param>
         /// <returns>The deserialised instance of the packet.</returns>
-        private delegate IRequestPacket RawRequestPacketDeserialiser(in Packet rawPacket);
+        private delegate IRequestPacket RawRequestPacketDeserialiser(in SerialisedPacket rawPacket);
 
         /// <summary>
         /// Registers packet handlers for every internal library packet.
@@ -104,6 +104,9 @@ namespace NetSharp
         {
             TryRegisterSimplePacketHandler((DisconnectPacket packet, EndPoint remoteEndPoint) =>
             {
+#if DEBUG
+                logger.LogMessage($"Received disconnect packet from {remoteEndPoint}");
+#endif
                 OnClientDisconnected(remoteEndPoint);
             });
 
@@ -117,7 +120,9 @@ namespace NetSharp
             TryRegisterComplexPacketHandler((ConnectPacket packet, EndPoint remoteEndPoint) =>
             {
                 OnClientConnected(remoteEndPoint);
-
+#if DEBUG
+                logger.LogMessage($"Received connection request from {remoteEndPoint}");
+#endif
                 return new ConnectResponsePacket { RequestPacket = packet };
             });
 
@@ -198,13 +203,12 @@ namespace NetSharp
         }
 
         /// <summary>
-        /// Deserialises the given <see cref="Packet"/> struct into an <see cref="IRequestPacket"/> implementor.
+        /// Deserialises the given <see cref="NetworkPacket"/> struct into an <see cref="IRequestPacket"/> implementor.
         /// </summary>
         /// <param name="packetType">The type id of packet that we should deserialise to.</param>
         /// <param name="rawRequestPacket">The packet that should be deserialised.</param>
         /// <returns>The deserialised packet instance, cast to the <see cref="IRequestPacket"/> interface.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected IRequestPacket? DeserialiseRequestPacket(uint packetType, in Packet rawRequestPacket)
+        protected IRequestPacket? DeserialiseRequestPacket(uint packetType, in SerialisedPacket rawRequestPacket)
         {
             if (requestPacketDeserialisers.TryGetValue(packetType, out RawRequestPacketDeserialiser deserialiser))
             {
@@ -234,7 +238,7 @@ namespace NetSharp
         }
 
         /// <summary>
-        /// Provides a task that represents the handling of a client.
+        /// Provides a task that represents the handling of a client. Calls the abstract <see cref="HandleClientAsync"/> method.
         /// </summary>
         /// <param name="clientHandlerArgsObj">The object representing the passed <see cref="ClientHandlerArgs"/> instance.</param>
         protected async Task DoHandleClientAsync(object clientHandlerArgsObj)
@@ -245,8 +249,14 @@ namespace NetSharp
             {
                 await HandleClientAsync(clientHandlerArgs, serverShutdownCancellationTokenSource.Token);
             }
-            catch (TaskCanceledException) { logger.LogWarning("Client handling was cancelled via a task cancellation."); }
-            catch (OperationCanceledException) { logger.LogWarning("Client handling was cancelled via an operation cancellation."); }
+            catch (TaskCanceledException)
+            {
+                logger.LogWarning("Client handling was cancelled via a task cancellation.");
+            }
+            catch (OperationCanceledException)
+            {
+                logger.LogWarning("Client handling was cancelled via an operation cancellation.");
+            }
             catch (Exception ex)
             {
                 logger.LogException("Exception during client handling", ex);
@@ -266,7 +276,7 @@ namespace NetSharp
         }
 
         /// <summary>
-        /// Handles a new client asynchronously.
+        /// Handles a client asynchronously.
         /// </summary>
         /// <param name="args">The client handler arguments that should be passed to the client handler.</param>
         /// <param name="cancellationToken">Cancellation token set when the server is shutting down.</param>
@@ -280,7 +290,6 @@ namespace NetSharp
         /// <param name="requestPacket">The packet instance that should be handled.</param>
         /// <param name="remoteEndPoint">The remote endpoint from which the request packet originated.</param>
         /// <returns>The response packet that should be sent back to the remote endpoint.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected IResponsePacket<IRequestPacket>? HandleRequestPacket(uint packetType, in IRequestPacket requestPacket,
             in EndPoint remoteEndPoint)
         {
@@ -341,54 +350,14 @@ namespace NetSharp
         protected void OnServerStopped() => ServerStopped?.Invoke();
 
         /// <summary>
-        /// Attempts to synchronously bind the underlying socket to the given local address and port. Blocks. Does not timeout.
-        /// </summary>
-        /// <param name="localAddress">The local IP address to bind to.</param>
-        /// <param name="localPort">The local port to bind to.</param>
-        /// <returns>Whether the binding was successful or not.</returns>
-        protected bool TryBind(IPAddress localAddress, int localPort) =>
-            TryBindAsync(localAddress, localPort, Timeout.InfiniteTimeSpan).Result;
-
-        /// <summary>
-        /// Attempts to synchronously bind the underlying socket to the given local address and port. Blocks.
+        /// Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
         /// If the timeout is exceeded the binding attempt is aborted and the method returns false.
-        /// </summary>
-        /// <param name="localAddress">The local IP address to bind to.</param>
-        /// <param name="localPort">The local port to bind to.</param>
-        /// <param name="timeout">The timeout within which to attempt the binding.</param>
-        /// <returns>Whether the binding was successful or not.</returns>
-        protected bool TryBind(IPAddress localAddress, int localPort, TimeSpan timeout) =>
-            TryBindAsync(localAddress, localPort, timeout).Result;
-
-        /// <summary>
-        /// Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
-        /// Does not timeout.
-        /// </summary>
-        /// <param name="localAddress">The local IP address to bind to.</param>
-        /// <param name="localPort">The local port to bind to.</param>
-        /// <returns>Whether the binding was successful or not.</returns>
-        protected async Task<bool> TryBindAsync(IPAddress localAddress, int localPort) =>
-            await TryBindAsync(localAddress, localPort, Timeout.InfiniteTimeSpan);
-
-        /// <summary>
-        /// Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
-        /// If the timeout is exceeded the binding attempt is aborted and the method returns false.
-        /// </summary>
-        /// <param name="localAddress">The local IP address to bind to.</param>
-        /// <param name="localPort">The local port to bind to.</param>
-        /// <param name="timeout">The timeout within which to attempt the binding.</param>
-        /// <returns>Whether the binding was successful or not.</returns>
-        protected async Task<bool> TryBindAsync(IPAddress localAddress, int localPort, TimeSpan timeout) =>
-            await TryBindAsync(new IPEndPoint(localAddress, localPort), timeout);
-
-        /// <summary>
-        /// Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
-        /// Does not timeout.
         /// </summary>
         /// <param name="localEndPoint">The local endpoint to bind to.</param>
+        /// <param name="timeout">The timeout within which to attempt the binding.</param>
         /// <returns>Whether the binding was successful or not.</returns>
-        protected async Task<bool> TryBindAsync(EndPoint localEndPoint) =>
-            await TryBindAsync(localEndPoint, Timeout.InfiniteTimeSpan);
+        protected bool TryBind(EndPoint localEndPoint, TimeSpan timeout) =>
+            TryBindAsync(localEndPoint, timeout).Result;
 
         /// <summary>
         /// Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
@@ -399,8 +368,8 @@ namespace NetSharp
         /// <returns>Whether the binding was successful or not.</returns>
         protected async Task<bool> TryBindAsync(EndPoint localEndPoint, TimeSpan timeout)
         {
-            CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
-            CancellationTokenSource cts =
+            using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, serverShutdownCancellationToken);
 
             try
@@ -420,11 +389,6 @@ namespace NetSharp
             {
                 logger.LogException($"Socket exception on binding socket to {localEndPoint}:", ex);
                 return false;
-            }
-            finally
-            {
-                cts.Dispose();
-                timeoutCancellationTokenSource.Dispose();
             }
         }
 
@@ -576,14 +540,7 @@ namespace NetSharp
         {
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
-            static IRequestPacket PacketDeserialiser(in Packet packet)
-            {
-                Req request = new Req();
-                request.Deserialise(packet.Buffer);
-                request.AfterDeserialisation();
-
-                return request;
-            }
+            static IRequestPacket PacketDeserialiser(in SerialisedPacket packet) => SerialisedPacket.To<Req>(packet);
 
             IResponsePacket<IRequestPacket> MappedHandlerDelegate(IRequestPacket p, EndPoint ep)
             {
@@ -617,14 +574,7 @@ namespace NetSharp
         {
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
-            static IRequestPacket PacketDeserialiser(in Packet packet)
-            {
-                Req request = new Req();
-                request.Deserialise(packet.Buffer);
-                request.AfterDeserialisation();
-
-                return request;
-            }
+            static IRequestPacket PacketDeserialiser(in SerialisedPacket packet) => SerialisedPacket.To<Req>(packet);
 
             void MappedHandlerDelegate(IRequestPacket p, EndPoint ep) => handlerDelegate((Req)p, ep);
 

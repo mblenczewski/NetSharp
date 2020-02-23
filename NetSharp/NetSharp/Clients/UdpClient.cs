@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
@@ -42,16 +42,17 @@ namespace NetSharp.Clients
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
             request.BeforeSerialisation();
-            ReadOnlyMemory<byte> serialisedRequest = request.Serialise();
-            Packet rawRequest = new Packet(serialisedRequest, packetTypeId, NetworkErrorCode.Ok);
-            await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
+            Memory<byte> serialisedRequest = request.Serialise();
+            SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
 
-            (Packet rawResponsePacket, TransmissionResult packetResult) =
+            bool sentPacket = await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
+
+            (SerialisedPacket rawResponsePacket, EndPoint responseEndPoint) =
                 await DoReceivePacketFromAsync(socket, remoteEndPoint, SocketFlags.None, timeout);
-            remoteEndPoint = packetResult.RemoteEndPoint;
+            remoteEndPoint = responseEndPoint;
 
             Rep responsePacket = new Rep();
-            responsePacket.Deserialise(rawResponsePacket.Buffer);
+            responsePacket.Deserialise(rawResponsePacket.Contents);
             responsePacket.AfterDeserialisation();
 
             return responsePacket;
@@ -63,8 +64,9 @@ namespace NetSharp.Clients
             uint packetTypeId = PacketRegistry.GetPacketId<Req>();
 
             request.BeforeSerialisation();
-            ReadOnlyMemory<byte> serialisedRequest = request.Serialise();
-            Packet rawRequest = new Packet(serialisedRequest, packetTypeId, NetworkErrorCode.Ok);
+            Memory<byte> serialisedRequest = request.Serialise();
+            SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
+
             return await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
         }
     }

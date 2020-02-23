@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Extensions;
 using NetSharp.Interfaces;
 using NetSharp.Packets.Builtin;
 using NetSharp.Utils.Socket_Options;
@@ -144,7 +142,7 @@ namespace NetSharp
         /// <inheritdoc />
         public Task<bool> TryBindAsync(IPAddress? localAddress, int? localPort, TimeSpan timeout)
         {
-            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts = new CancellationTokenSource(timeout);
             EndPoint localEndPoint = new IPEndPoint(localAddress ?? IPAddress.Any, localPort ?? 0);
 
             try
@@ -165,16 +163,12 @@ namespace NetSharp
                 logger.LogException($"Socket exception on binding socket to {localEndPoint}:", ex);
                 return Task.FromResult(false);
             }
-            finally
-            {
-                cts.Dispose();
-            }
         }
 
         /// <inheritdoc />
         public async Task<bool> TryConnectAsync(IPAddress remoteAddress, int remotePort, TimeSpan timeout)
         {
-            CancellationTokenSource cts = new CancellationTokenSource(timeout);
+            using CancellationTokenSource cts = new CancellationTokenSource(timeout);
             remoteEndPoint = new IPEndPoint(remoteAddress, remotePort);
 
             try
@@ -186,7 +180,7 @@ namespace NetSharp
                     ConnectResponsePacket connectionResponsePacket =
                         await SendComplexAsync<ConnectPacket, ConnectResponsePacket>(new ConnectPacket(), timeout);
 
-                    OnConnected(SocketOptions.RemoteIPEndPoint);
+                    OnConnected(remoteEndPoint);
 
                     return true;
                 }, cts.Token);
@@ -199,10 +193,6 @@ namespace NetSharp
             {
                 logger.LogException($"Socket exception on connection to {remoteEndPoint}:", ex);
                 return false;
-            }
-            finally
-            {
-                cts.Dispose();
             }
         }
     }
