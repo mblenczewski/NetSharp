@@ -15,7 +15,7 @@ namespace NetSharp.Clients
     public sealed class TcpClient : Client
     {
         /// <inheritdoc />
-        public TcpClient() : base(SocketType.Stream, ProtocolType.Tcp, SocketOptionManager.Tcp)
+        public TcpClient() : base(SocketType.Stream, ProtocolType.Tcp, new TcpSocketOptions(ref socket))
         {
         }
 

@@ -37,7 +37,7 @@ namespace NetSharp
     /// <summary>
     /// Provides methods for handling connected <see cref="IClient"/> instances.
     /// </summary>
-    public abstract class Server : Connection, IServer, IDisposable
+    public abstract class Server : Connection, IServer, IPacketHandler, IDisposable
     {
         /// <summary>
         /// Maps a packet type id to the complex packet handler for that packet type.
@@ -174,8 +174,8 @@ namespace NetSharp
         /// </summary>
         /// <param name="socketType">The socket type for the underlying socket.</param>
         /// <param name="protocolType">The protocol type for the underlying socket.</param>
-        /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager)
+        /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> implementation to use.</param>
+        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptions socketManager)
             : this(socketType, protocolType, socketManager, DefaultNetworkOperationTimeout)
         {
         }
@@ -187,17 +187,12 @@ namespace NetSharp
         /// <param name="protocolType">The protocol type for the underlying socket.</param>
         /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
         /// <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
-        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager,
+        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptions socketManager,
             TimeSpan networkOperationTimeout) : this()
         {
             socket = new Socket(AddressFamily.InterNetwork, socketType, protocolType);
 
-            socketOptions = socketManager switch
-            {
-                SocketOptionManager.Tcp => new TcpSocketOptions(ref socket) as SocketOptions,
-                SocketOptionManager.Udp => new UdpSocketOptions(ref socket) as SocketOptions,
-                _ => new DefaultSocketOptions(ref socket),
-            };
+            socketOptions = socketManager;
 
             NetworkOperationTimeout = networkOperationTimeout;
         }

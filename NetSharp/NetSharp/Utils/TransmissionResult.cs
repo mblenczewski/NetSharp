@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 
 namespace NetSharp.Utils
 {
@@ -24,16 +25,20 @@ namespace NetSharp.Utils
         public readonly EndPoint RemoteEndPoint;
 
         /// <summary>
+        /// Socket arguments and other data associated with the transmission.
+        /// </summary>
+        public readonly SocketAsyncEventArgs TransmissionArgs;
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="TransmissionResult"/> struct.
         /// </summary>
-        /// <param name="buffer">The byte buffer that was transmitted.</param>
-        /// <param name="count">The number of bytes that were transmitted.</param>
-        /// <param name="remoteEndPoint">The remote endpoint to which the buffer was transmitted.</param>
-        public TransmissionResult(Memory<byte> buffer, int count, EndPoint remoteEndPoint)
+        /// <param name="args">The socket arguments associated with the transmission.</param>
+        public TransmissionResult(SocketAsyncEventArgs args)
         {
-            Buffer = buffer;
-            Count = count;
-            RemoteEndPoint = remoteEndPoint;
+            TransmissionArgs = args;
+            Buffer = args.MemoryBuffer;
+            Count = args.BytesTransferred;
+            RemoteEndPoint = args.RemoteEndPoint;
         }
     }
 }

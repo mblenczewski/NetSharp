@@ -1,46 +1,11 @@
-﻿using System;
-using System.Net;
-using System.Threading.Tasks;
-
-namespace NetSharp.Interfaces
+﻿namespace NetSharp.Interfaces
 {
     /// <summary>
-    /// Describes a server capable of asynchronously handling multiple <see cref="IClient"/> connections at once.
+    /// Describes a class capable of registering and deregistering packet handlers, and capable of
+    /// handling incoming packets according to the currently registered packet handlers.
     /// </summary>
-    public interface IServer
+    public interface IPacketHandler
     {
-        /// <summary>
-        /// Signifies that a connection with a remote endpoint has been made.
-        /// </summary>
-        public event Action<EndPoint>? ClientConnected;
-
-        //protected IResponsePacket<IRequestPacket> DeserialiseResponsePacket(in Packet)
-        /// <summary>
-        /// Signifies that a connection with a remote endpoint has been lost.
-        /// </summary>
-        public event Action<EndPoint>? ClientDisconnected;
-
-        /// <summary>
-        /// Signifies that the server was started and clients will start being accepted.
-        /// </summary>
-        public event Action? ServerStarted;
-
-        /// <summary>
-        /// Signifies that the server was stopped and clients will stop being accepted.
-        /// </summary>
-        public event Action? ServerStopped;
-
-        /// <summary>
-        /// Starts the server asynchronously and starts accepting client connections. Does not block.
-        /// </summary>
-        /// <param name="localEndPoint">The local endpoint to bind to.</param>
-        public Task RunAsync(EndPoint localEndPoint);
-
-        /// <summary>
-        /// Shuts down the server.
-        /// </summary>
-        public void Shutdown();
-
         /// <summary>
         /// Attempts to deregister the complex packet handler delegate for all packets of the given type. If a handler
         /// method doesn't exist for the given packet type, <paramref name="oldHandlerDelegate"/> will be <c>default</c>.

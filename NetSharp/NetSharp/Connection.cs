@@ -5,7 +5,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Interfaces;
 using NetSharp.Logging;
 using NetSharp.Packets;
 using NetSharp.Utils;
@@ -18,6 +17,11 @@ namespace NetSharp
     public abstract class Connection : IDisposable
     {
         /// <summary>
+        /// Provides a wrapper around common network operations and enables awaiting for said operations.
+        /// </summary>
+        private readonly NetworkOperationsManager networkManager;
+
+        /// <summary>
         /// The logger to which the server can log messages.
         /// </summary>
         protected Logger logger;
@@ -27,6 +31,8 @@ namespace NetSharp
         /// </summary>
         protected Connection()
         {
+            networkManager = new NetworkOperationsManager();
+
             logger = new Logger(Stream.Null);
         }
 
@@ -51,7 +57,7 @@ namespace NetSharp
         /// The timespan within which the packet should be received. After this timespan elapses, the receive task is cancelled.
         /// </param>
         /// <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-        /// <returns>The packet that was received. <see cref="NullPacket"/> if not received correctly.</returns>
+        /// <returns>The packet that was received.</returns>
         protected async Task<SerialisedPacket> DoReceivePacketAsync(Socket socket, SocketFlags socketFlags, TimeSpan timeout,
             CancellationToken cancellationToken = default)
         {
@@ -59,14 +65,15 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
+            throw new NotImplementedException();
+
             try
             {
-                (SerialisedPacket packet, EndPoint endPoint) =
-                    await NetworkOperations.ReadPacketAsync(socket, socketFlags, cts.Token);
+                //(SerialisedPacket packet, EndPoint endPoint) = await NetworkOperationsManager.ReadPacketAsync(socket, socketFlags, cts.Token);
 
-                OnBytesReceived(endPoint, packet.Contents.Length);
+                //OnBytesReceived(endPoint, packet.Contents.Length);
 
-                return packet;
+                // return packet;
             }
             catch (SocketException ex)
             {
@@ -100,14 +107,15 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
+            throw new NotImplementedException();
+
             try
             {
-                (SerialisedPacket packet, EndPoint endPoint) =
-                    await NetworkOperations.ReadPacketFromAsync(socket, remoteEndPoint, socketFlags, cts.Token);
+                //(SerialisedPacket packet, EndPoint endPoint) = await NetworkOperationsManager.ReadPacketFromAsync(socket, remoteEndPoint, socketFlags, cts.Token);
 
-                OnBytesReceived(endPoint, packet.Contents.Length);
+                //OnBytesReceived(endPoint, packet.Contents.Length);
 
-                return (packet, remoteEndPoint);
+                //return (packet, remoteEndPoint);
             }
             catch (SocketException ex)
             {
@@ -139,9 +147,11 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
+            throw new NotImplementedException();
+
             try
             {
-                await NetworkOperations.WritePacketAsync(remoteSocket, packet, socketFlags, cts.Token);
+                //await NetworkOperationsManager.WritePacketAsync(remoteSocket, packet, socketFlags, cts.Token);
 
                 OnBytesSent(remoteSocket.RemoteEndPoint, packet.Contents.Length);
 
@@ -178,9 +188,11 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, cancellationToken);
 
+            throw new NotImplementedException();
+
             try
             {
-                await NetworkOperations.WritePacketToAsync(socket, remoteEndPoint, packet, socketFlags, cts.Token);
+                //await NetworkOperationsManager.WritePacketToAsync(socket, remoteEndPoint, packet, socketFlags, cts.Token);
 
                 OnBytesSent(remoteEndPoint, packet.Contents.Length);
 
