@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 
-namespace NetSharp.Interfaces
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes a client capable of asynchronous communication with an <see cref="IServer"/> connection.

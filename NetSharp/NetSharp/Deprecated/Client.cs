@@ -4,16 +4,14 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Interfaces;
 using NetSharp.Packets.Builtin;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Provides methods for connecting to and talking with a <see cref="IServer"/> instance.
     /// </summary>
-    public abstract class Client : Connection, IClient, IDisposable
+    public abstract class Client : ServerClientConnection, IClient, IDisposable
     {
         /// <summary>
         /// Initialises a new instance of the <see cref="Client"/> class.
@@ -55,16 +53,9 @@ namespace NetSharp
         /// <param name="socketType">The socket type for the underlying socket.</param>
         /// <param name="protocolType">The protocol type for the underlying socket.</param>
         /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-        protected Client(SocketType socketType, ProtocolType protocolType, SocketOptionManager socketManager) : this()
+        protected Client(SocketType socketType, ProtocolType protocolType) : this()
         {
             socket = new Socket(AddressFamily.InterNetwork, socketType, protocolType);
-
-            socketOptions = socketManager switch
-            {
-                SocketOptionManager.Tcp => new TcpSocketOptions(ref socket) as SocketOptions,
-                SocketOptionManager.Udp => new UdpSocketOptions(ref socket) as SocketOptions,
-                _ => new DefaultSocketOptions(ref socket),
-            };
         }
 
         /// <summary>

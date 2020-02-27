@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NetSharp.Interfaces
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes an object that can be serialised to be sent across the network.

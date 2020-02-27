@@ -1,4 +1,4 @@
-﻿namespace NetSharp.Interfaces
+﻿namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes a request packet.

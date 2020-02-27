@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 
-namespace NetSharp.Interfaces
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes a server capable of asynchronously handling multiple <see cref="IClient"/> connections at once.

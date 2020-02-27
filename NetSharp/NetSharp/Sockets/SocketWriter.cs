@@ -9,8 +9,12 @@ using NetSharp.Packets;
 
 namespace NetSharp.Sockets
 {
+    /// <summary>
+    /// Helper class providing awaitable wrappers around asynchronous Send and SendTo operations.
+    /// </summary>
     public sealed class SocketWriter
     {
+        private readonly int PacketBufferLength;
         private readonly ObjectPool<SocketAsyncEventArgs> sendAsyncEventArgsPool;
         private readonly ArrayPool<byte> sendBufferPool;
 
@@ -40,7 +44,6 @@ namespace NetSharp.Sockets
 
                     sendBufferPool.Return(asyncSendToken.RentedBuffer, true);
                     sendAsyncEventArgsPool.Return(args);
-
                     break;
 
                 case SocketAsyncOperation.SendTo:
@@ -65,7 +68,6 @@ namespace NetSharp.Sockets
 
                     sendBufferPool.Return(asyncSendToToken.RentedBuffer, true);
                     sendAsyncEventArgsPool.Return(args);
-
                     break;
 
                 default:
@@ -97,9 +99,9 @@ namespace NetSharp.Sockets
 
             sendBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
 
-            sendAsyncEventArgsPool = new LeakTrackingObjectPool<SocketAsyncEventArgs>(
+            sendAsyncEventArgsPool =
                 new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
-                    maxPooledObjects));
+                    maxPooledObjects);
 
             for (int i = 0; i < maxPooledObjects; i++)
             {
@@ -109,8 +111,14 @@ namespace NetSharp.Sockets
             }
         }
 
-        public int PacketBufferLength { get; }
-
+        /// <summary>
+        /// Provides an awaitable wrapper around an asynchronous socket send operation.
+        /// </summary>
+        /// <param name="socket">The socket which should send the data to its remote connection.</param>
+        /// <param name="socketFlags">The socket flags associated with the send operation.</param>
+        /// <param name="outputBuffer">The data buffer which should be sent.</param>
+        /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        /// <returns>The number of bytes of data which were written to the remote connection.</returns>
         public Task<int> SendAsync(Socket socket, SocketFlags socketFlags, Memory<byte> outputBuffer,
             CancellationToken cancellationToken = default)
         {
@@ -137,6 +145,15 @@ namespace NetSharp.Sockets
             return Task.FromResult(result);
         }
 
+        /// <summary>
+        /// Provides an awaitable wrapper around an asynchronous socket send operation.
+        /// </summary>
+        /// <param name="socket">The socket which should send the data to the remote endpoint.</param>
+        /// <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
+        /// <param name="socketFlags">The socket flags associated with the send operation.</param>
+        /// <param name="outputBuffer">The data buffer which should be sent.</param>
+        /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        /// <returns>The number of bytes of data which were written to the remote endpoint.</returns>
         public Task<int> SendToAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags,
             Memory<byte> outputBuffer, CancellationToken cancellationToken = default)
         {
@@ -152,6 +169,22 @@ namespace NetSharp.Sockets
             args.SocketFlags = socketFlags;
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncWriteToken(rentedSendToBuffer, tcs, cancellationToken);
+
+            // register cleanup action for when the cancellation token is thrown
+            cancellationToken.Register(() =>
+            {
+                tcs.SetCanceled();
+
+                sendBufferPool.Return(rentedSendToBuffer, true);
+
+                //TODO this is probably a hideous solution. find a better one
+                args.Completed -= HandleIOCompleted;
+                args.Dispose();
+
+                SocketAsyncEventArgs newArgs = new SocketAsyncEventArgs();
+                newArgs.Completed += HandleIOCompleted;
+                sendAsyncEventArgsPool.Return(newArgs);
+            });
 
             // if the send operation doesn't complete synchronously, return the awaitable task
             if (socket.SendToAsync(args)) return tcs.Task;

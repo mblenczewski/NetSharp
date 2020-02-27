@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace NetSharp.Utils.Socket_Options
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Allows for manipulation of UDP socket options.

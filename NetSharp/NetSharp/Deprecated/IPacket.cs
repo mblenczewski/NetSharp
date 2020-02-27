@@ -1,4 +1,4 @@
-﻿namespace NetSharp.Interfaces
+﻿namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes the methods and properties that every packet

@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
-using NetSharp.Servers;
-using NetSharp.Utils;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp.Clients
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Provides methods for UDP communication with a connected <see cref="UdpServer"/> instance.
@@ -16,7 +12,7 @@ namespace NetSharp.Clients
     public sealed class UdpClient : Client
     {
         /// <inheritdoc />
-        public UdpClient() : base(SocketType.Dgram, ProtocolType.Udp, SocketOptionManager.Udp)
+        public UdpClient() : base(SocketType.Dgram, ProtocolType.Udp)
         {
         }
 
@@ -45,14 +41,13 @@ namespace NetSharp.Clients
             Memory<byte> serialisedRequest = request.Serialise();
             SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
 
-            bool sentPacket = await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
+            bool sentPacket = false; //await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
 
-            (SerialisedPacket rawResponsePacket, EndPoint responseEndPoint) =
-                await DoReceivePacketFromAsync(socket, remoteEndPoint, SocketFlags.None, timeout);
-            remoteEndPoint = responseEndPoint;
+            //(SerialisedPacket rawResponsePacket, EndPoint responseEndPoint) = await DoReceivePacketFromAsync(socket, remoteEndPoint, SocketFlags.None, timeout);
+            //remoteEndPoint = responseEndPoint;
 
             Rep responsePacket = new Rep();
-            responsePacket.Deserialise(rawResponsePacket.Contents);
+            //responsePacket.Deserialise(rawResponsePacket.Contents);
             responsePacket.AfterDeserialisation();
 
             return responsePacket;
@@ -67,7 +62,7 @@ namespace NetSharp.Clients
             Memory<byte> serialisedRequest = request.Serialise();
             SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
 
-            return await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
+            return false; //await DoSendPacketToAsync(socket, remoteEndPoint, rawRequest, SocketFlags.None, timeout);
         }
     }
 }

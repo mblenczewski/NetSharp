@@ -5,12 +5,10 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Interfaces;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Represents a method that receives a request packet of the given type (<typeparamref name="TReq"/>) and
@@ -37,7 +35,7 @@ namespace NetSharp
     /// <summary>
     /// Provides methods for handling connected <see cref="IClient"/> instances.
     /// </summary>
-    public abstract class Server : Connection, IServer, IPacketHandler, IDisposable
+    public abstract class Server : ServerClientConnection, IServer, IPacketHandler, IDisposable
     {
         /// <summary>
         /// Maps a packet type id to the complex packet handler for that packet type.
@@ -175,8 +173,8 @@ namespace NetSharp
         /// <param name="socketType">The socket type for the underlying socket.</param>
         /// <param name="protocolType">The protocol type for the underlying socket.</param>
         /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> implementation to use.</param>
-        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptions socketManager)
-            : this(socketType, protocolType, socketManager, DefaultNetworkOperationTimeout)
+        protected Server(SocketType socketType, ProtocolType protocolType)
+            : this(socketType, protocolType, DefaultNetworkOperationTimeout)
         {
         }
 
@@ -187,12 +185,11 @@ namespace NetSharp
         /// <param name="protocolType">The protocol type for the underlying socket.</param>
         /// <param name="socketManager">The <see cref="Utils.Socket_Options.SocketOptions"/> manager to use.</param>
         /// <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
-        protected Server(SocketType socketType, ProtocolType protocolType, SocketOptions socketManager,
-            TimeSpan networkOperationTimeout) : this()
+        protected Server(SocketType socketType, ProtocolType protocolType, TimeSpan networkOperationTimeout) : this()
         {
             socket = new Socket(AddressFamily.InterNetwork, socketType, protocolType);
 
-            socketOptions = socketManager;
+            socketOptions = new DefaultSocketOptions(ref socket);
 
             NetworkOperationTimeout = networkOperationTimeout;
         }

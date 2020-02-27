@@ -1,9 +1,8 @@
 ﻿using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Utils;
 
-namespace NetSharp.Extensions
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Provides additional methods and functionality to the <see cref="Server"/> class.

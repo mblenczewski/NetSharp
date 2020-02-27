@@ -10,8 +10,12 @@ using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
+    /// <summary>
+    /// Helper class providing awaitable wrappers around asynchronous Receive and ReceiveFrom operations.
+    /// </summary>
     public sealed class SocketReader
     {
+        private readonly int PacketBufferLength;
         private readonly ObjectPool<SocketAsyncEventArgs> receiveAsyncEventArgsPool;
         private readonly ArrayPool<byte> receiveBufferPool;
 
@@ -108,9 +112,9 @@ namespace NetSharp.Sockets
 
             receiveBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
 
-            receiveAsyncEventArgsPool = new LeakTrackingObjectPool<SocketAsyncEventArgs>(
+            receiveAsyncEventArgsPool =
                 new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
-                    maxPooledObjects));
+                    maxPooledObjects);
 
             for (int i = 0; i < maxPooledObjects; i++)
             {
@@ -120,10 +124,16 @@ namespace NetSharp.Sockets
             }
         }
 
-        public int PacketBufferLength { get; }
-
+        /// <summary>
+        /// Provides an awaitable wrapper around an asynchronous socket receive operation.
+        /// </summary>
+        /// <param name="socket">The socket which should receive data from the remote connection.</param>
+        /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
+        /// <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+        /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        /// <returns>The result of the receive operation.</returns>
         public Task<TransmissionResult> ReceiveAsync(Socket socket, SocketFlags socketFlags,
-            Memory<byte> outputBuffer, CancellationToken cancellationToken = default)
+            Memory<byte> inputBuffer, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -133,12 +143,28 @@ namespace NetSharp.Sockets
             SocketAsyncEventArgs args = receiveAsyncEventArgsPool.Get();
             args.SetBuffer(rentedReceiveBufferMemory);
             args.SocketFlags = socketFlags;
-            args.UserToken = new AsyncReadToken(rentedReceiveBuffer, outputBuffer, tcs, cancellationToken);
+            args.UserToken = new AsyncReadToken(rentedReceiveBuffer, inputBuffer, tcs, cancellationToken);
+
+            // register cleanup action for when the cancellation token is thrown
+            cancellationToken.Register(() =>
+            {
+                tcs.SetCanceled();
+
+                receiveBufferPool.Return(rentedReceiveBuffer, true);
+
+                //TODO this is probably a hideous solution. find a better one
+                args.Completed -= HandleIOCompleted;
+                args.Dispose();
+
+                SocketAsyncEventArgs newArgs = new SocketAsyncEventArgs();
+                newArgs.Completed += HandleIOCompleted;
+                receiveAsyncEventArgsPool.Return(newArgs);
+            });
 
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveAsync(args)) return tcs.Task;
 
-            args.MemoryBuffer.CopyTo(outputBuffer);
+            args.MemoryBuffer.CopyTo(inputBuffer);
 
             TransmissionResult result = new TransmissionResult(args);
 
@@ -148,8 +174,17 @@ namespace NetSharp.Sockets
             return Task.FromResult(result);
         }
 
+        /// <summary>
+        /// Provides an awaitable wrapper around an asynchronous socket receive operation.
+        /// </summary>
+        /// <param name="socket">The socket which should receive data from the remote endpoint.</param>
+        /// <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
+        /// <param name="socketFlags">The socket flags associated with the receive operation.</param>
+        /// <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+        /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        /// <returns>The result of the receive operation.</returns>
         public Task<TransmissionResult> ReceiveFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags,
-            Memory<byte> outputBuffer, CancellationToken cancellationToken = default)
+            Memory<byte> inputBuffer, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -160,12 +195,28 @@ namespace NetSharp.Sockets
             args.SetBuffer(rentedReceiveFromBufferMemory);
             args.SocketFlags = socketFlags;
             args.RemoteEndPoint = remoteEndPoint;
-            args.UserToken = new AsyncReadToken(rentedReceiveFromBuffer, outputBuffer, tcs, cancellationToken);
+            args.UserToken = new AsyncReadToken(rentedReceiveFromBuffer, inputBuffer, tcs, cancellationToken);
+
+            // register cleanup action for when the cancellation token is thrown
+            cancellationToken.Register(() =>
+            {
+                tcs.SetCanceled();
+
+                receiveBufferPool.Return(rentedReceiveFromBuffer, true);
+
+                //TODO this is probably a hideous solution. find a better one
+                args.Completed -= HandleIOCompleted;
+                args.Dispose();
+
+                SocketAsyncEventArgs newArgs = new SocketAsyncEventArgs();
+                newArgs.Completed += HandleIOCompleted;
+                receiveAsyncEventArgsPool.Return(newArgs);
+            });
 
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveFromAsync(args)) return tcs.Task;
 
-            args.MemoryBuffer.CopyTo(outputBuffer);
+            args.MemoryBuffer.CopyTo(inputBuffer);
 
             TransmissionResult result = new TransmissionResult(args);
 

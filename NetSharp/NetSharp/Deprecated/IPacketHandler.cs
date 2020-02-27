@@ -1,4 +1,4 @@
-﻿namespace NetSharp.Interfaces
+﻿namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Describes a class capable of registering and deregistering packet handlers, and capable of

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
-using NetSharp.Servers;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp.Clients
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Provides methods for TCP communication with a connected <see cref="TcpServer"/> instance.
@@ -15,7 +12,7 @@ namespace NetSharp.Clients
     public sealed class TcpClient : Client
     {
         /// <inheritdoc />
-        public TcpClient() : base(SocketType.Stream, ProtocolType.Tcp, new TcpSocketOptions(ref socket))
+        public TcpClient() : base(SocketType.Stream, ProtocolType.Tcp)
         {
         }
 
@@ -43,11 +40,11 @@ namespace NetSharp.Clients
             request.BeforeSerialisation();
             Memory<byte> serialisedRequest = request.Serialise();
             SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
-            await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
+            //await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
 
-            SerialisedPacket rawResponsePacket = await DoReceivePacketAsync(socket, SocketFlags.None, timeout);
+            //SerialisedPacket rawResponsePacket = await DoReceivePacketAsync(socket, SocketFlags.None, timeout);
             Rep responsePacket = new Rep();
-            responsePacket.Deserialise(rawResponsePacket.Contents);
+            //responsePacket.Deserialise(rawResponsePacket.Contents);
             responsePacket.AfterDeserialisation();
 
             return responsePacket;
@@ -61,7 +58,7 @@ namespace NetSharp.Clients
             request.BeforeSerialisation();
             Memory<byte> serialisedRequest = request.Serialise();
             SerialisedPacket rawRequest = new SerialisedPacket(serialisedRequest, packetTypeId);
-            return await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
+            return false; //await DoSendPacketAsync(socket, rawRequest, SocketFlags.None, timeout);
         }
     }
 }

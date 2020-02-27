@@ -4,15 +4,13 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Interfaces;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp.Servers
+namespace NetSharp.Deprecated
 {
     /// <summary>
-    /// Provides methods for TCP communication with connected <see cref="Clients.TcpClient"/> instances.
+    /// Provides methods for TCP communication with connected <see cref="TcpClient"/> instances.
     /// </summary>
     public sealed class TcpServer : Server
     {
@@ -29,8 +27,7 @@ namespace NetSharp.Servers
                 do
                 {
                     // receive a single raw packet from the network
-                    SerialisedPacket rawRequest = await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None,
-                        Timeout.InfiniteTimeSpan, cancellationToken);
+                    SerialisedPacket rawRequest = SerialisedPacket.Null; //await DoReceivePacketAsync(clientHandlerSocket, SocketFlags.None, Timeout.InfiniteTimeSpan, cancellationToken);
 
                     if (rawRequest.Equals(SerialisedPacket.Null) ||
                         rawRequest.Type == PacketRegistry.GetPacketId<DisconnectPacket>())
@@ -72,8 +69,7 @@ namespace NetSharp.Servers
                     // SerialisedPacket rawResponse = new SerialisedPacket(responsePacket.Serialise(), responsePacketTypeId);
 
                     // echo back the processed raw response to the network
-                    bool sentCorrectly = await DoSendPacketAsync(clientHandlerSocket, rawResponse, SocketFlags.None,
-                        NetworkOperationTimeout, cancellationToken);
+                    bool sentCorrectly = false; //await DoSendPacketAsync(clientHandlerSocket, rawResponse, SocketFlags.None, NetworkOperationTimeout, cancellationToken);
 
                     if (!sentCorrectly)
                     {
@@ -91,8 +87,7 @@ namespace NetSharp.Servers
         }
 
         /// <inheritdoc />
-        public TcpServer(TimeSpan networkOperationTimeout) : base(SocketType.Stream, ProtocolType.Tcp,
-            SocketOptionManager.Tcp, networkOperationTimeout)
+        public TcpServer(TimeSpan networkOperationTimeout) : base(SocketType.Stream, ProtocolType.Tcp, networkOperationTimeout)
         {
         }
 

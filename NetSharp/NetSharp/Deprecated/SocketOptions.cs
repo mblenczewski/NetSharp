@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 
-namespace NetSharp.Utils.Socket_Options
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Allows for manipulation of socket options.
@@ -31,8 +31,8 @@ namespace NetSharp.Utils.Socket_Options
         /// Whether sending a packet flushes underlying <see cref="NetworkStream"/>.
         /// </summary>
         /// <remarks>
-        /// This value is only used in a <see cref="TcpClient"/> instance, which uses a <see cref="NetworkStream"/>
-        /// to send and receive data. A <see cref="UdpClient"/> is unaffected by this value.
+        /// This value is only used in a <see cref="System.Net.Sockets.TcpClient"/> instance, which uses a <see cref="NetworkStream"/>
+        /// to send and receive data. A <see cref="System.Net.Sockets.UdpClient"/> is unaffected by this value.
         /// </remarks>
         public bool ForceFlush { get; set; } = true;
 

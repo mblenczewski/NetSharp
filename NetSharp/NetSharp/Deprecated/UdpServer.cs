@@ -6,16 +6,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using NetSharp.Interfaces;
 using NetSharp.Packets;
 using NetSharp.Packets.Builtin;
-using NetSharp.Utils;
-using NetSharp.Utils.Socket_Options;
 
-namespace NetSharp.Servers
+namespace NetSharp.Deprecated
 {
     /// <summary>
-    /// Provides methods for UDP communication with connected <see cref="Clients.UdpClient"/> instances.
+    /// Provides methods for UDP communication with connected <see cref="UdpClient"/> instances.
     /// </summary>
     public sealed class UdpServer : Server
     {
@@ -88,8 +85,7 @@ namespace NetSharp.Servers
                     // SerialisedPacket rawResponse = new SerialisedPacket(responsePacket.Serialise(), responsePacketTypeId);
 
                     // echo back the processed raw response to the network
-                    bool sentCorrectly = await DoSendPacketToAsync(socket, clientEndPoint, rawResponse, SocketFlags.None,
-                        NetworkOperationTimeout, cancellationToken);
+                    bool sentCorrectly = false; //await DoSendPacketToAsync(socket, clientEndPoint, rawResponse, SocketFlags.None,NetworkOperationTimeout, cancellationToken);
 
                     if (!sentCorrectly)
                     {
@@ -117,8 +113,7 @@ namespace NetSharp.Servers
         }
 
         /// <inheritdoc />
-        public UdpServer(TimeSpan networkOperationTimeout) : base(SocketType.Dgram, ProtocolType.Udp, SocketOptionManager.Udp,
-            networkOperationTimeout)
+        public UdpServer(TimeSpan networkOperationTimeout) : base(SocketType.Dgram, ProtocolType.Udp, networkOperationTimeout)
         {
             activeClients = new ConcurrentDictionary<EndPoint, Channel<SerialisedPacket>>();
         }
@@ -145,10 +140,9 @@ namespace NetSharp.Servers
             while (runServer)
             {
                 EndPoint nullEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                (SerialisedPacket request, EndPoint remoteEndPoint) =
-                    await DoReceivePacketFromAsync(socket, nullEndPoint, SocketFlags.None, Timeout.InfiniteTimeSpan,
-                        serverShutdownCancellationToken);
-                EndPoint clientEndPoint = remoteEndPoint;
+                /*
+                //(SerialisedPacket request, EndPoint remoteEndPoint) = await DoReceivePacketFromAsync(socket, nullEndPoint, SocketFlags.None, Timeout.InfiniteTimeSpan, serverShutdownCancellationToken);
+                //EndPoint clientEndPoint = remoteEndPoint;
 
                 if (request.Equals(SerialisedPacket.Null))
                 {
@@ -164,8 +158,9 @@ namespace NetSharp.Servers
                     await Task.Factory.StartNew(DoHandleClientAsync, args, serverShutdownCancellationToken,
                         TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 }
+                */
 
-                await activeClients[clientEndPoint].Writer.WriteAsync(request);
+                //await activeClients[clientEndPoint].Writer.WriteAsync(request);
             }
 
             OnServerStopped();

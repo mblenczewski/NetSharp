@@ -2,14 +2,12 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using NetSharp;
-using NetSharp.Clients;
-using NetSharp.Extensions;
-using NetSharp.Logging;
-using NetSharp.Servers;
+using NetSharp.Packets;
+using NetSharp.Utils;
 
 namespace NetSharpExamples
 {
@@ -30,27 +28,13 @@ namespace NetSharpExamples
             Console.WriteLine("Test server (y/n): ");
             if (Console.ReadLine()?.ToLower().Equals("y") ?? false)
             {
-                try
-                {
-                    await TestServer();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Exception: {ex}");
-                }
+                await TestServer();
 
                 Console.ReadLine();
             }
             else
             {
-                try
-                {
-                    await TestClient();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Exception: {ex}");
-                }
+                await TestClient();
 
                 Console.ReadLine();
             }
@@ -60,82 +44,46 @@ namespace NetSharpExamples
         {
             TimeSpan socketTimeout = TimeSpan.FromSeconds(newtorkTimeout);
 
-            const int clientCount = 1;
+            const int clientCount = 10;
             const int sentPacketCount = 1_000_000;
 
-            static Client ClientFactory()
+            EndPoint serverEndPoint = new IPEndPoint(serverAddress, serverPort);
+
+            static Connection ClientFactory()
             {
-                return new UdpClient();
+                return ConnectionFactory.InitUdp(new IPEndPoint(IPAddress.Loopback, 0));
             }
+
+            Console.WriteLine($"Testing client connections...");
 
             for (int i = 0; i < clientCount; i++)
             {
-                await Task.Factory.StartNew(async () =>
+                await Task.Factory.StartNew(async clientId =>
                 {
-                    using Client client = ClientFactory();
+                    Console.WriteLine($"Starting client {clientId}");
 
-                    client.ChangeLoggingStream(Console.OpenStandardOutput(), LogLevel.Warn);
+                    using Connection client = ClientFactory();
+                    TimeSpan timeout = TimeSpan.FromMilliseconds(1);
 
-                    if (await client.TryBindAsync(null, null, socketTimeout))
+                    byte[] message = Encoding.UTF8.GetBytes("Hello World!");
+                    Memory<byte> messageBuffer = new Memory<byte>(message);
+
+                    byte[] response = new byte[NetworkPacket.PacketSize];
+                    Memory<byte> responseBuffer = new Memory<byte>(response);
+
+                    for (int j = 0; j < sentPacketCount; j++)
                     {
-                        Console.WriteLine($"Socket bound successfully: {client.SocketOptions.LocalIPEndPoint}");
+                        int sentBytes = await client.SendToAsync(serverEndPoint, messageBuffer, SocketFlags.None, timeout);
 
-                        if (await client.TryConnectAsync(serverAddress, serverPort, socketTimeout))
-                        {
-                            Console.WriteLine(
-                                $"Socket connected successfully: {client.SocketOptions.RemoteIPEndPoint}, sending messages to server...");
+                        Console.WriteLine($"[Client {clientId}] Sent {sentBytes} bytes to {serverEndPoint}");
 
-                            //var message = new SimpleRequestPacket { Message = "Hello World" };
-                            byte[] message = Encoding.UTF8.GetBytes("Hello World!");
-                            bool failedToSend = false;
+                        TransmissionResult result = await client.ReceiveFromAsync(serverEndPoint, responseBuffer, SocketFlags.None, timeout);
 
-                            Stopwatch messageStopwatch = Stopwatch.StartNew();
+                        Console.WriteLine($"[Client {clientId}] Received {result.Count} bytes from {result.RemoteEndPoint}");
 
-                            for (int j = 0; j < sentPacketCount; j++)
-                            {
-                                if (!await client.SendBytesAsync(message, socketTimeout))
-                                {
-                                    failedToSend = true;
-                                    break;
-                                }
-
-                                //Console.WriteLine($"[{j}] Sent message to server.");
-
-                                //byte[] response = await client.SendBytesWithResponseAsync(message, socketTimeout);
-                                //Console.WriteLine($"[{j}] Received response: {Encoding.UTF8.GetString(response)}");
-
-                                //await Task.Delay(new Random(DateTime.Now.Millisecond).Next(200, 500));
-                            }
-
-                            messageStopwatch.Stop();
-
-                            if (!failedToSend)
-                            {
-                                Console.WriteLine(
-                                    $"Sending {sentPacketCount} packets of {message.Length} bytes long took {messageStopwatch.Elapsed}");
-
-                                double bandwidth = message.Length * sentPacketCount / (messageStopwatch.ElapsedMilliseconds / 1000.0);
-
-                                Console.WriteLine($"Approximate bandwidth for single connection is {bandwidth} Bytes per second");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Could not successfully send all packets to server.");
-                            }
-
-                            client.Disconnect();
-                            Console.WriteLine($"Sent disconnect packet to server.");
-                        }
-                        else
-                        {
-                            Console.WriteLine("Socket could not connect");
-                        }
+                        //await Task.Delay(10);
                     }
-                    else
-                    {
-                        Console.WriteLine("Socket could not be bound");
-                    }
-                }, TaskCreationOptions.LongRunning);
+                }, i, TaskCreationOptions.LongRunning);
             }
 
             Console.ReadLine();
@@ -147,17 +95,34 @@ namespace NetSharpExamples
             File.Delete(serverLogFile);
             await using Stream serverOutputStream = File.OpenWrite(serverLogFile);
 
-            using Server server = new UdpServer();
-            server.ChangeLoggingStream(Console.OpenStandardOutput(), LogLevel.Warn);
+            EndPoint serverEndPoint = new IPEndPoint(serverAddress, serverPort);
+
+            using Connection server = ConnectionFactory.InitUdp(serverEndPoint);
+            //server.SetLoggingStream(Console.OpenStandardOutput(), LogLevel.Info);
             //server.ChangeLoggingStream(serverOutputStream, LogLevel.Error);
 
             Console.WriteLine("Starting server...");
-            await server.RunAsync(serverAddress, serverPort);
+
+            EndPoint nullEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+            byte[] request = new byte[NetworkPacket.PacketSize];
+            Memory<byte> requestBuffer = new Memory<byte>(request);
+
+            while (true)
+            {
+                TransmissionResult result =
+                    await server.ReceiveFromAsync(nullEndPoint, requestBuffer, SocketFlags.None);
+
+                Console.WriteLine($"[Server] Received {result.Count} bytes from {result.RemoteEndPoint}");
+
+                int sentBytes = await server.SendToAsync(result.RemoteEndPoint, requestBuffer, SocketFlags.None);
+
+                Console.WriteLine($"[Server] Sent {sentBytes} bytes tp {result.RemoteEndPoint}");
+            }
+
             Console.WriteLine("Server stopped");
 
             Console.ReadLine();
-
-            serverOutputStream.Close();
         }
     }
 }

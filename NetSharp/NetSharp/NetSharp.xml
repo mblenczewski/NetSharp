@@ -4,253 +4,144 @@
         <name>NetSharp</name>
     </assembly>
     <members>
-        <member name="T:NetSharp.Client">
+        <member name="M:NetSharp.Connection.Finalize">
             <summary>
-            Provides methods for connecting to and talking with a <see cref="T:NetSharp.Interfaces.IServer"/> instance.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Client.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Client"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Client.Finalize">
-            <summary>
-            Destroys an instance of the <see cref="T:NetSharp.Client"/> class.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Client.socket">
-            <summary>
-            The <see cref="T:System.Net.Sockets.Socket"/> underlying the connection.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Client.socketOptions">
-            <summary>
-            Backing field for the <see cref="P:NetSharp.Client.SocketOptions"/> property.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Client.remoteEndPoint">
-            <summary>
-            The remote endpoint with which this client communicates.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Client.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,NetSharp.Utils.Socket_Options.SocketOptionManager)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Client"/> class.
-            </summary>
-            <param name="socketType">The socket type for the underlying socket.</param>
-            <param name="protocolType">The protocol type for the underlying socket.</param>
-            <param name="socketManager">The <see cref="T:NetSharp.Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-        </member>
-        <member name="M:NetSharp.Client.Dispose(System.Boolean)">
-            <summary>
-            Disposes of this <see cref="T:NetSharp.Client"/> instance.
-            </summary>
-            <param name="disposing">Whether this instance is being disposed.</param>
-        </member>
-        <member name="M:NetSharp.Client.OnConnected(System.Net.EndPoint)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Client.Connected"/> event.
-            </summary>
-            <param name="endPoint">The remote endpoint with which a connection was made.</param>
-        </member>
-        <member name="M:NetSharp.Client.OnDisconnected(System.Net.EndPoint)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Client.Disconnected"/> event.
-            </summary>
-            <param name="endPoint">The remote endpoint with which a connection was lost.</param>
-        </member>
-        <member name="E:NetSharp.Client.Connected">
-            <inheritdoc />
-        </member>
-        <member name="E:NetSharp.Client.Disconnected">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Client.SocketOptions">
-            <summary>
-            The configured socket options for the underlying connection.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Client.Disconnect">
-            <summary>
-            Disconnects the client from the remote endpoint.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Client.SendBytesAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Client.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Client.SendComplexAsync``2(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Client.SendSimpleAsync``1(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Client.TryBindAsync(System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Client.TryConnectAsync(System.Net.IPAddress,System.Int32,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Clients.TcpClient">
-            <summary>
-            Provides methods for TCP communication with a connected <see cref="T:NetSharp.Servers.TcpServer"/> instance.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Clients.TcpClient.#ctor">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.TcpClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.TcpClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.TcpClient.SendComplexAsync``2(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.TcpClient.SendSimpleAsync``1(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Clients.UdpClient">
-            <summary>
-            Provides methods for UDP communication with a connected <see cref="T:NetSharp.Servers.UdpServer"/> instance.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Clients.UdpClient.#ctor">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.UdpClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.UdpClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.UdpClient.SendComplexAsync``2(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Clients.UdpClient.SendSimpleAsync``1(``0,System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Connection">
-            <summary>
-            Base class for connections, holding methods shared between the <see cref="T:NetSharp.Client"/> and <see cref="T:NetSharp.Server"/> classes.
+            Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
             </summary>
         </member>
         <member name="F:NetSharp.Connection.logger">
             <summary>
-            The logger to which the server can log messages.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Connection"/> class.
+            A logger object allowing for writing debug messages to an output stream.
             </summary>
         </member>
         <member name="M:NetSharp.Connection.Dispose(System.Boolean)">
             <summary>
-            Disposes of this <see cref="T:NetSharp.Connection"/> instance.
+            Disposes of the managed and unmanaged resources held by this instance.
             </summary>
-            <param name="disposing">Whether this instance is being disposed.</param>
-        </member>
-        <member name="M:NetSharp.Connection.DoReceivePacketAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
-            <summary>
-            Listens for a packet to be received from the network.
-            </summary>
-            <param name="socket">The remote socket from which to receive data.</param>
-            <param name="socketFlags">The socket flags associated with the read operation.</param>
-            <param name="timeout">
-            The timespan within which the packet should be received. After this timespan elapses, the receive task is cancelled.
-            </param>
-            <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-            <returns>The packet that was received. <see cref="!:NullPacket"/> if not received correctly.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.DoReceivePacketFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
-            <summary>
-            Listens for a packet to be received from the network.
-            </summary>
-            <param name="socket">The socket which will receive the packet.</param>
-            <param name="remoteEndPoint">The remote endpoint from which to receive the packet.</param>
-            <param name="socketFlags">The socket flags associated with the read operation.</param>
-            <param name="timeout">
-            The timespan within which the packet should be received. After this timespan elapses, the receive task is cancelled.
-            </param>
-            <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-            <returns>
-            The packet that was received and the associated transmission result. <see cref="!:NullPacket"/> if not received correctly.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Connection.DoSendPacketAsync(System.Net.Sockets.Socket,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
-            <summary>
-            Sends the given packet to the network.
-            </summary>
-            <param name="remoteSocket">The remote socket to which to send the packet.</param>
-            <param name="packet">The packet to send.</param>
-            <param name="socketFlags">The socket flags associated with the write operation.</param>
-            <param name="timeout">
-            The timespan within which the packet should be received. After this timespan elapses, the send task is cancelled.
-            </param>
-            <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-            <returns>Whether the packet was successfully sent.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.DoSendPacketToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.TimeSpan,System.Threading.CancellationToken)">
-            <summary>
-            Sends the given packet to the network.
-            </summary>
-            <param name="socket">The socket which should send the packet.</param>
-            <param name="remoteEndPoint">The remote endpoint to which to send the packet.</param>
-            <param name="packet">The packet to send.</param>
-            <param name="socketFlags">The socket flags associated with the write operation.</param>
-            <param name="timeout">
-            The timespan within which the packet should be received. After this timespan elapses, the send task is cancelled.
-            </param>
-            <param name="cancellationToken">A pre-existing cancellation token that should be observed alongside the timeout.</param>
-            <returns>Whether the packet was successfully sent.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.OnBytesReceived(System.Net.EndPoint,System.Int32)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Connection.BytesReceived"/> event.
-            </summary>
-            <param name="remoteEndPoint">The remote endpoint from which the bytes were received.</param>
-            <param name="bytesReceived">The number of bytes that were received from the remote endpoint.</param>
-        </member>
-        <member name="M:NetSharp.Connection.OnBytesSent(System.Net.EndPoint,System.Int32)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Connection.BytesSent"/> event.
-            </summary>
-            <param name="remoteEndPoint">The remote endpoint to which the bytes were sent.</param>
-            <param name="bytesSent">The number of bytes that were sent to the remote endpoint.</param>
-        </member>
-        <member name="E:NetSharp.Connection.BytesReceived">
-            <summary>
-            Signifies that some data has been received from the remote endpoint.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Connection.BytesSent">
-            <summary>
-            Signifies that some data was sent to the remote endpoint.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.ChangeLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
-            <summary>
-            Makes the client log to the given stream.
-            </summary>
-            <param name="loggingStream">The stream that new messages should be logged to.</param>
-            <param name="minimumMessageSeverityLevel">
-            The minimum severity level that new messages must have to be logged to the stream.
-            </param>
+            <param name="disposing">Whether this method is called by <see cref="M:NetSharp.Connection.Dispose"/> or by the finaliser.</param>
         </member>
         <member name="M:NetSharp.Connection.Dispose">
             <inheritdoc />
         </member>
-        <member name="T:NetSharp.Extensions.ClientExtensions">
+        <member name="M:NetSharp.Connection.TryBind(System.Net.EndPoint,System.TimeSpan)">
             <summary>
-            Provides additional methods and functionality to the <see cref="T:NetSharp.Client"/> class.
+            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="M:NetSharp.Connection.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="T:NetSharp.ConnectionFactory">
+            <summary>
+            Provides methods to construct and configure <see cref="T:NetSharp.Connection"/> instances.
             </summary>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytes(NetSharp.Client,System.Byte[])">
+        <member name="T:NetSharp.Deprecated.Client">
+            <summary>
+            Provides methods for connecting to and talking with a <see cref="T:NetSharp.Deprecated.IServer"/> instance.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.#ctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Client"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.Finalize">
+            <summary>
+            Destroys an instance of the <see cref="T:NetSharp.Deprecated.Client"/> class.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Client.socket">
+            <summary>
+            The <see cref="T:System.Net.Sockets.Socket"/> underlying the connection.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Client.socketOptions">
+            <summary>
+            Backing field for the <see cref="P:NetSharp.Deprecated.Client.SocketOptions"/> property.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Client.remoteEndPoint">
+            <summary>
+            The remote endpoint with which this client communicates.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Client"/> class.
+            </summary>
+            <param name="socketType">The socket type for the underlying socket.</param>
+            <param name="protocolType">The protocol type for the underlying socket.</param>
+            <param name="socketManager">The <see cref="!:Utils.Socket_Options.SocketOptions"/> manager to use.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.Dispose(System.Boolean)">
+            <summary>
+            Disposes of this <see cref="T:NetSharp.Deprecated.Client"/> instance.
+            </summary>
+            <param name="disposing">Whether this instance is being disposed.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.OnConnected(System.Net.EndPoint)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Client.Connected"/> event.
+            </summary>
+            <param name="endPoint">The remote endpoint with which a connection was made.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.OnDisconnected(System.Net.EndPoint)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Client.Disconnected"/> event.
+            </summary>
+            <param name="endPoint">The remote endpoint with which a connection was lost.</param>
+        </member>
+        <member name="E:NetSharp.Deprecated.Client.Connected">
+            <inheritdoc />
+        </member>
+        <member name="E:NetSharp.Deprecated.Client.Disconnected">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.Client.SocketOptions">
+            <summary>
+            The configured socket options for the underlying connection.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.Disconnect">
+            <summary>
+            Disconnects the client from the remote endpoint.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.SendBytesAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.SendComplexAsync``2(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.SendSimpleAsync``1(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.TryBindAsync(System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Client.TryConnectAsync(System.Net.IPAddress,System.Int32,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.ClientExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.Deprecated.Client"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytes(NetSharp.Deprecated.Client,System.Byte[])">
             <summary>
             Sends the given byte buffer to the connected remote endpoint. Blocks until the bytes are all sent, and does
             not timeout.
@@ -258,7 +149,7 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytes(NetSharp.Client,System.Byte[],System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytes(NetSharp.Deprecated.Client,System.Byte[],System.TimeSpan)">
             <summary>
             Sends the given byte buffer to the connected remote endpoint. Blocks until the bytes are all sent, whilst
             observing a timeout of the given length.
@@ -267,7 +158,7 @@
             <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
             <param name="timeout">The timeout after which to cancel the transmission attempt.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytesAsync(NetSharp.Client,System.Byte[])">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytesAsync(NetSharp.Deprecated.Client,System.Byte[])">
             <summary>
             Sends the given byte buffer to the connected remote endpoint asynchronously. Does not block, and does not
             timeout.
@@ -275,7 +166,7 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytesWithResponse(NetSharp.Client,System.Byte[])">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytesWithResponse(NetSharp.Deprecated.Client,System.Byte[])">
             <summary>
             Sends the given byte buffer to the connected remote endpoint and waits for the response. Blocks until the
             bytes are all sent and the response has been received, and does not timeout.
@@ -284,7 +175,7 @@
             <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
             <returns>The byte buffer that was received as a response.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytesWithResponse(NetSharp.Client,System.Byte[],System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytesWithResponse(NetSharp.Deprecated.Client,System.Byte[],System.TimeSpan)">
             <summary>
             Sends the given byte buffer to the connected remote endpoint and waits for the response. Blocks until the
             bytes are all sent and the response has been received, whilst observing a timeout of the given length.
@@ -294,7 +185,7 @@
             <param name="timeout">The timeout after which to cancel the transmission attempt.</param>
             <returns>The byte buffer that was received as a response.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendBytesWithResponseAsync(NetSharp.Client,System.Byte[])">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendBytesWithResponseAsync(NetSharp.Deprecated.Client,System.Byte[])">
             <summary>
             Sends the given byte buffer to the connected remote endpoint and waits for the response asynchronously.
             Does not block, and does not timeout.
@@ -303,7 +194,7 @@
             <param name="buffer">The bytes that should be sent to the connected remote endpoint.</param>
             <returns>The byte buffer received as a response to the sent buffer.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendComplex``2(NetSharp.Client,``0)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendComplex``2(NetSharp.Deprecated.Client,``0)">
             <summary>
             Sends the given request and listens for a response of the given type. Blocks until the response is received.
             Does not timeout.
@@ -314,7 +205,7 @@
             <param name="request">The request packet to send.</param>
             <returns>The received instance.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendComplex``2(NetSharp.Client,``0,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendComplex``2(NetSharp.Deprecated.Client,``0,System.TimeSpan)">
             <summary>
             Sends the given request and listens for a response of the given type. Blocks until the response is received.
             Cancels the operation if the given timeout is exceeded.
@@ -326,7 +217,7 @@
             <param name="timeout">The timeout for which to wait for the operation to complete.</param>
             <returns>The received instance.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendComplexAsync``2(NetSharp.Client,``0)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendComplexAsync``2(NetSharp.Deprecated.Client,``0)">
             <summary>
             Sends the given request and listens for a response of the given type asynchronously. Does not block. Does not timeout.
             </summary>
@@ -336,7 +227,7 @@
             <param name="request">The request packet to send.</param>
             <returns>The received instance.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendSimple``1(NetSharp.Client,``0)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendSimple``1(NetSharp.Deprecated.Client,``0)">
             <summary>
             Sends the given request without listening for a response, blocking until it is sent. Does not timeout.
             </summary>
@@ -344,7 +235,7 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="request">The request packet to send.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendSimple``1(NetSharp.Client,``0,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendSimple``1(NetSharp.Deprecated.Client,``0,System.TimeSpan)">
             <summary>
             Sends the given request without listening for a response, blocking until it is sent.
             Cancels the operation if the given timeout is exceeded.
@@ -354,7 +245,7 @@
             <param name="request">The request packet to send.</param>
             <param name="timeout">The timeout for which to wait for the operation to complete.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.SendSimpleAsync``1(NetSharp.Client,``0)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.SendSimpleAsync``1(NetSharp.Deprecated.Client,``0)">
             <summary>
             Sends the given request asynchronously without listening for a response, not blocking until it is sent.
             Does not timeout.
@@ -363,7 +254,7 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="request">The request packet to send.</param>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryBind(NetSharp.Client,System.Net.IPAddress,System.Nullable{System.Int32})">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryBind(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Nullable{System.Int32})">
             <summary>
             Attempts to synchronously bind the underlying socket to the given local address and port. Blocks. Does not timeout.
             </summary>
@@ -372,7 +263,7 @@
             <param name="localPort">The local port to bind to. Null if any port will suffice.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryBind(NetSharp.Client,System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryBind(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
             <summary>
             Attempts to synchronously bind the underlying socket to the given local address and port. Blocks.
             If the timeout is exceeded the binding attempt is aborted and the method returns false.
@@ -383,7 +274,7 @@
             <param name="timeout">The timeout within which to attempt the binding.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryBindAsync(NetSharp.Client,System.Net.IPAddress,System.Nullable{System.Int32})">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryBindAsync(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Nullable{System.Int32})">
             <summary>
             Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
             Does not timeout.
@@ -393,9 +284,9 @@
             <param name="localPort">The local port to bind to. Null if any port will suffice.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryConnect(NetSharp.Client,System.Net.IPAddress,System.Int32)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryConnect(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Int32)">
             <summary>
-            Attempts to connect to the remote <see cref="T:NetSharp.Server"/> at the given <see cref="T:System.Net.IPAddress"/> and over the
+            Attempts to connect to the remote <see cref="T:NetSharp.Deprecated.Server"/> at the given <see cref="T:System.Net.IPAddress"/> and over the
             given port. Does not timeout.
             </summary>
             <param name="instance">The instance on which this extension method should be called.</param>
@@ -403,9 +294,9 @@
             <param name="remotePort">The remote port to connect over.</param>
             <returns>Whether the connection was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryConnect(NetSharp.Client,System.Net.IPAddress,System.Int32,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryConnect(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Int32,System.TimeSpan)">
             <summary>
-            Attempts to connect to the remote <see cref="T:NetSharp.Server"/> at the given <see cref="T:System.Net.IPAddress"/> and over the
+            Attempts to connect to the remote <see cref="T:NetSharp.Deprecated.Server"/> at the given <see cref="T:System.Net.IPAddress"/> and over the
             given port. If the timeout is exceeded the connection attempt is aborted and the method returns false.
             </summary>
             <param name="instance">The instance on which this extension method should be called.</param>
@@ -414,9 +305,9 @@
             <param name="timeout">The timeout within which to attempt the connection.</param>
             <returns>Whether the connection was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Extensions.ClientExtensions.TryConnectAsync(NetSharp.Client,System.Net.IPAddress,System.Int32)">
+        <member name="M:NetSharp.Deprecated.ClientExtensions.TryConnectAsync(NetSharp.Deprecated.Client,System.Net.IPAddress,System.Int32)">
             <summary>
-            Attempts to connect asynchronously to the remote <see cref="T:NetSharp.Server"/> at the given <see cref="T:System.Net.IPAddress"/>
+            Attempts to connect asynchronously to the remote <see cref="T:NetSharp.Deprecated.Server"/> at the given <see cref="T:System.Net.IPAddress"/>
             and over the given port. Does not timeout.
             </summary>
             <param name="instance">The instance on which this extension method should be called.</param>
@@ -424,138 +315,48 @@
             <param name="remotePort">The remote port to connect over.</param>
             <returns>Whether the connection was successful or not.</returns>
         </member>
-        <member name="T:NetSharp.Extensions.ServerExtensions">
+        <member name="T:NetSharp.Deprecated.DefaultSocketOptions">
             <summary>
-            Provides additional methods and functionality to the <see cref="T:NetSharp.Server"/> class.
+            Allows for manipulation of socket options.
             </summary>
         </member>
-        <member name="M:NetSharp.Extensions.ServerExtensions.Run(NetSharp.Server,System.Net.IPAddress,System.Int32)">
-            <summary>
-            Starts the server synchronously and starts accepting client connections. Blocks.
-            </summary>
-            <param name="instance">The instance on which this extension method should be called.</param>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-        </member>
-        <member name="M:NetSharp.Extensions.ServerExtensions.Run(NetSharp.Server,System.Net.IPAddress)">
-            <summary>
-            Starts the server synchronously and starts accepting client connections. Blocks. Uses the default connection port.
-            </summary>
-            <param name="instance">The instance on which this extension method should be called.</param>
-            <param name="localAddress">The local IP address to bind to.</param>
-        </member>
-        <member name="M:NetSharp.Extensions.ServerExtensions.RunAsync(NetSharp.Server,System.Net.IPAddress)">
-            <summary>
-            Starts the server asynchronously and starts accepting client connections. Does not block. Uses the default
-            connection port.
-            </summary>
-            <param name="instance">The instance on which this extension method should be called.</param>
-            <param name="localAddress">The local IP address to bind to.</param>
-        </member>
-        <member name="M:NetSharp.Extensions.ServerExtensions.RunAsync(NetSharp.Server,System.Net.IPAddress,System.Int32)">
-            <summary>
-            Starts the server asynchronously and starts accepting client connections. Does not block.
-            </summary>
-            <param name="instance">The instance on which this extension method should be called.</param>
-            <param name="localAddress">The local IP address to bind to.</param>
-            <param name="localPort">The local port to bind to.</param>
-        </member>
-        <member name="T:NetSharp.Extensions.SocketExtensions">
-            <summary>
-            Provides additional methods and functionality to the <see cref="T:System.Net.Sockets.Socket"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveFromAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveFromAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketExtensions.ReceiveMessageFromAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.ReceiveMessageFromAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketExtensions.SendAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketExtensions.SendToAsync(System.Net.Sockets.Socket,NetSharp.Extensions.SocketTask)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SendToAsync(System.Net.Sockets.SocketAsyncEventArgs)"/>
-        </member>
-        <member name="T:NetSharp.Extensions.SocketTask">
-            <summary>
-            Custom awaitable to ease the use of sockets with the TAP pattern.
-            Credit goes to https://devblogs.microsoft.com/pfxteam/awaiting-socket-operations/.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Extensions.SocketTask.SentinelAction">
-            <summary>
-            Representing a null action.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Extensions.SocketTask.continuationAction">
-            <summary>
-            The action that should be invoked upon the completion of the socket task.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Extensions.SocketTask.eventArgs">
-            <summary>
-            The underlying socket event args for this socket task.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Extensions.SocketTask.wasCompleted">
-            <summary>
-            Whether this socket task was completed.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketTask.Reset">
-            <summary>
-            Resets this socket task to its default state, and sets <see cref="F:NetSharp.Extensions.SocketTask.continuationAction"/> to <c>default</c>.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketTask.#ctor(System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Extensions.SocketTask"/> class.
-            </summary>
-            <param name="asyncEventArgs">The socket event args that this socket task should wrap. Must not be <c>null</c>.</param>
-            <exception cref="T:System.ArgumentNullException">Thrown if the given <paramref name="asyncEventArgs"/> were <c>null</c>.</exception>
-        </member>
-        <member name="P:NetSharp.Extensions.SocketTask.IsCompleted">
-            <summary>
-            Whether this socket task has been completed.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketTask.GetAwaiter">
-            <summary>
-            Returns this socket task instance.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketTask.GetResult">
-            <summary>
-            Throws a <see cref="T:System.Net.Sockets.SocketException"/> if the wrapped <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.SocketError"/>
-            is not equal to <see cref="F:System.Net.Sockets.SocketError.Success"/>.
-            </summary>
-            <exception cref="T:System.Net.Sockets.SocketException">
-            Thrown if the wrapped <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> did not complete successfully.
-            </exception>
-        </member>
-        <member name="M:NetSharp.Extensions.SocketTask.OnCompleted(System.Action)">
+        <member name="M:NetSharp.Deprecated.DefaultSocketOptions.#ctor(System.Net.Sockets.Socket@)">
             <inheritdoc />
         </member>
-        <member name="T:NetSharp.Interfaces.IClient">
+        <member name="P:NetSharp.Deprecated.DefaultSocketOptions.HopLimit">
+            <inheritdoc />
+            <exception cref="T:System.NotSupportedException">
+            This property is not supported when using the default socket option manager.
+            </exception>
+        </member>
+        <member name="P:NetSharp.Deprecated.DefaultSocketOptions.IsRoutingEnabled">
+            <inheritdoc />
+            <exception cref="T:System.NotSupportedException">
+            This property is not supported when using the default socket option manager.
+            </exception>
+        </member>
+        <member name="P:NetSharp.Deprecated.DefaultSocketOptions.UseLoopback">
+            <inheritdoc />
+            <exception cref="T:System.NotSupportedException">
+            This property is not supported when using the default socket option manager.
+            </exception>
+        </member>
+        <member name="T:NetSharp.Deprecated.IClient">
             <summary>
-            Describes a client capable of asynchronous communication with an <see cref="T:NetSharp.Interfaces.IServer"/> connection.
+            Describes a client capable of asynchronous communication with an <see cref="T:NetSharp.Deprecated.IServer"/> connection.
             </summary>
         </member>
-        <member name="E:NetSharp.Interfaces.IClient.Connected">
+        <member name="E:NetSharp.Deprecated.IClient.Connected">
             <summary>
             Signifies that a connection with the remote endpoint has been made.
             </summary>
         </member>
-        <member name="E:NetSharp.Interfaces.IClient.Disconnected">
+        <member name="E:NetSharp.Deprecated.IClient.Disconnected">
             <summary>
             Signifies that the connection with the remote endpoint was severed.
             </summary>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
             <summary>
             Sends the given byte buffer to the connected remote endpoint asynchronously. Does not block, and observes
             a timeout of the given length.
@@ -565,7 +366,7 @@
             <param name="timeout">The timeout after which to cancel the transmission attempt.</param>
             <returns>Whether the transmission attempt was successful.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
             <summary>
             Sends the given byte buffer to the connected remote endpoint and waits for the response asynchronously.
             Does not block, and observes a timeout of the given length.
@@ -579,7 +380,7 @@
             </param>
             <returns>The byte buffer received as a response to the sent buffer.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.SendComplexAsync``2(``0,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.SendComplexAsync``2(``0,System.TimeSpan)">
             <summary>
             Sends the given request and listens for a response of the given type asynchronously. Does not block.
             Cancels the operation if the given timeout is exceeded
@@ -590,7 +391,7 @@
             <param name="timeout">The timeout for which to wait for the operation to complete.</param>
             <returns>The received instance.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.SendSimpleAsync``1(``0,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.SendSimpleAsync``1(``0,System.TimeSpan)">
             <summary>
             Sends the given request asynchronously without listening for a response, not blocking until it is sent.
             Cancels the operation if the given timeout is exceeded.
@@ -600,7 +401,7 @@
             <param name="timeout">The timeout for which to wait for the operation to complete.</param>
             <returns>Whether the transmission attempt was successful.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.TryBindAsync(System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.TryBindAsync(System.Net.IPAddress,System.Nullable{System.Int32},System.TimeSpan)">
             <summary>
             Attempts to asynchronously bind the underlying socket to the given local address and port. Does not block.
             If the timeout is exceeded the binding attempt is aborted and the method returns false.
@@ -610,9 +411,9 @@
             <param name="timeout">The timeout within which to attempt the binding.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IClient.TryConnectAsync(System.Net.IPAddress,System.Int32,System.TimeSpan)">
+        <member name="M:NetSharp.Deprecated.IClient.TryConnectAsync(System.Net.IPAddress,System.Int32,System.TimeSpan)">
             <summary>
-            Attempts to connect asynchronously to the remote <see cref="T:NetSharp.Server"/> at the given <see cref="T:System.Net.IPAddress"/>
+            Attempts to connect asynchronously to the remote <see cref="T:NetSharp.Deprecated.Server"/> at the given <see cref="T:System.Net.IPAddress"/>
             and over the given port. If the timeout is exceeded the connection attempt is aborted and the method returns false.
             </summary>
             <param name="remoteAddress">The remote IP address to connect to.</param>
@@ -620,91 +421,45 @@
             <param name="timeout">The timeout within which to attempt the connection.</param>
             <returns>Whether the connection was successful or not.</returns>
         </member>
-        <member name="T:NetSharp.Interfaces.INetworkSerialisable">
+        <member name="T:NetSharp.Deprecated.INetworkSerialisable">
             <summary>
             Describes an object that can be serialised to be sent across the network.
             </summary>
         </member>
-        <member name="M:NetSharp.Interfaces.INetworkSerialisable.Deserialise(System.ReadOnlyMemory{System.Byte})">
+        <member name="M:NetSharp.Deprecated.INetworkSerialisable.Deserialise(System.ReadOnlyMemory{System.Byte})">
             <summary>
             Deserialises the object instance from a byte array.
             </summary>
             <param name="serialisedObject">The memory containing the serialised object instance.</param>
         </member>
-        <member name="M:NetSharp.Interfaces.INetworkSerialisable.Serialise">
+        <member name="M:NetSharp.Deprecated.INetworkSerialisable.Serialise">
             <summary>
             Serialises the object instance into a byte array.
             </summary>
             <returns>The memory containing the serialised object instance.</returns>
         </member>
-        <member name="T:NetSharp.Interfaces.IPacket">
+        <member name="T:NetSharp.Deprecated.IPacket">
             <summary>
             Describes the methods and properties that every packet
             </summary>
         </member>
-        <member name="M:NetSharp.Interfaces.IPacket.AfterDeserialisation">
+        <member name="M:NetSharp.Deprecated.IPacket.AfterDeserialisation">
             <summary>
             Allows for custom fields to be converted from their serialised format, after being received from the network.
             </summary>
         </member>
-        <member name="M:NetSharp.Interfaces.IPacket.BeforeSerialisation">
+        <member name="M:NetSharp.Deprecated.IPacket.BeforeSerialisation">
             <summary>
             Allows for custom fields to be converted into another format prior to being sent via the network.
             </summary>
         </member>
-        <member name="T:NetSharp.Interfaces.IRequestPacket">
+        <member name="T:NetSharp.Deprecated.IPacketHandler">
             <summary>
-            Describes a request packet.
+            Describes a class capable of registering and deregistering packet handlers, and capable of
+            handling incoming packets according to the currently registered packet handlers.
             </summary>
         </member>
-        <member name="T:NetSharp.Interfaces.IResponsePacket`1">
-            <summary>
-            Describes a response packet to a request packet.
-            </summary>
-            <typeparam name="TReq">The request packet that this type is a response to.</typeparam>
-        </member>
-        <member name="P:NetSharp.Interfaces.IResponsePacket`1.RequestPacket">
-            <summary>
-            The request packet that was handled with this response packet.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Interfaces.IServer">
-            <summary>
-            Describes a server capable of asynchronously handling multiple <see cref="T:NetSharp.Interfaces.IClient"/> connections at once.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Interfaces.IServer.ClientConnected">
-            <summary>
-            Signifies that a connection with a remote endpoint has been made.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Interfaces.IServer.ClientDisconnected">
-            <summary>
-            Signifies that a connection with a remote endpoint has been lost.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Interfaces.IServer.ServerStarted">
-            <summary>
-            Signifies that the server was started and clients will start being accepted.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Interfaces.IServer.ServerStopped">
-            <summary>
-            Signifies that the server was stopped and clients will stop being accepted.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Interfaces.IServer.RunAsync(System.Net.EndPoint)">
-            <summary>
-            Starts the server asynchronously and starts accepting client connections. Does not block.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-        </member>
-        <member name="M:NetSharp.Interfaces.IServer.Shutdown">
-            <summary>
-            Shuts down the server.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Interfaces.IServer.TryDeregisterComplexPacketHandler``2(NetSharp.ComplexPacketHandler{``0,``1}@)">
+        <member name="M:NetSharp.Deprecated.IPacketHandler.TryDeregisterComplexPacketHandler``2(NetSharp.Deprecated.ComplexPacketHandler{``0,``1}@)">
             <summary>
             Attempts to deregister the complex packet handler delegate for all packets of the given type. If a handler
             method doesn't exist for the given packet type, <paramref name="oldHandlerDelegate"/> will be <c>default</c>.
@@ -714,7 +469,7 @@
             <param name="oldHandlerDelegate">The old handler delegate method that was previously registered.</param>
             <returns>Whether the packet handler delegate was successfully deregistered.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IServer.TryDeregisterSimplePacketHandler``1(NetSharp.SimplePacketHandler{``0}@)">
+        <member name="M:NetSharp.Deprecated.IPacketHandler.TryDeregisterSimplePacketHandler``1(NetSharp.Deprecated.SimplePacketHandler{``0}@)">
             <summary>
             Attempts to deregister the simple packet handler delegate for all packets of the given type. If a handler
             method doesn't exist for the given packet type, <paramref name="oldHandlerDelegate"/> will be <c>default</c>.
@@ -723,7 +478,7 @@
             <param name="oldHandlerDelegate">The old handler delegate method that was previously registered.</param>
             <returns>Whether the packet handler delegate was successfully deregistered.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IServer.TryRegisterComplexPacketHandler``2(NetSharp.ComplexPacketHandler{``0,``1})">
+        <member name="M:NetSharp.Deprecated.IPacketHandler.TryRegisterComplexPacketHandler``2(NetSharp.Deprecated.ComplexPacketHandler{``0,``1})">
             <summary>
             Attempts to register a complex packet handler delegate for all packets of the given type. If a handler
             method already exists for the given packet type, it will be updated and replaced with the given one.
@@ -733,7 +488,7 @@
             <param name="handlerDelegate">The delegate method to register as the complex packet handler.</param>
             <returns>Whether the packet handler delegate was successfully registered.</returns>
         </member>
-        <member name="M:NetSharp.Interfaces.IServer.TryRegisterSimplePacketHandler``1(NetSharp.SimplePacketHandler{``0})">
+        <member name="M:NetSharp.Deprecated.IPacketHandler.TryRegisterSimplePacketHandler``1(NetSharp.Deprecated.SimplePacketHandler{``0})">
             <summary>
             Attempts to register a simple packet handler delegate for all packets of the given type. If a handler
             method already exists for the given packet type, it will be updated and replaced with the given one.
@@ -741,6 +496,647 @@
             <typeparam name="Req">The type of request packet for which to register the handler delegate.</typeparam>
             <param name="handlerDelegate">The delegate method to register as the simple packet handler.</param>
             <returns>Whether the packet handler delegate was successfully registered.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.IRequestPacket">
+            <summary>
+            Describes a request packet.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.IResponsePacket`1">
+            <summary>
+            Describes a response packet to a request packet.
+            </summary>
+            <typeparam name="TReq">The request packet that this type is a response to.</typeparam>
+        </member>
+        <member name="P:NetSharp.Deprecated.IResponsePacket`1.RequestPacket">
+            <summary>
+            The request packet that was handled with this response packet.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.IServer">
+            <summary>
+            Describes a server capable of asynchronously handling multiple <see cref="T:NetSharp.Deprecated.IClient"/> connections at once.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.IServer.ClientConnected">
+            <summary>
+            Signifies that a connection with a remote endpoint has been made.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.IServer.ClientDisconnected">
+            <summary>
+            Signifies that a connection with a remote endpoint has been lost.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.IServer.ServerStarted">
+            <summary>
+            Signifies that the server was started and clients will start being accepted.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.IServer.ServerStopped">
+            <summary>
+            Signifies that the server was stopped and clients will stop being accepted.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.IServer.RunAsync(System.Net.EndPoint)">
+            <summary>
+            Starts the server asynchronously and starts accepting client connections. Does not block.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.IServer.Shutdown">
+            <summary>
+            Shuts down the server.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SerialisedPacket.From``1(``0)">
+            <summary>
+            Serialises the given serialisable packet instance and returns the <see cref="T:NetSharp.Deprecated.SerialisedPacket"/> instance
+            that was generated. This method invokes <see cref="M:NetSharp.Deprecated.IPacket.BeforeSerialisation"/>.
+            </summary>
+            <typeparam name="T">The packet type that will be serialised.</typeparam>
+            <param name="serialisable">The packet instance that should be serialised.</param>
+            <returns>The serialised instance.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.SerialisedPacket.To``1(NetSharp.Deprecated.SerialisedPacket@)">
+            <summary>
+            Deserialises and returns a packet instance of the given type from the <see cref="T:NetSharp.Deprecated.SerialisedPacket"/> instance
+            that was given. This method invokes <see cref="M:NetSharp.Deprecated.IPacket.AfterDeserialisation"/>.
+            </summary>
+            <typeparam name="T">The packet type to which the packet should be deserialised.</typeparam>
+            <param name="instance">The serialised packet instance that should be deserialised.</param>
+            <returns>The deserialised instance.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.ComplexPacketHandler`2">
+            <summary>
+            Represents a method that receives a request packet of the given type (<typeparamref name="TReq"/>) and
+            handles the request, returning a response packet of the given type (<typeparamref name="TRep"/>).
+            </summary>
+            <typeparam name="TReq">The type of request packet handled by this delegate method.</typeparam>
+            <typeparam name="TRep">The type of response packet returned by this delegate method.</typeparam>
+            <param name="requestPacket">The request packet that should be handled by this delegate method.</param>
+            <param name="remoteEndPoint">The remote endpoint from which the request originated.</param>
+            <returns>The response packet to send back to the remote endpoint from which the request originated.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.SimplePacketHandler`1">
+            <summary>
+            Represents a method that receives a simple request packet of the given type (<typeparamref name="TReq"/>) and
+            handles the request, not returning any response packets.
+            </summary>
+            <typeparam name="TReq">The type of request packet handled by this delegate method.</typeparam>
+            <param name="requestPacket">The request packet that should be handled by this delegate method.</param>
+            <param name="remoteEndPoint">The remote endpoint from which the request originated.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.Server">
+            <summary>
+            Provides methods for handling connected <see cref="T:NetSharp.Deprecated.IClient"/> instances.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.complexPacketHandlers">
+            <summary>
+            Maps a packet type id to the complex packet handler for that packet type.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.requestPacketDeserialisers">
+            <summary>
+            Maps a packet type id to the raw packet deserialiser that deserialises raw packets to
+            <see cref="T:NetSharp.Deprecated.IRequestPacket"/> implementors.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.serverShutdownCancellationTokenSource">
+            <summary>
+            Cancellation token source to stop handling client sockets when the server should be shut down.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.simplePacketHandlers">
+            <summary>
+            Maps a packet type id to the simple packet handler for that packet type.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.#ctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Server"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.Finalize">
+            <summary>
+            Destroys an instance of the <see cref="T:NetSharp.Deprecated.Server"/> class.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.Server.RawRequestPacketDeserialiser">
+            <summary>
+            Represents a method that receives a raw packet, and deserialises it into an <see cref="T:NetSharp.Deprecated.IRequestPacket"/> implementor.
+            </summary>
+            <param name="rawPacket">The raw packet that was received from the network.</param>
+            <returns>The deserialised instance of the packet.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.RegisterInternalPacketHandlers">
+            <summary>
+            Registers packet handlers for every internal library packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.PendingConnectionBacklog">
+            <summary>
+            The maximum number of connections that are allowed in the connection backlog.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.DefaultNetworkOperationTimeout">
+            <summary>
+            The default timeout value for all network operations.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.serverShutdownCancellationToken">
+            <summary>
+            The cancellation token that will be set when the server must be shut down.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.socket">
+            <summary>
+            The <see cref="T:System.Net.Sockets.Socket"/> underlying the connection.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.socketOptions">
+            <summary>
+            Backing field for the <see cref="P:NetSharp.Deprecated.Server.SocketOptions"/> property.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.runServer">
+            <summary>
+            Whether the server should be ran.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Server"/> class.
+            </summary>
+            <param name="socketType">The socket type for the underlying socket.</param>
+            <param name="protocolType">The protocol type for the underlying socket.</param>
+            <param name="socketManager">The <see cref="!:Utils.Socket_Options.SocketOptions"/> implementation to use.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,System.TimeSpan)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Server"/> class.
+            </summary>
+            <param name="socketType">The socket type for the underlying socket.</param>
+            <param name="protocolType">The protocol type for the underlying socket.</param>
+            <param name="socketManager">The <see cref="!:Utils.Socket_Options.SocketOptions"/> manager to use.</param>
+            <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.DeserialiseRequestPacket(System.UInt32,NetSharp.Deprecated.SerialisedPacket@)">
+            <summary>
+            Deserialises the given <see cref="T:NetSharp.Packets.NetworkPacket"/> struct into an <see cref="T:NetSharp.Deprecated.IRequestPacket"/> implementor.
+            </summary>
+            <param name="packetType">The type id of packet that we should deserialise to.</param>
+            <param name="rawRequestPacket">The packet that should be deserialised.</param>
+            <returns>The deserialised packet instance, cast to the <see cref="T:NetSharp.Deprecated.IRequestPacket"/> interface.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.Dispose(System.Boolean)">
+            <summary>
+            Disposes of this <see cref="T:NetSharp.Deprecated.Server"/> instance.
+            </summary>
+            <param name="disposing">Whether this instance is being disposed.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.DoHandleClientAsync(System.Object)">
+            <summary>
+            Provides a task that represents the handling of a client. Calls the abstract <see cref="M:NetSharp.Deprecated.Server.HandleClientAsync(NetSharp.Deprecated.Server.ClientHandlerArgs,System.Threading.CancellationToken)"/> method.
+            </summary>
+            <param name="clientHandlerArgsObj">The object representing the passed <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/> instance.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.HandleClientAsync(NetSharp.Deprecated.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
+            <summary>
+            Handles a client asynchronously.
+            </summary>
+            <param name="args">The client handler arguments that should be passed to the client handler.</param>
+            <param name="cancellationToken">Cancellation token set when the server is shutting down.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.HandleRequestPacket(System.UInt32,NetSharp.Deprecated.IRequestPacket@,System.Net.EndPoint@)">
+            <summary>
+            Handles the given request packet with a registered packet handler. In this case, a complex packet handler
+            will override any registered simple packet handlers.
+            </summary>
+            <param name="packetType">The type id of the packet that we should handle.</param>
+            <param name="requestPacket">The packet instance that should be handled.</param>
+            <param name="remoteEndPoint">The remote endpoint from which the request packet originated.</param>
+            <returns>The response packet that should be sent back to the remote endpoint.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.OnClientConnected(System.Net.EndPoint)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Server.ClientConnected"/> event.
+            </summary>
+            <param name="remoteEndPoint">The remote endpoint with which a connection was made.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.OnClientDisconnected(System.Net.EndPoint)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Server.ClientDisconnected"/> event.
+            </summary>
+            <param name="remoteEndPoint">The remote endpoint with which a connection was lost.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.OnServerStarted">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Server.ServerStarted"/> event.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.OnServerStopped">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.Server.ServerStopped"/> event.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryBind(System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.Server.ClientHandlerArgs">
+            <summary>
+            Holds information about the arguments passed to every client handler task.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.ClientHandlerArgs.#ctor(System.Net.EndPoint,System.Net.Sockets.Socket)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/> struct.
+            </summary>
+            <param name="remoteEndPoint">The remote endpoint of the client that should be handled.</param>
+            <param name="handlerSocket">The handler socket of the client that should be handled.</param>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.ClientHandlerArgs.ClientEndPoint">
+            <summary>
+            The remote endpoint for the client being handled.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Server.ClientHandlerArgs.ClientSocket">
+            <summary>
+            The client handler socket for the client being handled. Is only set if using TCP.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.ClientHandlerArgs.ForTcpClientHandler(System.Net.Sockets.Socket@)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/> for a TCP client.
+            </summary>
+            <returns>A new instance of the <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/>, setup for a TCP client.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.ClientHandlerArgs.ForUdpClientHandler(System.Net.EndPoint@)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/> for a UDP client.
+            </summary>
+            <returns>A new instance of the <see cref="T:NetSharp.Deprecated.Server.ClientHandlerArgs"/>, setup for a UDP client.</returns>
+        </member>
+        <member name="E:NetSharp.Deprecated.Server.ClientConnected">
+            <summary>
+            Signifies that a connection with a remote endpoint has been made.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.Server.ClientDisconnected">
+            <summary>
+            Signifies that a connection with a remote endpoint has been lost.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.Server.ServerStarted">
+            <summary>
+            Signifies that the server was started and clients will start being accepted.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.Server.ServerStopped">
+            <summary>
+            Signifies that the server was stopped and clients will stop being accepted.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.Server.NetworkOperationTimeout">
+            <summary>
+            The timeout value for network operations such as sending bytes or receiving bytes over the network.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.Server.SocketOptions">
+            <summary>
+            The configured socket options for the underlying connection.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.RunAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.Shutdown">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryDeregisterComplexPacketHandler``2(NetSharp.Deprecated.ComplexPacketHandler{``0,``1}@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryDeregisterSimplePacketHandler``1(NetSharp.Deprecated.SimplePacketHandler{``0}@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryRegisterComplexPacketHandler``2(NetSharp.Deprecated.ComplexPacketHandler{``0,``1})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Server.TryRegisterSimplePacketHandler``1(NetSharp.Deprecated.SimplePacketHandler{``0})">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.ServerClientConnection">
+            <summary>
+            Base class for connections, holding methods shared between the <see cref="T:NetSharp.Deprecated.Client"/> and <see cref="T:NetSharp.Deprecated.Server"/> classes.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.ServerClientConnection.logger">
+            <summary>
+            The logger to which the server can log messages.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.#ctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.ServerClientConnection"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.Dispose(System.Boolean)">
+            <summary>
+            Disposes of this <see cref="T:NetSharp.Deprecated.ServerClientConnection"/> instance.
+            </summary>
+            <param name="disposing">Whether this instance is being disposed.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.OnBytesReceived(System.Net.EndPoint,System.Int32)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.ServerClientConnection.BytesReceived"/> event.
+            </summary>
+            <param name="remoteEndPoint">The remote endpoint from which the bytes were received.</param>
+            <param name="bytesReceived">The number of bytes that were received from the remote endpoint.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.OnBytesSent(System.Net.EndPoint,System.Int32)">
+            <summary>
+            Invokes the <see cref="E:NetSharp.Deprecated.ServerClientConnection.BytesSent"/> event.
+            </summary>
+            <param name="remoteEndPoint">The remote endpoint to which the bytes were sent.</param>
+            <param name="bytesSent">The number of bytes that were sent to the remote endpoint.</param>
+        </member>
+        <member name="E:NetSharp.Deprecated.ServerClientConnection.BytesReceived">
+            <summary>
+            Signifies that some data has been received from the remote endpoint.
+            </summary>
+        </member>
+        <member name="E:NetSharp.Deprecated.ServerClientConnection.BytesSent">
+            <summary>
+            Signifies that some data was sent to the remote endpoint.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.ChangeLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
+            <summary>
+            Makes the client log to the given stream.
+            </summary>
+            <param name="loggingStream">The stream that new messages should be logged to.</param>
+            <param name="minimumMessageSeverityLevel">
+            The minimum severity level that new messages must have to be logged to the stream.
+            </param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.ServerExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.Deprecated.Server"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerExtensions.Run(NetSharp.Deprecated.Server,System.Net.IPAddress,System.Int32)">
+            <summary>
+            Starts the server synchronously and starts accepting client connections. Blocks.
+            </summary>
+            <param name="instance">The instance on which this extension method should be called.</param>
+            <param name="localAddress">The local IP address to bind to.</param>
+            <param name="localPort">The local port to bind to.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerExtensions.Run(NetSharp.Deprecated.Server,System.Net.IPAddress)">
+            <summary>
+            Starts the server synchronously and starts accepting client connections. Blocks. Uses the default connection port.
+            </summary>
+            <param name="instance">The instance on which this extension method should be called.</param>
+            <param name="localAddress">The local IP address to bind to.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerExtensions.RunAsync(NetSharp.Deprecated.Server,System.Net.IPAddress)">
+            <summary>
+            Starts the server asynchronously and starts accepting client connections. Does not block. Uses the default
+            connection port.
+            </summary>
+            <param name="instance">The instance on which this extension method should be called.</param>
+            <param name="localAddress">The local IP address to bind to.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.ServerExtensions.RunAsync(NetSharp.Deprecated.Server,System.Net.IPAddress,System.Int32)">
+            <summary>
+            Starts the server asynchronously and starts accepting client connections. Does not block.
+            </summary>
+            <param name="instance">The instance on which this extension method should be called.</param>
+            <param name="localAddress">The local IP address to bind to.</param>
+            <param name="localPort">The local port to bind to.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.SocketOptions">
+            <summary>
+            Allows for manipulation of socket options.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.SocketOptions.managedSocket">
+            <summary>
+            The <see cref="T:System.Net.Sockets.Socket"/> instance whose settings are being managed.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketOptions.#ctor(System.Net.Sockets.Socket@)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.SocketOptions"/> class.
+            </summary>
+            <param name="socket">The <see cref="T:System.Net.Sockets.Socket"/> instance whose options should be managed.</param>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.DualMode">
+            <summary>
+            Whether this <see cref="T:System.Net.Sockets.Socket"/> can operate in dual IPv4 / IPv6 mode.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.ForceFlush">
+            <summary>
+            Whether sending a packet flushes underlying <see cref="T:System.Net.Sockets.NetworkStream"/>.
+            </summary>
+            <remarks>
+            This value is only used in a <see cref="T:System.Net.Sockets.TcpClient"/> instance, which uses a <see cref="T:System.Net.Sockets.NetworkStream"/>
+            to send and receive data. A <see cref="T:System.Net.Sockets.UdpClient"/> is unaffected by this value.
+            </remarks>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.Fragment">
+            <summary>
+            Whether this <see cref="T:System.Net.Sockets.Socket"/> is allowed to fragment frames that are too large to send in one go.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.HopLimit">
+            <summary>
+            The hop limit for packets sent by this <see cref="T:System.Net.Sockets.Socket"/>. Comparable to IPv4s TTL (Time To Live).
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.IsChecksumEnabled">
+            <summary>
+            Whether a checksum should be created for each UDP packet sent.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.IsRoutingEnabled">
+            <summary>
+            Whether the packet should be sent directly to its destination or allowed to be routed through multiple destinations
+            first.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.LocalEndPoint">
+            <summary>
+            The local <see cref="T:System.Net.EndPoint"/> for the <see cref="F:NetSharp.Deprecated.SocketOptions.managedSocket"/>.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.LocalIPEndPoint">
+            <summary>
+            The local <see cref="T:System.Net.IPEndPoint"/> for this <see cref="T:System.Net.Sockets.Socket"/> instance.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.RemoteEndPoint">
+            <summary>
+            The remote <see cref="T:System.Net.EndPoint"/> for the <see cref="F:NetSharp.Deprecated.SocketOptions.managedSocket"/>.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.RemoteIPEndPoint">
+            <summary>
+            The remote <see cref="T:System.Net.IPEndPoint"/> that this <see cref="T:System.Net.Sockets.Socket"/> instance communicates with.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.Ttl">
+            <summary>
+            The 'Time To Live' for this <see cref="T:System.Net.Sockets.Socket"/>.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.SocketOptions.UseLoopback">
+            <summary>
+            Whether this <see cref="T:System.Net.Sockets.Socket"/> should use a loopback address and bypass hardware.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.TcpClient">
+            <summary>
+            Provides methods for TCP communication with a connected <see cref="T:NetSharp.Deprecated.TcpServer"/> instance.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpClient.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpClient.SendComplexAsync``2(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpClient.SendSimpleAsync``1(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.TcpServer">
+            <summary>
+            Provides methods for TCP communication with connected <see cref="T:NetSharp.Deprecated.TcpClient"/> instances.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpServer.HandleClientAsync(NetSharp.Deprecated.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpServer.#ctor(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpServer.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpServer.RunAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.TcpSocketOptions">
+            <summary>
+            Allows for manipulation of TCP socket options.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.TcpSocketOptions.#ctor(System.Net.Sockets.Socket@)">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.TcpSocketOptions.HopLimit">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.TcpSocketOptions.IsRoutingEnabled">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.TcpSocketOptions.UseLoopback">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.UdpClient">
+            <summary>
+            Provides methods for UDP communication with a connected <see cref="T:NetSharp.Deprecated.UdpServer"/> instance.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpClient.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpClient.SendBytesAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpClient.SendBytesWithResponseAsync(System.Byte[],System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpClient.SendComplexAsync``2(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpClient.SendSimpleAsync``1(``0,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.UdpServer">
+            <summary>
+            Provides methods for UDP communication with connected <see cref="T:NetSharp.Deprecated.UdpClient"/> instances.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.UdpServer.clientChannelOptions">
+            <summary>
+            The options that should be applied to every channel created to handle a client.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.UdpServer.activeClients">
+            <summary>
+            Holds currently connected and active clients, as well as their current received packet queues.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpServer.HandleClientAsync(NetSharp.Deprecated.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpServer.#ctor(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpServer.#ctor">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpServer.RunAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.UdpSocketOptions">
+            <summary>
+            Allows for manipulation of UDP socket options.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.UdpSocketOptions.#ctor(System.Net.Sockets.Socket@)">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.UdpSocketOptions.HopLimit">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.UdpSocketOptions.IsRoutingEnabled">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Deprecated.UdpSocketOptions.UseLoopback">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Extensions.ConnectionExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.Connection"/> class.
+            </summary>
         </member>
         <member name="T:NetSharp.Logging.LogLevel">
             <summary>
@@ -1098,11 +1494,6 @@
             <param name="header">The header for the packet.</param>
             <param name="footer">The footer for the packet.</param>
         </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.PacketSize">
-            <summary>
-            The size of each packet, including its header, footer, and data segment.
-            </summary>
-        </member>
         <member name="F:NetSharp.Packets.NetworkPacket.DataSegmentSize">
             <summary>
             The number of bytes allocated in each packet for user data.
@@ -1116,6 +1507,11 @@
         <member name="F:NetSharp.Packets.NetworkPacket.HeaderSize">
             <summary>
             The number of bytes taken up in each packet by its header.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.NetworkPacket.PacketSize">
+            <summary>
+            The size of each packet, including its header, footer, and data segment.
             </summary>
         </member>
         <member name="F:NetSharp.Packets.NetworkPacket.DataBuffer">
@@ -1281,7 +1677,7 @@
         </member>
         <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketSourceAssemblies(System.Reflection.Assembly[])">
             <summary>
-            Rebuilds the packet registry, by registering every <see cref="T:NetSharp.Interfaces.IPacket"/> inheritor in the given assemblies.
+            Rebuilds the packet registry, by registering every <see cref="T:NetSharp.Deprecated.IPacket"/> inheritor in the given assemblies.
             </summary>
             <param name="packetSourceAssemblies">
             The assemblies from which the packet types to register are sourced.
@@ -1289,7 +1685,7 @@
         </member>
         <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketSourceAssembly(System.Reflection.Assembly)">
             <summary>
-            Registers all the <see cref="T:NetSharp.Interfaces.IPacket"/> implementors in the given assembly.
+            Registers all the <see cref="T:NetSharp.Deprecated.IPacket"/> implementors in the given assembly.
             </summary>
             <param name="packetSourceAssembly">The assembly whose packet types to register.</param>
         </member>
@@ -1317,7 +1713,7 @@
         <member name="T:NetSharp.Packets.PacketTypeIdAttribute">
             <summary>
             Allows the placing of a custom packet type on a class or struct. This is used if the class or struct
-            inherits from <see cref="T:NetSharp.Interfaces.IRequestPacket"/> or <see cref="T:NetSharp.Interfaces.IResponsePacket`1"/>.
+            inherits from <see cref="T:NetSharp.Deprecated.IRequestPacket"/> or <see cref="T:NetSharp.Deprecated.IResponsePacket`1"/>.
             </summary>
         </member>
         <member name="M:NetSharp.Packets.PacketTypeIdAttribute.#ctor(System.UInt32)">
@@ -1331,341 +1727,94 @@
             The custom type id that the decorated packet type should have. This overrides the automatically generated id.
             </summary>
         </member>
-        <member name="M:NetSharp.Packets.SerialisedPacket.From``1(``0)">
-            <summary>
-            Serialises the given serialisable packet instance and returns the <see cref="T:NetSharp.Packets.SerialisedPacket"/> instance
-            that was generated. This method invokes <see cref="M:NetSharp.Interfaces.IPacket.BeforeSerialisation"/>.
-            </summary>
-            <typeparam name="T">The packet type that will be serialised.</typeparam>
-            <param name="serialisable">The packet instance that should be serialised.</param>
-            <returns>The serialised instance.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.SerialisedPacket.To``1(NetSharp.Packets.SerialisedPacket@)">
-            <summary>
-            Deserialises and returns a packet instance of the given type from the <see cref="T:NetSharp.Packets.SerialisedPacket"/> instance
-            that was given. This method invokes <see cref="M:NetSharp.Interfaces.IPacket.AfterDeserialisation"/>.
-            </summary>
-            <typeparam name="T">The packet type to which the packet should be deserialised.</typeparam>
-            <param name="instance">The serialised packet instance that should be deserialised.</param>
-            <returns>The deserialised instance.</returns>
-        </member>
-        <member name="T:NetSharp.ComplexPacketHandler`2">
-            <summary>
-            Represents a method that receives a request packet of the given type (<typeparamref name="TReq"/>) and
-            handles the request, returning a response packet of the given type (<typeparamref name="TRep"/>).
-            </summary>
-            <typeparam name="TReq">The type of request packet handled by this delegate method.</typeparam>
-            <typeparam name="TRep">The type of response packet returned by this delegate method.</typeparam>
-            <param name="requestPacket">The request packet that should be handled by this delegate method.</param>
-            <param name="remoteEndPoint">The remote endpoint from which the request originated.</param>
-            <returns>The response packet to send back to the remote endpoint from which the request originated.</returns>
-        </member>
-        <member name="T:NetSharp.SimplePacketHandler`1">
-            <summary>
-            Represents a method that receives a simple request packet of the given type (<typeparamref name="TReq"/>) and
-            handles the request, not returning any response packets.
-            </summary>
-            <typeparam name="TReq">The type of request packet handled by this delegate method.</typeparam>
-            <param name="requestPacket">The request packet that should be handled by this delegate method.</param>
-            <param name="remoteEndPoint">The remote endpoint from which the request originated.</param>
-        </member>
-        <member name="T:NetSharp.Server">
-            <summary>
-            Provides methods for handling connected <see cref="T:NetSharp.Interfaces.IClient"/> instances.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.complexPacketHandlers">
-            <summary>
-            Maps a packet type id to the complex packet handler for that packet type.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.requestPacketDeserialisers">
-            <summary>
-            Maps a packet type id to the raw packet deserialiser that deserialises raw packets to
-            <see cref="T:NetSharp.Interfaces.IRequestPacket"/> implementors.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.serverShutdownCancellationTokenSource">
-            <summary>
-            Cancellation token source to stop handling client sockets when the server should be shut down.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.simplePacketHandlers">
-            <summary>
-            Maps a packet type id to the simple packet handler for that packet type.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Server"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.Finalize">
-            <summary>
-            Destroys an instance of the <see cref="T:NetSharp.Server"/> class.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Server.RawRequestPacketDeserialiser">
-            <summary>
-            Represents a method that receives a raw packet, and deserialises it into an <see cref="T:NetSharp.Interfaces.IRequestPacket"/> implementor.
-            </summary>
-            <param name="rawPacket">The raw packet that was received from the network.</param>
-            <returns>The deserialised instance of the packet.</returns>
-        </member>
-        <member name="M:NetSharp.Server.RegisterInternalPacketHandlers">
-            <summary>
-            Registers packet handlers for every internal library packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.PendingConnectionBacklog">
-            <summary>
-            The maximum number of connections that are allowed in the connection backlog.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.DefaultNetworkOperationTimeout">
-            <summary>
-            The default timeout value for all network operations.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.serverShutdownCancellationToken">
-            <summary>
-            The cancellation token that will be set when the server must be shut down.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.socket">
-            <summary>
-            The <see cref="T:System.Net.Sockets.Socket"/> underlying the connection.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.socketOptions">
-            <summary>
-            Backing field for the <see cref="P:NetSharp.Server.SocketOptions"/> property.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.runServer">
-            <summary>
-            Whether the server should be ran.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,NetSharp.Utils.Socket_Options.SocketOptionManager)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Server"/> class.
-            </summary>
-            <param name="socketType">The socket type for the underlying socket.</param>
-            <param name="protocolType">The protocol type for the underlying socket.</param>
-            <param name="socketManager">The <see cref="T:NetSharp.Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-        </member>
-        <member name="M:NetSharp.Server.#ctor(System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,NetSharp.Utils.Socket_Options.SocketOptionManager,System.TimeSpan)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Server"/> class.
-            </summary>
-            <param name="socketType">The socket type for the underlying socket.</param>
-            <param name="protocolType">The protocol type for the underlying socket.</param>
-            <param name="socketManager">The <see cref="T:NetSharp.Utils.Socket_Options.SocketOptions"/> manager to use.</param>
-            <param name="networkOperationTimeout">The timeout value for send and receive operations over the network.</param>
-        </member>
-        <member name="M:NetSharp.Server.DeserialiseRequestPacket(System.UInt32,NetSharp.Packets.SerialisedPacket@)">
-            <summary>
-            Deserialises the given <see cref="T:NetSharp.Packets.NetworkPacket"/> struct into an <see cref="T:NetSharp.Interfaces.IRequestPacket"/> implementor.
-            </summary>
-            <param name="packetType">The type id of packet that we should deserialise to.</param>
-            <param name="rawRequestPacket">The packet that should be deserialised.</param>
-            <returns>The deserialised packet instance, cast to the <see cref="T:NetSharp.Interfaces.IRequestPacket"/> interface.</returns>
-        </member>
-        <member name="M:NetSharp.Server.Dispose(System.Boolean)">
-            <summary>
-            Disposes of this <see cref="T:NetSharp.Server"/> instance.
-            </summary>
-            <param name="disposing">Whether this instance is being disposed.</param>
-        </member>
-        <member name="M:NetSharp.Server.DoHandleClientAsync(System.Object)">
-            <summary>
-            Provides a task that represents the handling of a client. Calls the abstract <see cref="M:NetSharp.Server.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)"/> method.
-            </summary>
-            <param name="clientHandlerArgsObj">The object representing the passed <see cref="T:NetSharp.Server.ClientHandlerArgs"/> instance.</param>
-        </member>
-        <member name="M:NetSharp.Server.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
-            <summary>
-            Handles a client asynchronously.
-            </summary>
-            <param name="args">The client handler arguments that should be passed to the client handler.</param>
-            <param name="cancellationToken">Cancellation token set when the server is shutting down.</param>
-        </member>
-        <member name="M:NetSharp.Server.HandleRequestPacket(System.UInt32,NetSharp.Interfaces.IRequestPacket@,System.Net.EndPoint@)">
-            <summary>
-            Handles the given request packet with a registered packet handler. In this case, a complex packet handler
-            will override any registered simple packet handlers.
-            </summary>
-            <param name="packetType">The type id of the packet that we should handle.</param>
-            <param name="requestPacket">The packet instance that should be handled.</param>
-            <param name="remoteEndPoint">The remote endpoint from which the request packet originated.</param>
-            <returns>The response packet that should be sent back to the remote endpoint.</returns>
-        </member>
-        <member name="M:NetSharp.Server.OnClientConnected(System.Net.EndPoint)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Server.ClientConnected"/> event.
-            </summary>
-            <param name="remoteEndPoint">The remote endpoint with which a connection was made.</param>
-        </member>
-        <member name="M:NetSharp.Server.OnClientDisconnected(System.Net.EndPoint)">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Server.ClientDisconnected"/> event.
-            </summary>
-            <param name="remoteEndPoint">The remote endpoint with which a connection was lost.</param>
-        </member>
-        <member name="M:NetSharp.Server.OnServerStarted">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Server.ServerStarted"/> event.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.OnServerStopped">
-            <summary>
-            Invokes the <see cref="E:NetSharp.Server.ServerStopped"/> event.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.TryBind(System.Net.EndPoint,System.TimeSpan)">
-            <summary>
-            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="M:NetSharp.Server.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
-            <summary>
-            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="T:NetSharp.Server.ClientHandlerArgs">
-            <summary>
-            Holds information about the arguments passed to every client handler task.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.ClientHandlerArgs.#ctor(System.Net.EndPoint,System.Net.Sockets.Socket)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Server.ClientHandlerArgs"/> struct.
-            </summary>
-            <param name="remoteEndPoint">The remote endpoint of the client that should be handled.</param>
-            <param name="handlerSocket">The handler socket of the client that should be handled.</param>
-        </member>
-        <member name="F:NetSharp.Server.ClientHandlerArgs.ClientEndPoint">
-            <summary>
-            The remote endpoint for the client being handled.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Server.ClientHandlerArgs.ClientSocket">
-            <summary>
-            The client handler socket for the client being handled. Is only set if using TCP.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.ClientHandlerArgs.ForTcpClientHandler(System.Net.Sockets.Socket@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Server.ClientHandlerArgs"/> for a TCP client.
-            </summary>
-            <returns>A new instance of the <see cref="T:NetSharp.Server.ClientHandlerArgs"/>, setup for a TCP client.</returns>
-        </member>
-        <member name="M:NetSharp.Server.ClientHandlerArgs.ForUdpClientHandler(System.Net.EndPoint@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Server.ClientHandlerArgs"/> for a UDP client.
-            </summary>
-            <returns>A new instance of the <see cref="T:NetSharp.Server.ClientHandlerArgs"/>, setup for a UDP client.</returns>
-        </member>
-        <member name="E:NetSharp.Server.ClientConnected">
-            <summary>
-            Signifies that a connection with a remote endpoint has been made.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Server.ClientDisconnected">
-            <summary>
-            Signifies that a connection with a remote endpoint has been lost.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Server.ServerStarted">
-            <summary>
-            Signifies that the server was started and clients will start being accepted.
-            </summary>
-        </member>
-        <member name="E:NetSharp.Server.ServerStopped">
-            <summary>
-            Signifies that the server was stopped and clients will stop being accepted.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Server.NetworkOperationTimeout">
-            <summary>
-            The timeout value for network operations such as sending bytes or receiving bytes over the network.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Server.SocketOptions">
-            <summary>
-            The configured socket options for the underlying connection.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Server.RunAsync(System.Net.EndPoint)">
+        <member name="P:NetSharp.Pipelines.PacketPipelineStage`2.StageInput">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Server.Shutdown">
+        <member name="P:NetSharp.Pipelines.PacketPipelineStage`2.StageOutput">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Server.TryDeregisterComplexPacketHandler``2(NetSharp.ComplexPacketHandler{``0,``1}@)">
+        <member name="M:NetSharp.Pipelines.PacketPipelineStage`2.Process(`0)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Server.TryDeregisterSimplePacketHandler``1(NetSharp.SimplePacketHandler{``0}@)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Server.TryRegisterComplexPacketHandler``2(NetSharp.ComplexPacketHandler{``0,``1})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Server.TryRegisterSimplePacketHandler``1(NetSharp.SimplePacketHandler{``0})">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Servers.TcpServer">
+        <member name="T:NetSharp.Sockets.SocketAcceptor">
             <summary>
-            Provides methods for TCP communication with connected <see cref="T:NetSharp.Clients.TcpClient"/> instances.
+            Helper class providing awaitable wrappers around asynchronous Accept, Connect, and Disconnect operations.
             </summary>
         </member>
-        <member name="M:NetSharp.Servers.TcpServer.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.TcpServer.#ctor(System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.TcpServer.#ctor">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.TcpServer.RunAsync(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Servers.UdpServer">
+        <member name="M:NetSharp.Sockets.SocketAcceptor.AcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
             <summary>
-            Provides methods for UDP communication with connected <see cref="T:NetSharp.Clients.UdpClient"/> instances.
+            Provides an awaitable wrapper around an asynchronous socket accept operation.
+            </summary>
+            <param name="socket">The socket which should be used to accept an incoming connection attempt.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The accepted socket.</returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketAcceptor.ConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket connect operation.
+            </summary>
+            <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketAcceptor.DisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
+            </summary>
+            <param name="socket">The socket which should asynchronously disconnect from its remote endpoint.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="T:NetSharp.Sockets.SocketReader">
+            <summary>
+            Helper class providing awaitable wrappers around asynchronous Receive and ReceiveFrom operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Servers.UdpServer.clientChannelOptions">
+        <member name="M:NetSharp.Sockets.SocketReader.ReceiveAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
             <summary>
-            The options that should be applied to every channel created to handle a client.
+            Provides an awaitable wrapper around an asynchronous socket receive operation.
+            </summary>
+            <param name="socket">The socket which should receive data from the remote connection.</param>
+            <param name="socketFlags">The socket flags associated with the receive operation.</param>
+            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the receive operation.</returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketReader.ReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket receive operation.
+            </summary>
+            <param name="socket">The socket which should receive data from the remote endpoint.</param>
+            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
+            <param name="socketFlags">The socket flags associated with the receive operation.</param>
+            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the receive operation.</returns>
+        </member>
+        <member name="T:NetSharp.Sockets.SocketWriter">
+            <summary>
+            Helper class providing awaitable wrappers around asynchronous Send and SendTo operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Servers.UdpServer.activeClients">
+        <member name="M:NetSharp.Sockets.SocketWriter.SendAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
             <summary>
-            Holds currently connected and active clients, as well as their current received packet queues.
+            Provides an awaitable wrapper around an asynchronous socket send operation.
             </summary>
+            <param name="socket">The socket which should send the data to its remote connection.</param>
+            <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="outputBuffer">The data buffer which should be sent.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The number of bytes of data which were written to the remote connection.</returns>
         </member>
-        <member name="M:NetSharp.Servers.UdpServer.HandleClientAsync(NetSharp.Server.ClientHandlerArgs,System.Threading.CancellationToken)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.UdpServer.#ctor(System.TimeSpan)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.UdpServer.#ctor">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Servers.UdpServer.RunAsync(System.Net.EndPoint)">
-            <inheritdoc />
+        <member name="M:NetSharp.Sockets.SocketWriter.SendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket send operation.
+            </summary>
+            <param name="socket">The socket which should send the data to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
+            <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="outputBuffer">The data buffer which should be sent.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The number of bytes of data which were written to the remote endpoint.</returns>
         </member>
         <member name="T:NetSharp.Utils.BiDictionary`2">
             <summary>
@@ -1866,269 +2015,16 @@
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="T:NetSharp.Utils.NetworkOperations">
-            <summary>
-            Helper class for asynchronously performing common network operations, for both the UDP and TCP protocols.
-            </summary>
-            TODO: Implement cancellation support for network operations
-            TODO: Somehow dont run into the exception below
-            [Excep] Socket exception while reading bytes from 0.0.0.0:0: System.Net.Sockets.SocketException (10040): Komunikat wys┼éany na gniazdo datagramu by┼é wi─Ökszy ni┼╝ wewn─Ötrzny bufor lub przekracza┼é inny sieciowy limit albo bufor u┼╝ywany do odbierania datagram├│w by┼é mniejszy ni┼╝ sam datagram.
-            at NetSharp.Extensions.SocketTask.GetResult() in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Extensions\SocketExtensions.cs:line 158
-            at NetSharp.Utils.NetworkOperations.ReadFromAsync(Socket socket, Int32 count, EndPoint remoteEndPoint, SocketFlags socketFlags) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Utils\NetworkOperations.cs:line 78
-            at NetSharp.Utils.NetworkOperations.ReadPacketFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, CancellationToken cancellationToken) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Utils\NetworkOperations.cs:line 225
-            at NetSharp.Connection.DoReceivePacketFromAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags, TimeSpan timeout, CancellationToken cancellationToken) in G:\Git Repos\EnderRifter\NetSharp\NetSharp\NetSharp\Connection.cs:line 114
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadAsync(System.Net.Sockets.Socket,System.Int32,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Reads the specified amount of data from the network, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
-            </summary>
-            <param name="socket">The socket which should read data from the network.</param>
-            <param name="count">The number of bytes to read from the network.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <returns>The result of the receive operation.</returns>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadFromAsync(System.Net.Sockets.Socket,System.Int32,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Reads a datagram segment of the given length from the given remote endpoint, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
-            </summary>
-            <param name="socket">The socket which should read data from the network.</param>
-            <param name="count">The number of bytes to read from the network.</param>
-            <param name="remoteEndPoint">The remote endpoint from which data should be read.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <returns>The result of the receive operation.</returns>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WriteAsync(System.Net.Sockets.Socket,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Writes the given data buffer to the network, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write, and the given <see cref="T:System.Threading.CancellationToken"/>
-            is used to allow for asynchronous task cancellation.
-            </summary>
-            <param name="socket">The socket which should write data to the network.</param>
-            <param name="buffer">The buffer that should be written to the network.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WriteToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Writes the given data buffer to the given remote endpoint, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write, and the given <see cref="T:System.Threading.CancellationToken"/>
-            is used to allow for asynchronous task cancellation.
-            </summary>
-            <param name="socket">The socket which should write data to the network.</param>
-            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
-            <param name="buffer">The buffer that should be written to the network.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacketAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Reads a packet from network, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
-            </summary>
-            <param name="socket">The socket which should read the packet from the network.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
-            <returns>The read packet, and the endpoint from which it was read.</returns>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.ReadPacketFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Reads a packet from the given remote endpoint, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the read.
-            </summary>
-            <param name="socket">The socket which should read the packet from the network.</param>
-            <param name="remoteEndPoint">The remote endpoint from which a packet should be read.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
-            <returns>The read packet, and the endpoint from which it was read.</returns>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WritePacketAsync(System.Net.Sockets.Socket,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Writes the given packet to the network, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write.
-            </summary>
-            <param name="socket">The socket which should write data to the network.</param>
-            <param name="serialisedPacket">The packet that should be written to the network.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
-        </member>
-        <member name="M:NetSharp.Utils.NetworkOperations.WritePacketToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,NetSharp.Packets.SerialisedPacket,System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
-            <summary>
-            Writes the given packet to the given remote endpoint, via the given socket.
-            The given <see cref="T:System.Net.Sockets.SocketFlags"/> are associated with the write.
-            </summary>
-            <param name="socket">The socket which should write data to the network.</param>
-            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
-            <param name="serialisedPacket">The packet that should be written to the remote endpoint.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-            <param name="cancellationToken">The cancellation token that should be observed for the duration of the task.</param>
-        </member>
-        <member name="T:NetSharp.Utils.Socket_Options.DefaultSocketOptions">
-            <summary>
-            Allows for manipulation of socket options.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Utils.Socket_Options.DefaultSocketOptions.#ctor(System.Net.Sockets.Socket@)">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.DefaultSocketOptions.HopLimit">
-            <inheritdoc />
-            <exception cref="T:System.NotSupportedException">
-            This property is not supported when using the default socket option manager.
-            </exception>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.DefaultSocketOptions.IsRoutingEnabled">
-            <inheritdoc />
-            <exception cref="T:System.NotSupportedException">
-            This property is not supported when using the default socket option manager.
-            </exception>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.DefaultSocketOptions.UseLoopback">
-            <inheritdoc />
-            <exception cref="T:System.NotSupportedException">
-            This property is not supported when using the default socket option manager.
-            </exception>
-        </member>
-        <member name="T:NetSharp.Utils.Socket_Options.SocketOptionManager">
-            <summary>
-            Enumerates the possible socket option manager types to instantiate for a <see cref="T:NetSharp.Client"/> and <see cref="T:NetSharp.Server"/>
-            instance.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Utils.Socket_Options.SocketOptionManager.Default">
-            <summary>
-            Causes a <see cref="T:NetSharp.Utils.Socket_Options.DefaultSocketOptions"/> instance to be created as the socket option manager.
-            This means that certain socket options will throw an error, as the socket type is not specified.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Utils.Socket_Options.SocketOptionManager.Tcp">
-            <summary>
-            Causes a <see cref="T:NetSharp.Utils.Socket_Options.TcpSocketOptions"/> instance to be created as the socket option manager.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Utils.Socket_Options.SocketOptionManager.Udp">
-            <summary>
-            Causes a <see cref="T:NetSharp.Utils.Socket_Options.UdpSocketOptions"/> instance to be created as the socket option manager.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Utils.Socket_Options.SocketOptions">
-            <summary>
-            Allows for manipulation of socket options.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Utils.Socket_Options.SocketOptions.managedSocket">
-            <summary>
-            The <see cref="T:System.Net.Sockets.Socket"/> instance whose settings are being managed.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Utils.Socket_Options.SocketOptions.#ctor(System.Net.Sockets.Socket@)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.Socket_Options.SocketOptions"/> class.
-            </summary>
-            <param name="socket">The <see cref="T:System.Net.Sockets.Socket"/> instance whose options should be managed.</param>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.DualMode">
-            <summary>
-            Whether this <see cref="T:System.Net.Sockets.Socket"/> can operate in dual IPv4 / IPv6 mode.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.ForceFlush">
-            <summary>
-            Whether sending a packet flushes underlying <see cref="T:System.Net.Sockets.NetworkStream"/>.
-            </summary>
-            <remarks>
-            This value is only used in a <see cref="T:System.Net.Sockets.TcpClient"/> instance, which uses a <see cref="T:System.Net.Sockets.NetworkStream"/>
-            to send and receive data. A <see cref="T:System.Net.Sockets.UdpClient"/> is unaffected by this value.
-            </remarks>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.Fragment">
-            <summary>
-            Whether this <see cref="T:System.Net.Sockets.Socket"/> is allowed to fragment frames that are too large to send in one go.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.HopLimit">
-            <summary>
-            The hop limit for packets sent by this <see cref="T:System.Net.Sockets.Socket"/>. Comparable to IPv4s TTL (Time To Live).
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.IsChecksumEnabled">
-            <summary>
-            Whether a checksum should be created for each UDP packet sent.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.IsRoutingEnabled">
-            <summary>
-            Whether the packet should be sent directly to its destination or allowed to be routed through multiple destinations
-            first.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.LocalEndPoint">
-            <summary>
-            The local <see cref="T:System.Net.EndPoint"/> for the <see cref="F:NetSharp.Utils.Socket_Options.SocketOptions.managedSocket"/>.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.LocalIPEndPoint">
-            <summary>
-            The local <see cref="T:System.Net.IPEndPoint"/> for this <see cref="T:System.Net.Sockets.Socket"/> instance.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.RemoteEndPoint">
-            <summary>
-            The remote <see cref="T:System.Net.EndPoint"/> for the <see cref="F:NetSharp.Utils.Socket_Options.SocketOptions.managedSocket"/>.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.RemoteIPEndPoint">
-            <summary>
-            The remote <see cref="T:System.Net.IPEndPoint"/> that this <see cref="T:System.Net.Sockets.Socket"/> instance communicates with.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.Ttl">
-            <summary>
-            The 'Time To Live' for this <see cref="T:System.Net.Sockets.Socket"/>.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.SocketOptions.UseLoopback">
-            <summary>
-            Whether this <see cref="T:System.Net.Sockets.Socket"/> should use a loopback address and bypass hardware.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Utils.Socket_Options.TcpSocketOptions">
-            <summary>
-            Allows for manipulation of TCP socket options.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Utils.Socket_Options.TcpSocketOptions.#ctor(System.Net.Sockets.Socket@)">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.TcpSocketOptions.HopLimit">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.TcpSocketOptions.IsRoutingEnabled">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.TcpSocketOptions.UseLoopback">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Utils.Socket_Options.UdpSocketOptions">
-            <summary>
-            Allows for manipulation of UDP socket options.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Utils.Socket_Options.UdpSocketOptions.#ctor(System.Net.Sockets.Socket@)">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.UdpSocketOptions.HopLimit">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.UdpSocketOptions.IsRoutingEnabled">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharp.Utils.Socket_Options.UdpSocketOptions.UseLoopback">
-            <inheritdoc />
-        </member>
         <member name="T:NetSharp.Utils.TransmissionResult">
             <summary>
             Represents the result of a socket transmission.
             </summary>
+        </member>
+        <member name="M:NetSharp.Utils.TransmissionResult.#ctor(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult"/> struct.
+            </summary>
+            <param name="args">The socket arguments associated with the transmission.</param>
         </member>
         <member name="F:NetSharp.Utils.TransmissionResult.Buffer">
             <summary>
@@ -2145,13 +2041,10 @@
             The remote endpoint to which the buffer was transmitted.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.TransmissionResult.#ctor(System.Memory{System.Byte},System.Int32,System.Net.EndPoint)">
+        <member name="F:NetSharp.Utils.TransmissionResult.TransmissionArgs">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult"/> struct.
+            Socket arguments and other data associated with the transmission.
             </summary>
-            <param name="buffer">The byte buffer that was transmitted.</param>
-            <param name="count">The number of bytes that were transmitted.</param>
-            <param name="remoteEndPoint">The remote endpoint to which the buffer was transmitted.</param>
         </member>
     </members>
 </doc>

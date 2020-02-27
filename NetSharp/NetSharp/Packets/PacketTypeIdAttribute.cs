@@ -1,5 +1,5 @@
 ﻿using System;
-using NetSharp.Interfaces;
+using NetSharp.Deprecated;
 
 namespace NetSharp.Packets
 {

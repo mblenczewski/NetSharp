@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using NetSharp.Interfaces;
+using NetSharp.Deprecated;
 using NetSharp.Utils;
 
 namespace NetSharp.Packets

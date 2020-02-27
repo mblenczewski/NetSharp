@@ -1,7 +1,7 @@
 ﻿using System;
-using NetSharp.Interfaces;
+using NetSharp.Packets;
 
-namespace NetSharp.Packets
+namespace NetSharp.Deprecated
 {
     public readonly struct SerialisedPacket
     {

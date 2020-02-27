@@ -24,11 +24,6 @@ namespace NetSharp.Packets
         }
 
         /// <summary>
-        /// The size of each packet, including its header, footer, and data segment.
-        /// </summary>
-        internal const int PacketSize = 1024;
-
-        /// <summary>
         /// The number of bytes allocated in each packet for user data.
         /// </summary>
         public const int DataSegmentSize = PacketSize - HeaderSize - FooterSize;
@@ -42,6 +37,11 @@ namespace NetSharp.Packets
         /// The number of bytes taken up in each packet by its header.
         /// </summary>
         public const int HeaderSize = NetworkPacketHeader.Size;
+
+        /// <summary>
+        /// The size of each packet, including its header, footer, and data segment.
+        /// </summary>
+        public const int PacketSize = 1024;
 
         /// <summary>
         /// The data held in this packet.
