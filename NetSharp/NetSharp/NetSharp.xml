@@ -9,6 +9,16 @@
             Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
             </summary>
         </member>
+        <member name="F:NetSharp.Connection.loggerLockObject">
+            <summary>
+            Lock synchronisation object for the <see cref="F:NetSharp.Connection.logger"/> variable.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.ShutdownToken">
+            <summary>
+            Cancellation token which allows observing the shutdown of the server. It is set when <see cref="M:NetSharp.Connection.Shutdown"/> is called.
+            </summary>
+        </member>
         <member name="F:NetSharp.Connection.logger">
             <summary>
             A logger object allowing for writing debug messages to an output stream.
@@ -22,6 +32,26 @@
         </member>
         <member name="M:NetSharp.Connection.Dispose">
             <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.RunAsync">
+            <summary>
+            Makes the connection listen for incoming client request packets, and handle them according to registered packet handler delegates.
+            This work can be cancelled by calling <see cref="M:NetSharp.Connection.Shutdown"/>.
+            </summary>
+            <returns>The task representing the connection work.</returns>
+        </member>
+        <member name="M:NetSharp.Connection.SetLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
+            <summary>
+            Configures the logger to log messages to the given stream (or to <see cref="F:System.IO.Stream.Null"/> if <c>null</c>) and
+            to only log messages that are of severity <paramref name="minimumLoggedSeverity"/> or higher.
+            </summary>
+            <param name="loggingStream">The stream to which messages will be logged.</param>
+            <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
+        </member>
+        <member name="M:NetSharp.Connection.Shutdown">
+            <summary>
+            Shuts down the connection, and releases managed and unmanaged resources.
+            </summary>
         </member>
         <member name="M:NetSharp.Connection.TryBind(System.Net.EndPoint,System.TimeSpan)">
             <summary>
@@ -41,10 +71,142 @@
             <param name="timeout">The timeout within which to attempt the binding.</param>
             <returns>Whether the binding was successful or not.</returns>
         </member>
-        <member name="T:NetSharp.ConnectionFactory">
+        <member name="T:NetSharp.ConnectionBuilder">
             <summary>
-            Provides methods to construct and configure <see cref="T:NetSharp.Connection"/> instances.
+            Allows for configuring and subsequently building a <see cref="T:NetSharp.Connection"/> instance.
             </summary>
+        </member>
+        <member name="P:NetSharp.ConnectionBuilder.IncomingPacketPipelineStageCount">
+            <summary>
+            The number of stages in the currently configured incoming packet pipeline.
+            </summary>
+        </member>
+        <member name="P:NetSharp.ConnectionBuilder.OutgoingPacketPipelineStageCount">
+            <summary>
+            The number of stages in the currently configured outgoing packet pipeline.
+            </summary>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.Build">
+            <summary>
+            Returns a new <see cref="T:NetSharp.Connection"/> instance with the current configuration.
+            </summary>
+            <returns>The configured <see cref="T:NetSharp.Connection"/> instance.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when <see cref="M:NetSharp.ConnectionBuilder.WithSocket(NetSharp.ConnectionBuilder.SocketSettings)"/> has not been called.
+            </exception>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.WithIncomingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
+            <summary>
+            Adds an extra pipeline stage to the currently configured incoming packet pipeline, at the given index.
+            </summary>
+            <param name="transform">
+            The transformation that should be applied when a packet passes through the pipeline.
+            </param>
+            <param name="index">The position in the pipeline at which to place the transform.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.WithLogging(NetSharp.ConnectionBuilder.LoggingSettings)">
+            <summary>
+            Sets the logging settings for the currently configured connection.
+            </summary>
+            <param name="settings">The logging settings to use.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.WithOutgoingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
+            <summary>
+            Adds an extra pipeline stage to the currently configured outgoing packet pipeline, at the given index.
+            </summary>
+            <param name="transform">
+            The transformation that should be applied when a packet passes through the pipeline.
+            </param>
+            <param name="index">The position in the pipeline at which to place the transform.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.WithPooling(NetSharp.ConnectionBuilder.PoolingSettings)">
+            <summary>
+            Sets the pooling settings for the currently configured connection.
+            </summary>
+            <param name="settings">The pooling settings to use.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.WithSocket(NetSharp.ConnectionBuilder.SocketSettings)">
+            <summary>
+            Sets the socket settings for the currently configured connection.
+            </summary>
+            <param name="settings">The socket settings to use.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="T:NetSharp.ConnectionBuilder.LoggingSettings">
+            <summary>
+            Holds settings for configuring a connection's logging.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.LoggingSettings.LoggingStream">
+            <summary>
+            The stream to which messages will be logged.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.LoggingSettings.MinimumLevel">
+            <summary>
+            The minimum severity that a log message must have to be recorded.
+            </summary>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.LoggingSettings.#ctor(System.IO.Stream,NetSharp.Logging.LogLevel)">
+            <summary>
+            Initialises a new instance of the <see cref="F:NetSharp.ConnectionBuilder.LoggingSettings.LoggingStream"/> struct.
+            </summary>
+            <param name="stream">The stream to which messages will be logged..</param>
+            <param name="minimumLevel">The minimum severity that a log message must have to be recorded.</param>
+        </member>
+        <member name="T:NetSharp.ConnectionBuilder.PoolingSettings">
+            <summary>
+            Holds settings for configuring a connection's buffer pooling.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.PoolingSettings.ObjectPoolSize">
+            <summary>
+            The number of objects that will be held in the object pools.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.PoolingSettings.PreallocateBuffers">
+            <summary>
+            Whether the buffers for receiving messages should be preallocated.
+            </summary>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.PoolingSettings.#ctor(System.Int32,System.Boolean)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.ConnectionBuilder.PoolingSettings"/> struct.
+            </summary>
+            <param name="poolSize">The number of objects that will be held in the object pools.</param>
+            <param name="preallocateBuffers">Whether the buffers for receiving messages should be preallocated.</param>
+        </member>
+        <member name="T:NetSharp.ConnectionBuilder.SocketSettings">
+            <summary>
+            Holds settings fo configuring a connection's underlying socket.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.AddressFamily">
+            <summary>
+            The address family for the socket underlying the connection.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.ProtocolType">
+            <summary>
+            The socket type for the socket underlying the connection.
+            </summary>
+        </member>
+        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.SocketType">
+            <summary>
+            The protocol type for the socket underlying the connection.
+            </summary>
+        </member>
+        <member name="M:NetSharp.ConnectionBuilder.SocketSettings.#ctor(System.Net.Sockets.AddressFamily,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.ConnectionBuilder.SocketSettings"/> struct.
+            </summary>
+            <param name="addressFamily">The address family for the underlying socket.</param>
+            <param name="socketType">The socket type for the underlying socket.</param>
+            <param name="protocolType">The protocol type for the underlying socket.</param>
         </member>
         <member name="T:NetSharp.Deprecated.Client">
             <summary>
@@ -1133,6 +1295,11 @@
         <member name="P:NetSharp.Deprecated.UdpSocketOptions.UseLoopback">
             <inheritdoc />
         </member>
+        <member name="T:NetSharp.Extensions.ConnectionBuilderExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.ConnectionBuilder"/> class.
+            </summary>
+        </member>
         <member name="T:NetSharp.Extensions.ConnectionExtensions">
             <summary>
             Provides additional methods and functionality to the <see cref="T:NetSharp.Connection"/> class.
@@ -1727,14 +1894,73 @@
             The custom type id that the decorated packet type should have. This overrides the automatically generated id.
             </summary>
         </member>
-        <member name="P:NetSharp.Pipelines.PacketPipelineStage`2.StageInput">
-            <inheritdoc />
+        <member name="T:NetSharp.Pipelines.PacketPipeline`3">
+            <summary>
+            Represents a pipeline of transformations that packets must undergo.
+            </summary>
+            <typeparam name="TInput">The type of packet the pipeline receives.</typeparam>
+            <typeparam name="TIntermediate">The type of packet the pipeline internally handles.</typeparam>
+            <typeparam name="TOutput">The type of packet the pipeline outputs.</typeparam>
         </member>
-        <member name="P:NetSharp.Pipelines.PacketPipelineStage`2.StageOutput">
-            <inheritdoc />
+        <member name="M:NetSharp.Pipelines.PacketPipeline`3.ProcessPacket(`0)">
+            <summary>
+            Passes the given packet through the pipeline.
+            </summary>
+            <param name="inputPacket">The incoming packet.</param>
+            <returns>The outgoing transformed packet.</returns>
         </member>
-        <member name="M:NetSharp.Pipelines.PacketPipelineStage`2.Process(`0)">
-            <inheritdoc />
+        <member name="T:NetSharp.Pipelines.PacketPipelineStage`2">
+            <summary>
+            Represents a single transformation applied to a packet traveling through the pipeline.
+            </summary>
+            <typeparam name="TInput">The type the transformation takes as input.</typeparam>
+            <typeparam name="TOutput">The type the transformation produces as output.</typeparam>
+        </member>
+        <member name="T:NetSharp.Pipelines.PacketPipelineBuilder`3">
+            <summary>
+            Allows for configuring and subsequently building a <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.
+            </summary>
+            <typeparam name="TInput">The type of packet that will be submitted to the pipeline.</typeparam>
+            <typeparam name="TIntermediate">The type of packet that will be handled internally by the pipeline.</typeparam>
+            <typeparam name="TOutput">The type of packet that will be requested from the pipeline.</typeparam>
+        </member>
+        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.Build">
+            <summary>
+            Returns the currently configured <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.
+            </summary>
+            <returns>The configured <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when either <see cref="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)"/> or <see cref="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)"/> have not been called.
+            </exception>
+        </member>
+        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)">
+            <summary>
+            Configures the input stage for the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to incoming packets, to convert them from the <typeparamref name="TInput"/>
+            type to the <typeparamref name="TIntermediate"/> type that the pipeline handles internally.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithIntermediateStage(System.Func{`1,`1}@)">
+            <summary>
+            Adds the given intermediate stage to the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to packets traveling through the pipeline.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)">
+            <summary>
+            Configures the output stage for the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to outgoing packets, to convert them from the
+            <typeparamref name="TIntermediate"/> type used internally to the <typeparamref name="TOutput"/> type.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
         </member>
         <member name="T:NetSharp.Sockets.SocketAcceptor">
             <summary>

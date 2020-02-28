@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Logging;
 using NetSharp.Packets;
+using NetSharp.Pipelines;
 using NetSharp.Sockets;
 using NetSharp.Utils;
 
@@ -17,7 +18,9 @@ namespace NetSharp
         private readonly SocketAcceptor acceptor;
         private readonly ConcurrentDictionary<EndPoint, Connection> connections;
         private readonly CancellationTokenSource connectionShutdownTokenSource;
+        private readonly PacketPipeline<Memory<byte>, Memory<byte>, NetworkPacket> incomingPacketPipeline;
         private readonly SocketReader listener;
+        private readonly PacketPipeline<NetworkPacket, Memory<byte>, Memory<byte>> outgoingPacketPipeline;
         private readonly Socket socket;
         private readonly SocketWriter transmitter;
 
@@ -29,6 +32,41 @@ namespace NetSharp
             Dispose(false);
         }
 
+        private void AcceptorWork(object shutdownToken)
+        {
+            CancellationToken cancellationToken = (CancellationToken)shutdownToken;
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+            }
+        }
+
+        private void ListenerWork(object shutdownToken)
+        {
+            CancellationToken cancellationToken = (CancellationToken)shutdownToken;
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+            }
+        }
+
+        private void PacketPipelineWork(object shutdownToken)
+        {
+            CancellationToken cancellationToken = (CancellationToken)shutdownToken;
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Lock synchronisation object for the <see cref="logger"/> variable.
+        /// </summary>
+        protected readonly object loggerLockObject = new object();
+
+        /// <summary>
+        /// Cancellation token which allows observing the shutdown of the server. It is set when <see cref="Shutdown()"/> is called.
+        /// </summary>
         protected readonly CancellationToken ShutdownToken;
 
         /// <summary>
@@ -49,8 +87,10 @@ namespace NetSharp
         }
 
         internal Connection(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType,
-                                            int objectPoolSize = 10, bool preallocateBuffers = false, Stream? loggingStream = default,
-                    LogLevel minimumLoggedSeverity = LogLevel.Info)
+            PacketPipeline<Memory<byte>, Memory<byte>, NetworkPacket> incomingPacketPipeline,
+            PacketPipeline<NetworkPacket, Memory<byte>, Memory<byte>> outgoingPacketPipeline,
+            int objectPoolSize = 10, bool preallocateBuffers = false, Stream? loggingStream = default,
+            LogLevel minimumLoggedSeverity = LogLevel.Info)
         {
             connectionShutdownTokenSource = new CancellationTokenSource();
             ShutdownToken = connectionShutdownTokenSource.Token;
@@ -63,6 +103,9 @@ namespace NetSharp
 
             connections = new ConcurrentDictionary<EndPoint, Connection>();
 
+            this.incomingPacketPipeline = incomingPacketPipeline;
+            this.outgoingPacketPipeline = outgoingPacketPipeline;
+
             logger = new Logger(loggingStream ?? Stream.Null, minimumLoggedSeverity);
         }
 
@@ -73,9 +116,6 @@ namespace NetSharp
             GC.SuppressFinalize(this);
         }
 
-        public Task<TransmissionResult> ReceiveAsync(Memory<byte> inputBuffer, SocketFlags flags)
-            => ReceiveAsync(inputBuffer, flags, Timeout.InfiniteTimeSpan);
-
         public Task<TransmissionResult> ReceiveAsync(Memory<byte> inputBuffer, SocketFlags flags, TimeSpan timeout)
         {
             using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
@@ -84,9 +124,6 @@ namespace NetSharp
 
             return listener.ReceiveAsync(socket, flags, inputBuffer, cts.Token);
         }
-
-        public Task<TransmissionResult> ReceiveFromAsync(EndPoint remoteEndPoint, Memory<byte> inputBuffer, SocketFlags flags)
-                    => ReceiveFromAsync(remoteEndPoint, inputBuffer, flags, Timeout.InfiniteTimeSpan);
 
         public Task<TransmissionResult> ReceiveFromAsync(EndPoint remoteEndPoint, Memory<byte> inputBuffer, SocketFlags flags, TimeSpan timeout)
         {
@@ -97,8 +134,27 @@ namespace NetSharp
             return listener.ReceiveFromAsync(socket, remoteEndPoint, flags, inputBuffer, cts.Token);
         }
 
-        public Task<int> SendAsync(Memory<byte> outputBuffer, SocketFlags flags)
-                    => SendAsync(outputBuffer, flags, Timeout.InfiniteTimeSpan);
+        /// <summary>
+        /// Makes the connection listen for incoming client request packets, and handle them according to registered packet handler delegates.
+        /// This work can be cancelled by calling <see cref="Shutdown()"/>.
+        /// </summary>
+        /// <returns>The task representing the connection work.</returns>
+        public Task RunAsync()
+        {
+            Task acceptorThread =
+                Task.Factory.StartNew(AcceptorWork, ShutdownToken, ShutdownToken, TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+            Task listenerThread =
+                Task.Factory.StartNew(ListenerWork, ShutdownToken, ShutdownToken, TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+            Task packetPipelineThread =
+                Task.Factory.StartNew(PacketPipelineWork, ShutdownToken, ShutdownToken, TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+            return Task.WhenAll(acceptorThread, listenerThread, packetPipelineThread);
+        }
 
         public Task<int> SendAsync(Memory<byte> outputBuffer, SocketFlags flags, TimeSpan timeout)
         {
@@ -109,9 +165,6 @@ namespace NetSharp
             return transmitter.SendAsync(socket, flags, outputBuffer, cts.Token);
         }
 
-        public Task<int> SendToAsync(EndPoint remoteEndPoint, Memory<byte> outputBuffer, SocketFlags flags)
-                    => SendToAsync(remoteEndPoint, outputBuffer, flags, Timeout.InfiniteTimeSpan);
-
         public Task<int> SendToAsync(EndPoint remoteEndPoint, Memory<byte> outputBuffer, SocketFlags flags, TimeSpan timeout)
         {
             using CancellationTokenSource timeoutCancellationTokenSource = new CancellationTokenSource(timeout);
@@ -121,9 +174,26 @@ namespace NetSharp
             return transmitter.SendToAsync(socket, remoteEndPoint, flags, outputBuffer, cts.Token);
         }
 
+        /// <summary>
+        /// Configures the logger to log messages to the given stream (or to <see cref="Stream.Null"/> if <c>null</c>) and
+        /// to only log messages that are of severity <paramref name="minimumLoggedSeverity"/> or higher.
+        /// </summary>
+        /// <param name="loggingStream">The stream to which messages will be logged.</param>
+        /// <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
         public void SetLoggingStream(Stream? loggingStream, LogLevel minimumLoggedSeverity = LogLevel.Info)
         {
-            logger = new Logger(loggingStream ?? Stream.Null, minimumLoggedSeverity);
+            lock (loggerLockObject)
+            {
+                logger = new Logger(loggingStream ?? Stream.Null, minimumLoggedSeverity);
+            }
+        }
+
+        /// <summary>
+        /// Shuts down the connection, and releases managed and unmanaged resources.
+        /// </summary>
+        public void Shutdown()
+        {
+            connectionShutdownTokenSource.Cancel();
         }
 
         /// <summary>

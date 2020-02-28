@@ -177,6 +177,7 @@ namespace NetSharp.Sockets
             SocketAsyncEventArgs args = acceptAsyncEventArgsPool.Get();
             args.UserToken = new AsyncAcceptToken(tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -190,6 +191,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 acceptAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the accept operation doesn't complete synchronously, return the awaitable task
             if (socket.AcceptAsync(args)) return tcs.Task;
@@ -215,6 +217,7 @@ namespace NetSharp.Sockets
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncConnectToken(tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -228,6 +231,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 connectAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the connect operation doesn't complete synchronously, return the awaitable task
             if (socket.ConnectAsync(args)) return tcs.Task;
@@ -249,6 +253,7 @@ namespace NetSharp.Sockets
             SocketAsyncEventArgs args = connectAsyncEventArgsPool.Get();
             args.UserToken = new AsyncDisconnectToken(tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -262,6 +267,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 disconnectAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the disconnect operation doesn't complete synchronously, return the awaitable task
             if (socket.DisconnectAsync(args)) return tcs.Task;

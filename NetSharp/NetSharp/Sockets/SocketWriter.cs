@@ -134,6 +134,24 @@ namespace NetSharp.Sockets
             args.SocketFlags = socketFlags;
             args.UserToken = new AsyncWriteToken(rentedSendBuffer, tcs, cancellationToken);
 
+            /*
+            // register cleanup action for when the cancellation token is thrown
+            cancellationToken.Register(() =>
+            {
+                tcs.SetCanceled();
+
+                sendBufferPool.Return(rentedSendBuffer, true);
+
+                //TODO this is probably a hideous solution. find a better one
+                args.Completed -= HandleIOCompleted;
+                args.Dispose();
+
+                SocketAsyncEventArgs newArgs = new SocketAsyncEventArgs();
+                newArgs.Completed += HandleIOCompleted;
+                sendAsyncEventArgsPool.Return(newArgs);
+            });
+            */
+
             // if the send operation doesn't complete synchronously, return the awaitable task
             if (socket.SendAsync(args)) return tcs.Task;
 
@@ -170,6 +188,7 @@ namespace NetSharp.Sockets
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncWriteToken(rentedSendToBuffer, tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -185,6 +204,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 sendAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the send operation doesn't complete synchronously, return the awaitable task
             if (socket.SendToAsync(args)) return tcs.Task;

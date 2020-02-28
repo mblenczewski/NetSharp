@@ -1,84 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using NetSharp.Packets;
+using System.Linq;
 
 namespace NetSharp.Pipelines
 {
-    public interface IPacketPipelineStage<TInput, TOutput>
-    {
-        ChannelReader<TInput> StageInput { get; }
-
-        ChannelWriter<TOutput> StageOutput { get; }
-
-        TOutput Process(TInput input);
-    }
-
+    /// <summary>
+    /// Represents a pipeline of transformations that packets must undergo.
+    /// </summary>
+    /// <typeparam name="TInput">The type of packet the pipeline receives.</typeparam>
+    /// <typeparam name="TIntermediate">The type of packet the pipeline internally handles.</typeparam>
+    /// <typeparam name="TOutput">The type of packet the pipeline outputs.</typeparam>
     // TODO: Implement a packet pipeline, with multiple transform stages to allow encryption, compression, and various other bytewise manipulation stages.
-    public readonly struct PacketPipeline<TInput, TIntermediate, TOutput>
+    internal readonly struct PacketPipeline<TInput, TIntermediate, TOutput>
     {
-        private readonly IPacketPipelineStage<TIntermediate, TOutput> finalPipelineStage;
-        private readonly IPacketPipelineStage<TInput, TIntermediate> initialPipelineStage;
-        private readonly IEnumerable<IPacketPipelineStage<TIntermediate, TIntermediate>> intermediatePipelineStages;
-        private readonly Channel<TInput> pipelineInput;
-        private readonly Channel<TOutput> pipelineOutput;
-        private readonly CancellationToken pipelineShutdownToken;
+        private readonly PacketPipelineStage<TInput, TIntermediate> pipelineInputStage;
+        private readonly IReadOnlyCollection<PacketPipelineStage<TIntermediate, TIntermediate>> pipelineIntermediateStages;
+        private readonly PacketPipelineStage<TIntermediate, TOutput> pipelineOutputStage;
 
-        internal PacketPipeline(CancellationToken shutdownToken,
-            IPacketPipelineStage<TInput, TIntermediate> firstStage,
-            IPacketPipelineStage<TIntermediate, TOutput> lastStage,
-            IEnumerable<IPacketPipelineStage<TIntermediate, TIntermediate>> intermediateStages)
+        internal PacketPipeline(
+            PacketPipelineStage<TInput, TIntermediate> firstStage,
+            PacketPipelineStage<TIntermediate, TOutput> lastStage,
+            IReadOnlyCollection<PacketPipelineStage<TIntermediate, TIntermediate>> intermediateStages)
         {
-            pipelineShutdownToken = shutdownToken;
+            pipelineInputStage = firstStage;
+            pipelineOutputStage = lastStage;
 
-            UnboundedChannelOptions inputOptions = new UnboundedChannelOptions
-            {
-                SingleReader = true,
-                SingleWriter = true,
-            };
-            pipelineInput = Channel.CreateUnbounded<TInput>(inputOptions);
-
-            UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
-            {
-                SingleReader = true,
-                SingleWriter = true,
-            };
-            pipelineOutput = Channel.CreateUnbounded<TOutput>(outputOptions);
-
-            initialPipelineStage = firstStage;
-            finalPipelineStage = lastStage;
-
-            intermediatePipelineStages = intermediateStages;
-            foreach (IPacketPipelineStage<TIntermediate, TIntermediate> stage in intermediatePipelineStages)
-            {
-            }
+            pipelineIntermediateStages = intermediateStages;
         }
 
-        public async Task<TOutput> DequeuePacketAsync()
+        /// <summary>
+        /// Passes the given packet through the pipeline.
+        /// </summary>
+        /// <param name="inputPacket">The incoming packet.</param>
+        /// <returns>The outgoing transformed packet.</returns>
+        internal TOutput ProcessPacket(TInput inputPacket)
         {
-            return await pipelineOutput.Reader.ReadAsync(pipelineShutdownToken);
-        }
+            TIntermediate intermediatePacket = pipelineInputStage.Process(inputPacket);
 
-        public async Task EnqueuePacketAsync(TInput pipelineInput)
-        {
-            await this.pipelineInput.Writer.WriteAsync(pipelineInput, pipelineShutdownToken);
+            intermediatePacket = pipelineIntermediateStages.Aggregate(intermediatePacket, (current, stage) => stage.Process(current));
+
+            return pipelineOutputStage.Process(intermediatePacket);
         }
     }
 
-    public readonly struct PacketPipelineStage<TInput, TOutput> : IPacketPipelineStage<TInput, TOutput>
+    /// <summary>
+    /// Represents a single transformation applied to a packet traveling through the pipeline.
+    /// </summary>
+    /// <typeparam name="TInput">The type the transformation takes as input.</typeparam>
+    /// <typeparam name="TOutput">The type the transformation produces as output.</typeparam>
+    internal readonly struct PacketPipelineStage<TInput, TOutput>
     {
-        /// <inheritdoc />
-        public ChannelReader<TInput> StageInput { get; }
+        private readonly Func<TInput, TOutput> stageDelegate;
 
-        /// <inheritdoc />
-        public ChannelWriter<TOutput> StageOutput { get; }
-
-        /// <inheritdoc />
-        public TOutput Process(TInput input)
+        internal PacketPipelineStage(in Func<TInput, TOutput> stageProcessingDelegate)
         {
-            throw new NotImplementedException();
+            stageDelegate = stageProcessingDelegate;
+        }
+
+        internal TOutput Process(TInput input)
+        {
+            return stageDelegate(input);
         }
     }
 }

@@ -41,7 +41,7 @@ namespace NetSharp.Packets
         /// <summary>
         /// The size of each packet, including its header, footer, and data segment.
         /// </summary>
-        public const int PacketSize = 1024;
+        public const int PacketSize = 4096;
 
         /// <summary>
         /// The data held in this packet.

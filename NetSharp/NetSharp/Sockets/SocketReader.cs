@@ -145,6 +145,7 @@ namespace NetSharp.Sockets
             args.SocketFlags = socketFlags;
             args.UserToken = new AsyncReadToken(rentedReceiveBuffer, inputBuffer, tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -160,6 +161,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 receiveAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveAsync(args)) return tcs.Task;
@@ -197,6 +199,7 @@ namespace NetSharp.Sockets
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncReadToken(rentedReceiveFromBuffer, inputBuffer, tcs, cancellationToken);
 
+            /*
             // register cleanup action for when the cancellation token is thrown
             cancellationToken.Register(() =>
             {
@@ -212,6 +215,7 @@ namespace NetSharp.Sockets
                 newArgs.Completed += HandleIOCompleted;
                 receiveAsyncEventArgsPool.Return(newArgs);
             });
+            */
 
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveFromAsync(args)) return tcs.Task;
