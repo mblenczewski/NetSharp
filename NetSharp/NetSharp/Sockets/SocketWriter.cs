@@ -17,6 +17,8 @@ namespace NetSharp.Sockets
         private readonly int PacketBufferLength;
         private readonly ObjectPool<SocketAsyncEventArgs> sendAsyncEventArgsPool;
         private readonly ArrayPool<byte> sendBufferPool;
+        private readonly ObjectPool<SocketAsyncEventArgs> sendToAsyncEventArgsPool;
+        private readonly ArrayPool<byte> sendToBufferPool;
 
         private void HandleIOCompleted(object? sender, SocketAsyncEventArgs args)
         {
@@ -66,8 +68,8 @@ namespace NetSharp.Sockets
                         }
                     }
 
-                    sendBufferPool.Return(asyncSendToToken.RentedBuffer, true);
-                    sendAsyncEventArgsPool.Return(args);
+                    sendToBufferPool.Return(asyncSendToToken.RentedBuffer, true);
+                    sendToAsyncEventArgsPool.Return(args);
                     break;
 
                 default:
@@ -103,11 +105,21 @@ namespace NetSharp.Sockets
                 new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
                     maxPooledObjects);
 
+            sendToBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
+
+            sendToAsyncEventArgsPool =
+                new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
+                    maxPooledObjects);
+
             for (int i = 0; i < maxPooledObjects; i++)
             {
-                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-                args.Completed += HandleIOCompleted;
-                sendAsyncEventArgsPool.Return(args);
+                SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
+                sendArgs.Completed += HandleIOCompleted;
+                sendAsyncEventArgsPool.Return(sendArgs);
+
+                SocketAsyncEventArgs sendToArgs = new SocketAsyncEventArgs();
+                sendToArgs.Completed += HandleIOCompleted;
+                sendToAsyncEventArgsPool.Return(sendArgs);
             }
         }
 
@@ -119,7 +131,7 @@ namespace NetSharp.Sockets
         /// <param name="outputBuffer">The data buffer which should be sent.</param>
         /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
         /// <returns>The number of bytes of data which were written to the remote connection.</returns>
-        public Task<int> SendAsync(Socket socket, SocketFlags socketFlags, Memory<byte> outputBuffer,
+        public ValueTask<int> SendAsync(Socket socket, SocketFlags socketFlags, Memory<byte> outputBuffer,
             CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
@@ -153,14 +165,14 @@ namespace NetSharp.Sockets
             */
 
             // if the send operation doesn't complete synchronously, return the awaitable task
-            if (socket.SendAsync(args)) return tcs.Task;
+            if (socket.SendAsync(args)) return new ValueTask<int>(tcs.Task);
 
             int result = args.BytesTransferred;
 
             sendBufferPool.Return(rentedSendBuffer, true);
             sendAsyncEventArgsPool.Return(args);
 
-            return Task.FromResult(result);
+            return new ValueTask<int>(result);
         }
 
         /// <summary>
@@ -172,17 +184,17 @@ namespace NetSharp.Sockets
         /// <param name="outputBuffer">The data buffer which should be sent.</param>
         /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
         /// <returns>The number of bytes of data which were written to the remote endpoint.</returns>
-        public Task<int> SendToAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags,
+        public ValueTask<int> SendToAsync(Socket socket, EndPoint remoteEndPoint, SocketFlags socketFlags,
             Memory<byte> outputBuffer, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
 
-            byte[] rentedSendToBuffer = sendBufferPool.Rent(PacketBufferLength);
+            byte[] rentedSendToBuffer = sendToBufferPool.Rent(PacketBufferLength);
             Memory<byte> rentedSendToBufferMemory = new Memory<byte>(rentedSendToBuffer);
 
             outputBuffer.CopyTo(rentedSendToBufferMemory);
 
-            SocketAsyncEventArgs args = sendAsyncEventArgsPool.Get();
+            SocketAsyncEventArgs args = sendToAsyncEventArgsPool.Get();
             args.SetBuffer(rentedSendToBufferMemory);
             args.SocketFlags = socketFlags;
             args.RemoteEndPoint = remoteEndPoint;
@@ -207,14 +219,14 @@ namespace NetSharp.Sockets
             */
 
             // if the send operation doesn't complete synchronously, return the awaitable task
-            if (socket.SendToAsync(args)) return tcs.Task;
+            if (socket.SendToAsync(args)) return new ValueTask<int>(tcs.Task);
 
             int result = args.BytesTransferred;
 
-            sendBufferPool.Return(rentedSendToBuffer, true);
-            sendAsyncEventArgsPool.Return(args);
+            sendToBufferPool.Return(rentedSendToBuffer, true);
+            sendToAsyncEventArgsPool.Return(args);
 
-            return Task.FromResult(result);
+            return new ValueTask<int>(result);
         }
     }
 }

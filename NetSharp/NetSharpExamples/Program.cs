@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetSharp;
 using NetSharp.Extensions;
+using NetSharp.Logging;
 using NetSharp.Packets;
 using NetSharp.Utils;
 
@@ -35,16 +36,11 @@ namespace NetSharpExamples
         {
             TimeSpan socketTimeout = TimeSpan.FromSeconds(newtorkTimeout);
 
-            const int clientCount = 10;
+            const int clientCount = 1;
             const long sentPacketCount = 10_000;
 
             EndPoint serverEndPoint = new IPEndPoint(serverAddress, serverPort);
-            ConnectionBuilder clientBuilder = new ConnectionBuilder().WithUdp();
-
-            Connection ClientFactory()
-            {
-                return clientBuilder.Build();
-            }
+            ConnectionBuilder clientBuilder = new ConnectionBuilder();
 
             Console.WriteLine($"Testing client connections...");
 
@@ -54,13 +50,18 @@ namespace NetSharpExamples
                 {
                     Console.WriteLine($"Starting client {clientId}");
 
-                    using Connection client = ClientFactory();
+                    using Connection client = clientBuilder.Build();
                     client.TryBind(new IPEndPoint(IPAddress.Any, 0));
+                    //client.SetLoggingStream(Console.OpenStandardOutput());
                     //TimeSpan timeout = TimeSpan.FromMilliseconds(100);
                     Stopwatch stopwatch = new Stopwatch();
 
                     byte[] message = Encoding.UTF8.GetBytes("Hello World!");
                     Memory<byte> messageBuffer = new Memory<byte>(message);
+
+                    NetworkPacket requestPacket = new NetworkPacket(messageBuffer, message.Length, 1, NetworkErrorCode.Ok, false);
+                    byte[] requestPacketBuffer = new byte[NetworkPacket.PacketSize];
+                    NetworkPacket.SerialiseToBuffer(requestPacketBuffer, requestPacket);
 
                     byte[] response = new byte[NetworkPacket.PacketSize];
                     Memory<byte> responseBuffer = new Memory<byte>(response);
@@ -71,18 +72,20 @@ namespace NetSharpExamples
                         try
                         {
                             stopwatch.Start();
-                            int sentBytes = await client.SendToAsync(serverEndPoint, messageBuffer, SocketFlags.None);
+                            //int sentBytes = await client.SendToAsync(serverEndPoint, requestPacketBuffer, SocketFlags.None);
+                            int sentBytes = await client.SendAsync(requestPacketBuffer, SocketFlags.None);
                             stopwatch.Stop();
                             Interlocked.Increment(ref sentPackets);
 
-                            //Console.WriteLine($"[Client {clientId}] Sent {sentBytes} bytes to {serverEndPoint}");
+                            Console.WriteLine($"[Client {clientId}] Sent {sentBytes} bytes to {serverEndPoint}");
 
                             stopwatch.Start();
-                            TransmissionResult result = await client.ReceiveFromAsync(serverEndPoint, responseBuffer, SocketFlags.None);
+                            //TransmissionResult result = await client.ReceiveFromAsync(serverEndPoint, responseBuffer, SocketFlags.None);
+                            TransmissionResult result = await client.ReceiveAsync(responseBuffer, SocketFlags.None);
                             stopwatch.Stop();
                             Interlocked.Increment(ref receivedPackets);
 
-                            //Console.WriteLine($"[Client {clientId}] Received {result.Count} bytes from {result.RemoteEndPoint}");
+                            Console.WriteLine($"[Client {clientId}] Received {result.Count} bytes from {result.RemoteEndPoint}");
 
                             //await Task.Delay(10);
                         }
@@ -110,31 +113,34 @@ namespace NetSharpExamples
             await using Stream serverOutputStream = File.OpenWrite(serverLogFile);
 
             EndPoint serverEndPoint = new IPEndPoint(serverAddress, serverPort);
-            ConnectionBuilder serverBuilder = new ConnectionBuilder().WithUdp();
+            ConnectionBuilder serverBuilder = new ConnectionBuilder();
 
-            using Connection server = serverBuilder.Build();
+            using Connection server = serverBuilder.WithLogging(Console.OpenStandardOutput(), LogLevel.Info).Build();
             server.TryBind(serverEndPoint);
-            //server.SetLoggingStream(Console.OpenStandardOutput(), LogLevel.Info);
+            //server.SetLoggingStream(Console.OpenStandardOutput());
             //server.ChangeLoggingStream(serverOutputStream, LogLevel.Error);
 
             Console.WriteLine("Starting server...");
 
             EndPoint nullEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
+            await server.RunServerAsync();
+
+            /*
             byte[] request = new byte[NetworkPacket.PacketSize];
             Memory<byte> requestBuffer = new Memory<byte>(request);
 
             while (true)
             {
-                TransmissionResult result =
-                    await server.ReceiveFromAsync(nullEndPoint, requestBuffer, SocketFlags.None);
+                TransmissionResult result = await server.ReceiveFromAsync(nullEndPoint, requestBuffer, SocketFlags.None);
 
-                //Console.WriteLine($"[Server] Received {result.Count} bytes from {result.RemoteEndPoint}");
+                Console.WriteLine($"[Server] Received {result.Count} bytes from {result.RemoteEndPoint}");
 
                 int sentBytes = await server.SendToAsync(result.RemoteEndPoint, requestBuffer, SocketFlags.None);
 
-                //Console.WriteLine($"[Server] Sent {sentBytes} bytes tp {result.RemoteEndPoint}");
+                Console.WriteLine($"[Server] Sent {sentBytes} bytes tp {result.RemoteEndPoint}");
             }
+            */
 
             Console.WriteLine("Server stopped");
 

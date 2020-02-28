@@ -81,31 +81,46 @@ namespace NetSharp.Packets
             Span<byte> serialisedPacketFooter = buffer.Slice(HeaderSize + DataSegmentSize, FooterSize).Span;
             NetworkPacketFooter footer = NetworkPacketFooter.Deserialise(serialisedPacketFooter);
 
-            // data segment
-            Memory<byte> packetData = buffer.Slice(HeaderSize, DataSegmentSize);
+            Memory<byte> serialisedInstanceData = buffer.Slice(HeaderSize, DataSegmentSize);
 
-            return new NetworkPacket(packetData, header, footer);
+            return new NetworkPacket(serialisedInstanceData, header, footer);
         }
 
         /// <summary>
-        /// Serialises the given packet instance into a single byte buffer.
+        /// Serialises the given packet instance to a new byte buffer.
         /// </summary>
         /// <param name="instance">The packet instance to serialise.</param>
         /// <returns>The byte buffer that represents the packet instance.</returns>
         public static Memory<byte> Serialise(NetworkPacket instance)
         {
             byte[] buffer = new byte[PacketSize];
+            SerialiseToBuffer(buffer, instance);
+            return buffer;
+        }
 
-            Span<byte> serialisedPacketHeader = new Span<byte>(buffer, 0, HeaderSize);
+        /// <summary>
+        /// Serialises the given packet instance into the given byte buffer.
+        /// </summary>
+        /// <param name="buffer">
+        /// The buffer to which the instance should be serialised. Must be at least of size <see cref="PacketSize"/>.
+        /// </param>
+        /// <param name="instance">The packet instance to serialise.</param>
+        /// <exception cref="ArgumentException">Thrown if the given buffer is too small.</exception>
+        public static void SerialiseToBuffer(Memory<byte> buffer, NetworkPacket instance)
+        {
+            if (buffer.Length < PacketSize)
+            {
+                throw new ArgumentException("Given buffer is too small to serialise the packet instance into.", nameof(buffer));
+            }
+
+            Span<byte> serialisedPacketHeader = buffer.Slice(0, HeaderSize).Span;
             NetworkPacketHeader.Serialise(serialisedPacketHeader, instance.Header);
 
-            Span<byte> serialisedPacketFooter = new Span<byte>(buffer, HeaderSize + DataSegmentSize, FooterSize);
+            Span<byte> serialisedPacketFooter = buffer.Slice(HeaderSize + DataSegmentSize, FooterSize).Span;
             NetworkPacketFooter.Serialise(serialisedPacketFooter, instance.Footer);
 
-            Memory<byte> serialisedInstanceData = new Memory<byte>(buffer, HeaderSize, instance.Header.DataLength);
+            Memory<byte> serialisedInstanceData = buffer.Slice(HeaderSize, DataSegmentSize);
             instance.DataBuffer.CopyTo(serialisedInstanceData);
-
-            return buffer;
         }
     }
 

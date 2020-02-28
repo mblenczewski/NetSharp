@@ -25,15 +25,5 @@ namespace NetSharp.Extensions
         public static ConnectionBuilder WithPooling(this ConnectionBuilder instance,
             int poolSize, bool preallocateBuffers)
             => instance.WithPooling(new ConnectionBuilder.PoolingSettings(poolSize, preallocateBuffers));
-
-        public static ConnectionBuilder WithSocket(this ConnectionBuilder instance,
-            AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType)
-            => instance.WithSocket(new ConnectionBuilder.SocketSettings(addressFamily, socketType, protocolType));
-
-        public static ConnectionBuilder WithTcp(this ConnectionBuilder instance)
-            => instance.WithSocket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-        public static ConnectionBuilder WithUdp(this ConnectionBuilder instance)
-            => instance.WithSocket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 }

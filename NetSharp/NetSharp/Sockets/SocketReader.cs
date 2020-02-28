@@ -18,6 +18,8 @@ namespace NetSharp.Sockets
         private readonly int PacketBufferLength;
         private readonly ObjectPool<SocketAsyncEventArgs> receiveAsyncEventArgsPool;
         private readonly ArrayPool<byte> receiveBufferPool;
+        private readonly ObjectPool<SocketAsyncEventArgs> receiveFromAsyncEventArgsPool;
+        private readonly ArrayPool<byte> receiveFromBufferPool;
 
         private void HandleIOCompleted(object? sender, SocketAsyncEventArgs args)
         {
@@ -76,8 +78,8 @@ namespace NetSharp.Sockets
                         }
                     }
 
-                    receiveBufferPool.Return(asyncReceiveFromToken.RentedBuffer, true);
-                    receiveAsyncEventArgsPool.Return(args);
+                    receiveFromBufferPool.Return(asyncReceiveFromToken.RentedBuffer, true);
+                    receiveFromAsyncEventArgsPool.Return(args);
 
                     break;
 
@@ -116,11 +118,21 @@ namespace NetSharp.Sockets
                 new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
                     maxPooledObjects);
 
+            receiveFromBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
+
+            receiveFromAsyncEventArgsPool =
+                new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
+                    maxPooledObjects);
+
             for (int i = 0; i < maxPooledObjects; i++)
             {
-                SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-                args.Completed += HandleIOCompleted;
-                receiveAsyncEventArgsPool.Return(args);
+                SocketAsyncEventArgs receiveArgs = new SocketAsyncEventArgs();
+                receiveArgs.Completed += HandleIOCompleted;
+                receiveAsyncEventArgsPool.Return(receiveArgs);
+
+                SocketAsyncEventArgs receiveFromArgs = new SocketAsyncEventArgs();
+                receiveFromArgs.Completed += HandleIOCompleted;
+                receiveFromAsyncEventArgsPool.Return(receiveFromArgs);
             }
         }
 
@@ -190,10 +202,10 @@ namespace NetSharp.Sockets
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
-            byte[] rentedReceiveFromBuffer = receiveBufferPool.Rent(PacketBufferLength);
+            byte[] rentedReceiveFromBuffer = receiveFromBufferPool.Rent(PacketBufferLength);
             Memory<byte> rentedReceiveFromBufferMemory = new Memory<byte>(rentedReceiveFromBuffer);
 
-            SocketAsyncEventArgs args = receiveAsyncEventArgsPool.Get();
+            SocketAsyncEventArgs args = receiveFromAsyncEventArgsPool.Get();
             args.SetBuffer(rentedReceiveFromBufferMemory);
             args.SocketFlags = socketFlags;
             args.RemoteEndPoint = remoteEndPoint;
@@ -224,8 +236,8 @@ namespace NetSharp.Sockets
 
             TransmissionResult result = new TransmissionResult(args);
 
-            receiveBufferPool.Return(rentedReceiveFromBuffer, true);
-            receiveAsyncEventArgsPool.Return(args);
+            receiveFromBufferPool.Return(rentedReceiveFromBuffer, true);
+            receiveFromAsyncEventArgsPool.Return(args);
 
             return Task.FromResult(result);
         }

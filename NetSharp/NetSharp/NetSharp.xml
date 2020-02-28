@@ -4,6 +4,26 @@
         <name>NetSharp</name>
     </assembly>
     <members>
+        <member name="T:NetSharp.Connection">
+            <summary>
+            Encapsulates a connection capable of receiving packets and responding to them with registered packet handlers.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.AnyRemoteEndPoint">
+            <summary>
+            Represents any remote endpoint for datagram operations.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.incomingPacketPipeline">
+            <summary>
+            Pipeline to convert incoming byte buffers to <see cref="T:NetSharp.Packets.NetworkPacket"/> instances.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.outgoingPacketPipeline">
+            <summary>
+            Pipeline to convert outgoing <see cref="T:NetSharp.Packets.NetworkPacket"/> instances to a byte buffer for sending.
+            </summary>
+        </member>
         <member name="M:NetSharp.Connection.Finalize">
             <summary>
             Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
@@ -14,9 +34,9 @@
             Lock synchronisation object for the <see cref="F:NetSharp.Connection.logger"/> variable.
             </summary>
         </member>
-        <member name="F:NetSharp.Connection.ShutdownToken">
+        <member name="F:NetSharp.Connection.ServerShutdownToken">
             <summary>
-            Cancellation token which allows observing the shutdown of the server. It is set when <see cref="M:NetSharp.Connection.Shutdown"/> is called.
+            Cancellation token which allows observing the shutdown of the server. It is set when <see cref="M:NetSharp.Connection.ShutdownServer"/> is called.
             </summary>
         </member>
         <member name="F:NetSharp.Connection.logger">
@@ -30,13 +50,19 @@
             </summary>
             <param name="disposing">Whether this method is called by <see cref="M:NetSharp.Connection.Dispose"/> or by the finaliser.</param>
         </member>
+        <member name="F:NetSharp.Connection.MaximumPacketBacklog">
+            <summary>
+            The maximum number of packets that will be stored before older packets start to be dropped.
+            </summary>
+            TODO change this to a configurable builder option
+        </member>
         <member name="M:NetSharp.Connection.Dispose">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Connection.RunAsync">
+        <member name="M:NetSharp.Connection.RunServerAsync">
             <summary>
-            Makes the connection listen for incoming client request packets, and handle them according to registered packet handler delegates.
-            This work can be cancelled by calling <see cref="M:NetSharp.Connection.Shutdown"/>.
+            Makes the connection listen for incoming request packets, and handle them according to registered packet handler delegates.
+            This work can be cancelled by calling <see cref="M:NetSharp.Connection.ShutdownServer"/>.
             </summary>
             <returns>The task representing the connection work.</returns>
         </member>
@@ -48,7 +74,7 @@
             <param name="loggingStream">The stream to which messages will be logged.</param>
             <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
         </member>
-        <member name="M:NetSharp.Connection.Shutdown">
+        <member name="M:NetSharp.Connection.ShutdownServer">
             <summary>
             Shuts down the connection, and releases managed and unmanaged resources.
             </summary>
@@ -91,9 +117,6 @@
             Returns a new <see cref="T:NetSharp.Connection"/> instance with the current configuration.
             </summary>
             <returns>The configured <see cref="T:NetSharp.Connection"/> instance.</returns>
-            <exception cref="T:System.ArgumentNullException">
-            Thrown when <see cref="M:NetSharp.ConnectionBuilder.WithSocket(NetSharp.ConnectionBuilder.SocketSettings)"/> has not been called.
-            </exception>
         </member>
         <member name="M:NetSharp.ConnectionBuilder.WithIncomingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
             <summary>
@@ -127,13 +150,6 @@
             Sets the pooling settings for the currently configured connection.
             </summary>
             <param name="settings">The pooling settings to use.</param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.WithSocket(NetSharp.ConnectionBuilder.SocketSettings)">
-            <summary>
-            Sets the socket settings for the currently configured connection.
-            </summary>
-            <param name="settings">The socket settings to use.</param>
             <returns>The builder instance for further configuration.</returns>
         </member>
         <member name="T:NetSharp.ConnectionBuilder.LoggingSettings">
@@ -179,34 +195,6 @@
             </summary>
             <param name="poolSize">The number of objects that will be held in the object pools.</param>
             <param name="preallocateBuffers">Whether the buffers for receiving messages should be preallocated.</param>
-        </member>
-        <member name="T:NetSharp.ConnectionBuilder.SocketSettings">
-            <summary>
-            Holds settings fo configuring a connection's underlying socket.
-            </summary>
-        </member>
-        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.AddressFamily">
-            <summary>
-            The address family for the socket underlying the connection.
-            </summary>
-        </member>
-        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.ProtocolType">
-            <summary>
-            The socket type for the socket underlying the connection.
-            </summary>
-        </member>
-        <member name="F:NetSharp.ConnectionBuilder.SocketSettings.SocketType">
-            <summary>
-            The protocol type for the socket underlying the connection.
-            </summary>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.SocketSettings.#ctor(System.Net.Sockets.AddressFamily,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.ConnectionBuilder.SocketSettings"/> struct.
-            </summary>
-            <param name="addressFamily">The address family for the underlying socket.</param>
-            <param name="socketType">The socket type for the underlying socket.</param>
-            <param name="protocolType">The protocol type for the underlying socket.</param>
         </member>
         <member name="T:NetSharp.Deprecated.Client">
             <summary>
@@ -1705,10 +1693,20 @@
         </member>
         <member name="M:NetSharp.Packets.NetworkPacket.Serialise(NetSharp.Packets.NetworkPacket)">
             <summary>
-            Serialises the given packet instance into a single byte buffer.
+            Serialises the given packet instance to a new byte buffer.
             </summary>
             <param name="instance">The packet instance to serialise.</param>
             <returns>The byte buffer that represents the packet instance.</returns>
+        </member>
+        <member name="M:NetSharp.Packets.NetworkPacket.SerialiseToBuffer(System.Memory{System.Byte},NetSharp.Packets.NetworkPacket)">
+            <summary>
+            Serialises the given packet instance into the given byte buffer.
+            </summary>
+            <param name="buffer">
+            The buffer to which the instance should be serialised. Must be at least of size <see cref="F:NetSharp.Packets.NetworkPacket.PacketSize"/>.
+            </param>
+            <param name="instance">The packet instance to serialise.</param>
+            <exception cref="T:System.ArgumentException">Thrown if the given buffer is too small.</exception>
         </member>
         <member name="F:NetSharp.Packets.NetworkPacketFooter.Size">
             <summary>

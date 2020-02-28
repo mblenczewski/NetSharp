@@ -20,11 +20,11 @@ namespace NetSharp.Extensions
             EndPoint remoteEndPoint, Memory<byte> inputBuffer, SocketFlags flags)
             => instance.ReceiveFromAsync(remoteEndPoint, inputBuffer, flags, Timeout.InfiniteTimeSpan);
 
-        public static Task<int> SendAsync(this Connection instance,
+        public static ValueTask<int> SendAsync(this Connection instance,
             Memory<byte> outputBuffer, SocketFlags flags)
             => instance.SendAsync(outputBuffer, flags, Timeout.InfiniteTimeSpan);
 
-        public static Task<int> SendToAsync(this Connection instance,
+        public static ValueTask<int> SendToAsync(this Connection instance,
             EndPoint remoteEndPoint, Memory<byte> outputBuffer, SocketFlags flags)
             => instance.SendToAsync(remoteEndPoint, outputBuffer, flags, Timeout.InfiniteTimeSpan);
 
