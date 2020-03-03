@@ -37,7 +37,7 @@ namespace NetSharpExamples
             TimeSpan socketTimeout = TimeSpan.FromSeconds(newtorkTimeout);
 
             const int clientCount = 1;
-            const long sentPacketCount = 10_000;
+            const long sentPacketCount = 100;
 
             EndPoint serverEndPoint = new IPEndPoint(serverAddress, serverPort);
             ConnectionBuilder clientBuilder = new ConnectionBuilder();
@@ -51,7 +51,8 @@ namespace NetSharpExamples
                     Console.WriteLine($"Starting client {clientId}");
 
                     using Connection client = clientBuilder.Build();
-                    client.TryBind(new IPEndPoint(IPAddress.Any, 0));
+                    await client.TryBindAsync(new IPEndPoint(IPAddress.Any, 0));
+                    await client.TryConnectAsync(serverEndPoint);
                     //client.SetLoggingStream(Console.OpenStandardOutput());
                     //TimeSpan timeout = TimeSpan.FromMilliseconds(100);
                     Stopwatch stopwatch = new Stopwatch();
@@ -73,7 +74,7 @@ namespace NetSharpExamples
                         {
                             stopwatch.Start();
                             //int sentBytes = await client.SendToAsync(serverEndPoint, requestPacketBuffer, SocketFlags.None);
-                            int sentBytes = await client.SendAsync(requestPacketBuffer, SocketFlags.None);
+                            int sentBytes = await client.SendAsync(serverEndPoint, requestPacketBuffer, SocketFlags.None);
                             stopwatch.Stop();
                             Interlocked.Increment(ref sentPackets);
 
@@ -81,7 +82,7 @@ namespace NetSharpExamples
 
                             stopwatch.Start();
                             //TransmissionResult result = await client.ReceiveFromAsync(serverEndPoint, responseBuffer, SocketFlags.None);
-                            TransmissionResult result = await client.ReceiveAsync(responseBuffer, SocketFlags.None);
+                            TransmissionResult result = await client.ReceiveAsync(serverEndPoint, responseBuffer, SocketFlags.None);
                             stopwatch.Stop();
                             Interlocked.Increment(ref receivedPackets);
 
@@ -100,6 +101,12 @@ namespace NetSharpExamples
 
                     Console.WriteLine($"[Client {clientId}] Sent {sentPacketCount} packets to {serverEndPoint} in {millis} milliseconds");
                     Console.WriteLine($"[Client {clientId}] Approximate bandwidth: {megabytes / (millis / 1000.0):F3} MBps");
+
+                    /*
+                    Console.WriteLine($"[Client {clientId}] Closing client...");
+                    await client.TryDisconnectAsync();
+                    Console.WriteLine($"[Client {clientId}] Closed client.");
+                    */
                 }, i, TaskCreationOptions.LongRunning);
             }
 
@@ -116,31 +123,13 @@ namespace NetSharpExamples
             ConnectionBuilder serverBuilder = new ConnectionBuilder();
 
             using Connection server = serverBuilder.WithLogging(Console.OpenStandardOutput(), LogLevel.Info).Build();
-            server.TryBind(serverEndPoint);
+            await server.TryBindAsync(serverEndPoint);
             //server.SetLoggingStream(Console.OpenStandardOutput());
             //server.ChangeLoggingStream(serverOutputStream, LogLevel.Error);
 
             Console.WriteLine("Starting server...");
 
-            EndPoint nullEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
             await server.RunServerAsync();
-
-            /*
-            byte[] request = new byte[NetworkPacket.PacketSize];
-            Memory<byte> requestBuffer = new Memory<byte>(request);
-
-            while (true)
-            {
-                TransmissionResult result = await server.ReceiveFromAsync(nullEndPoint, requestBuffer, SocketFlags.None);
-
-                Console.WriteLine($"[Server] Received {result.Count} bytes from {result.RemoteEndPoint}");
-
-                int sentBytes = await server.SendToAsync(result.RemoteEndPoint, requestBuffer, SocketFlags.None);
-
-                Console.WriteLine($"[Server] Sent {sentBytes} bytes tp {result.RemoteEndPoint}");
-            }
-            */
 
             Console.WriteLine("Server stopped");
 

@@ -8,10 +8,8 @@
             <summary>
             Encapsulates a connection capable of receiving packets and responding to them with registered packet handlers.
             </summary>
-        </member>
-        <member name="F:NetSharp.Connection.AnyRemoteEndPoint">
             <summary>
-            Represents any remote endpoint for datagram operations.
+            Implements low-level network access on top of which the rest of the connection is built upon.
             </summary>
         </member>
         <member name="F:NetSharp.Connection.incomingPacketPipeline">
@@ -19,19 +17,14 @@
             Pipeline to convert incoming byte buffers to <see cref="T:NetSharp.Packets.NetworkPacket"/> instances.
             </summary>
         </member>
-        <member name="F:NetSharp.Connection.outgoingPacketPipeline">
-            <summary>
-            Pipeline to convert outgoing <see cref="T:NetSharp.Packets.NetworkPacket"/> instances to a byte buffer for sending.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.Finalize">
-            <summary>
-            Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
-            </summary>
-        </member>
         <member name="F:NetSharp.Connection.loggerLockObject">
             <summary>
             Lock synchronisation object for the <see cref="F:NetSharp.Connection.logger"/> variable.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.outgoingPacketPipeline">
+            <summary>
+            Pipeline to convert outgoing <see cref="T:NetSharp.Packets.NetworkPacket"/> instances to a byte buffer for sending.
             </summary>
         </member>
         <member name="F:NetSharp.Connection.ServerShutdownToken">
@@ -44,11 +37,90 @@
             A logger object allowing for writing debug messages to an output stream.
             </summary>
         </member>
+        <member name="M:NetSharp.Connection.Finalize">
+            <summary>
+            Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Connection.RunServerAsync">
+            <summary>
+            Makes the connection listen for incoming request packets, and handle them according to registered packet handler delegates.
+            This work can be cancelled by calling <see cref="M:NetSharp.Connection.ShutdownServer"/>.
+            </summary>
+            <returns>The task representing the connection work.</returns>
+        </member>
+        <member name="M:NetSharp.Connection.ShutdownServer">
+            <summary>
+            Shuts down the connection, and releases managed and unmanaged resources.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.AnyRemoteEndPoint">
+            <summary>
+            Represents any remote endpoint for datagram operations.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Connection.connectionAsyncEventArgs">
+            <summary>
+            Socket async event args object used when the connection instance is used as a client. It is set when a
+            call to <see cref="M:NetSharp.Connection.TryConnectAsync(System.Net.EndPoint,System.TimeSpan)"/> is made.
+            </summary>
+        </member>
         <member name="M:NetSharp.Connection.Dispose(System.Boolean)">
             <summary>
             Disposes of the managed and unmanaged resources held by this instance.
             </summary>
             <param name="disposing">Whether this method is called by <see cref="M:NetSharp.Connection.Dispose"/> or by the finaliser.</param>
+        </member>
+        <member name="M:NetSharp.Connection.DoAcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket accept operation.
+            </summary>
+            <param name="serverSocket">The socket which should be used to accept an incoming connection attempt.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The accepted socket.</returns>
+        </member>
+        <member name="M:NetSharp.Connection.DoConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket connect operation.
+            </summary>
+            <param name="disconnectedSocket">The socket which should asynchronously connect to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Connection.DoDisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
+            </summary>
+            <param name="connectedSocket">The socket which should asynchronously disconnect from its remote endpoint.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Connection.DoReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket receive operation.
+            </summary>
+            <param name="listenerSocket">The socket which should receive data from the remote endpoint.</param>
+            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
+            <param name="socketFlags">The socket flags associated with the receive operation.</param>
+            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the receive operation from the remote endpoint.</returns>
+        </member>
+        <member name="M:NetSharp.Connection.DoSendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket send operation.
+            </summary>
+            <param name="transmitterSocket">The socket which should send the data to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
+            <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="outputBuffer">The data buffer which should be sent.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the send operation to the remote endpoint.</returns>
+        </member>
+        <member name="F:NetSharp.Connection.MaximumConnectionBacklog">
+            <summary>
+            The maximum number of stream connection that will be accepted.
+            </summary>
+            TODO change this to a configurable builder option
         </member>
         <member name="F:NetSharp.Connection.MaximumPacketBacklog">
             <summary>
@@ -59,13 +131,6 @@
         <member name="M:NetSharp.Connection.Dispose">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Connection.RunServerAsync">
-            <summary>
-            Makes the connection listen for incoming request packets, and handle them according to registered packet handler delegates.
-            This work can be cancelled by calling <see cref="M:NetSharp.Connection.ShutdownServer"/>.
-            </summary>
-            <returns>The task representing the connection work.</returns>
-        </member>
         <member name="M:NetSharp.Connection.SetLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
             <summary>
             Configures the logger to log messages to the given stream (or to <see cref="F:System.IO.Stream.Null"/> if <c>null</c>) and
@@ -73,20 +138,6 @@
             </summary>
             <param name="loggingStream">The stream to which messages will be logged.</param>
             <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
-        </member>
-        <member name="M:NetSharp.Connection.ShutdownServer">
-            <summary>
-            Shuts down the connection, and releases managed and unmanaged resources.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.TryBind(System.Net.EndPoint,System.TimeSpan)">
-            <summary>
-            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
         </member>
         <member name="M:NetSharp.Connection.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
             <summary>
@@ -1293,6 +1344,15 @@
             Provides additional methods and functionality to the <see cref="T:NetSharp.Connection"/> class.
             </summary>
         </member>
+        <member name="M:NetSharp.Extensions.ConnectionExtensions.TryBind(NetSharp.Connection,System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
         <member name="T:NetSharp.Logging.LogLevel">
             <summary>
             Specifies the severity level of a log message.
@@ -1993,16 +2053,6 @@
             Helper class providing awaitable wrappers around asynchronous Receive and ReceiveFrom operations.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketReader.ReceiveAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket receive operation.
-            </summary>
-            <param name="socket">The socket which should receive data from the remote connection.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The result of the receive operation.</returns>
-        </member>
         <member name="M:NetSharp.Sockets.SocketReader.ReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
             <summary>
             Provides an awaitable wrapper around an asynchronous socket receive operation.
@@ -2018,16 +2068,6 @@
             <summary>
             Helper class providing awaitable wrappers around asynchronous Send and SendTo operations.
             </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketWriter.SendAsync(System.Net.Sockets.Socket,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket send operation.
-            </summary>
-            <param name="socket">The socket which should send the data to its remote connection.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-            <param name="outputBuffer">The data buffer which should be sent.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The number of bytes of data which were written to the remote connection.</returns>
         </member>
         <member name="M:NetSharp.Sockets.SocketWriter.SendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
             <summary>

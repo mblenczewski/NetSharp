@@ -15,8 +15,6 @@ namespace NetSharp.Sockets
     public sealed class SocketWriter
     {
         private readonly int PacketBufferLength;
-        private readonly ObjectPool<SocketAsyncEventArgs> sendAsyncEventArgsPool;
-        private readonly ArrayPool<byte> sendBufferPool;
         private readonly ObjectPool<SocketAsyncEventArgs> sendToAsyncEventArgsPool;
         private readonly ArrayPool<byte> sendToBufferPool;
 
@@ -24,30 +22,6 @@ namespace NetSharp.Sockets
         {
             switch (args.LastOperation)
             {
-                case SocketAsyncOperation.Send:
-                    AsyncWriteToken asyncSendToken = (AsyncWriteToken)args.UserToken;
-
-                    if (asyncSendToken.CancellationToken.IsCancellationRequested)
-                    {
-                        asyncSendToken.CompletionSource.SetCanceled();
-                    }
-                    else
-                    {
-                        if (args.SocketError != SocketError.Success)
-                        {
-                            asyncSendToken.CompletionSource.SetException(
-                                new SocketException((int)args.SocketError));
-                        }
-                        else
-                        {
-                            asyncSendToken.CompletionSource.SetResult(args.BytesTransferred);
-                        }
-                    }
-
-                    sendBufferPool.Return(asyncSendToken.RentedBuffer, true);
-                    sendAsyncEventArgsPool.Return(args);
-                    break;
-
                 case SocketAsyncOperation.SendTo:
                     AsyncWriteToken asyncSendToToken = (AsyncWriteToken)args.UserToken;
 
@@ -99,12 +73,6 @@ namespace NetSharp.Sockets
         {
             PacketBufferLength = packetBufferLength;
 
-            sendBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
-
-            sendAsyncEventArgsPool =
-                new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
-                    maxPooledObjects);
-
             sendToBufferPool = ArrayPool<byte>.Create(packetBufferLength, maxPooledObjects);
 
             sendToAsyncEventArgsPool =
@@ -113,66 +81,10 @@ namespace NetSharp.Sockets
 
             for (int i = 0; i < maxPooledObjects; i++)
             {
-                SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
-                sendArgs.Completed += HandleIOCompleted;
-                sendAsyncEventArgsPool.Return(sendArgs);
-
                 SocketAsyncEventArgs sendToArgs = new SocketAsyncEventArgs();
                 sendToArgs.Completed += HandleIOCompleted;
-                sendToAsyncEventArgsPool.Return(sendArgs);
+                sendToAsyncEventArgsPool.Return(sendToArgs);
             }
-        }
-
-        /// <summary>
-        /// Provides an awaitable wrapper around an asynchronous socket send operation.
-        /// </summary>
-        /// <param name="socket">The socket which should send the data to its remote connection.</param>
-        /// <param name="socketFlags">The socket flags associated with the send operation.</param>
-        /// <param name="outputBuffer">The data buffer which should be sent.</param>
-        /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        /// <returns>The number of bytes of data which were written to the remote connection.</returns>
-        public ValueTask<int> SendAsync(Socket socket, SocketFlags socketFlags, Memory<byte> outputBuffer,
-            CancellationToken cancellationToken = default)
-        {
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-
-            byte[] rentedSendBuffer = sendBufferPool.Rent(PacketBufferLength);
-            Memory<byte> rentedSendBufferMemory = new Memory<byte>(rentedSendBuffer);
-
-            outputBuffer.CopyTo(rentedSendBufferMemory);
-
-            SocketAsyncEventArgs args = sendAsyncEventArgsPool.Get();
-            args.SetBuffer(rentedSendBufferMemory);
-            args.SocketFlags = socketFlags;
-            args.UserToken = new AsyncWriteToken(rentedSendBuffer, tcs, cancellationToken);
-
-            /*
-            // register cleanup action for when the cancellation token is thrown
-            cancellationToken.Register(() =>
-            {
-                tcs.SetCanceled();
-
-                sendBufferPool.Return(rentedSendBuffer, true);
-
-                //TODO this is probably a hideous solution. find a better one
-                args.Completed -= HandleIOCompleted;
-                args.Dispose();
-
-                SocketAsyncEventArgs newArgs = new SocketAsyncEventArgs();
-                newArgs.Completed += HandleIOCompleted;
-                sendAsyncEventArgsPool.Return(newArgs);
-            });
-            */
-
-            // if the send operation doesn't complete synchronously, return the awaitable task
-            if (socket.SendAsync(args)) return new ValueTask<int>(tcs.Task);
-
-            int result = args.BytesTransferred;
-
-            sendBufferPool.Return(rentedSendBuffer, true);
-            sendAsyncEventArgsPool.Return(args);
-
-            return new ValueTask<int>(result);
         }
 
         /// <summary>
