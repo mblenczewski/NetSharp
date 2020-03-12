@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -21,7 +22,7 @@ namespace NetSharp
     /// </summary>
     public sealed partial class Connection : IDisposable
     {
-        private readonly ConcurrentDictionary<EndPoint, SocketAsyncEventArgs> datagramConnections;
+        private readonly HashSet<EndPoint> datagramConnections;
         private readonly Channel<(EndPoint origin, Memory<byte> packet)> incomingPacketChannel;
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace NetSharp
         /// </summary>
         private readonly CancellationToken ServerShutdownToken;
 
-        private readonly ConcurrentDictionary<EndPoint, SocketAsyncEventArgs> streamConnections;
+        private readonly ConcurrentDictionary<EndPoint, Socket> streamConnections;
 
         /// <summary>
         /// A logger object allowing for writing debug messages to an output stream.
@@ -71,8 +72,7 @@ namespace NetSharp
 
             async Task StreamListenerWork(object clientArgsObj)
             {
-                SocketAsyncEventArgs clientArgs = (SocketAsyncEventArgs)clientArgsObj;
-                Socket clientSocket = clientArgs.AcceptSocket;
+                Socket clientSocket = (Socket)clientArgsObj;
                 EndPoint clientEndPoint = clientSocket.RemoteEndPoint;
 
                 logger.LogMessage($"Client handler started for {clientEndPoint}");
@@ -97,6 +97,8 @@ namespace NetSharp
 
                 logger.LogMessage($"Client handler stopped for {clientEndPoint}");
 
+                await DoDisconnectAsync(clientSocket, cancellationToken);
+
                 clientSocket.Shutdown(SocketShutdown.Both);
                 clientSocket.Close(1);
             }
@@ -105,15 +107,13 @@ namespace NetSharp
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                SocketAsyncEventArgs clientArgs = await DoAcceptAsync(streamSocket, cancellationToken);
-
-                Socket clientSocket = clientArgs.AcceptSocket;
+                Socket clientSocket = await DoAcceptAsync(streamSocket, cancellationToken);
 
                 if (!streamConnections.ContainsKey(clientSocket.RemoteEndPoint))
                 {
-                    streamConnections[clientSocket.RemoteEndPoint] = clientArgs;
+                    streamConnections[clientSocket.RemoteEndPoint] = clientSocket;
 
-                    await Task.Factory.StartNew(StreamListenerWork, clientArgs, ServerShutdownToken);
+                    await Task.Factory.StartNew(StreamListenerWork, streamConnections[clientSocket.RemoteEndPoint], ServerShutdownToken);
                 }
                 else
                 {
@@ -132,8 +132,6 @@ namespace NetSharp
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                SocketAsyncEventArgs args = clientSocketArgsPool.Get();
-
                 // TODO: implement receive buffer pooling
                 byte[] receiveBuffer = new byte[NetworkPacket.PacketSize];
                 Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
@@ -142,14 +140,12 @@ namespace NetSharp
                     await DoReceiveFromAsync(datagramSocket, AnyRemoteEndPoint, SocketFlags.None,
                         receiveBufferMemory, cancellationToken);
 
-                if (!datagramConnections.ContainsKey(result.RemoteEndPoint))
+                if (!datagramConnections.Contains(result.RemoteEndPoint))
                 {
-                    datagramConnections[result.RemoteEndPoint] = args;
+                    datagramConnections.Add(result.RemoteEndPoint);
                 }
 
                 await incomingPacketChannel.Writer.WriteAsync((result.RemoteEndPoint, receiveBufferMemory), cancellationToken);
-
-                clientSocketArgsPool.Return(args);
             }
 
             logger.LogMessage("Stopped datagram listener task.");
@@ -190,21 +186,21 @@ namespace NetSharp
 
                 Memory<byte> serialisedResponse = outgoingPacketPipeline.ProcessPacket(packet);
 
-                if (datagramConnections.ContainsKey(destination))
+                if (streamConnections.ContainsKey(destination))
                 {
-                    await DoSendToAsync(datagramSocket, destination,
-                        SocketFlags.None, serialisedResponse, cancellationToken);
-                }
-                else if (streamConnections.ContainsKey(destination))
-                {
-                    SocketAsyncEventArgs streamClientArgs = streamConnections[destination];
+                    Socket streamConnection = streamConnections[destination];
 
-                    await DoSendToAsync(streamClientArgs.AcceptSocket, destination,
-                        SocketFlags.None, serialisedResponse, cancellationToken);
+                    await DoSendToAsync(streamConnection, destination, SocketFlags.None,
+                        serialisedResponse, cancellationToken);
+                }
+                else if (datagramConnections.Contains(destination))
+                {
+                    await DoSendToAsync(datagramSocket, destination, SocketFlags.None,
+                        serialisedResponse, cancellationToken);
                 }
                 else
                 {
-                    logger.LogWarning($"Dropping packet destined for unknown destination; {destination}");
+                    logger.LogWarning($"Packet destined for unknown destination: {destination}");
                 }
             }
 
@@ -250,30 +246,20 @@ namespace NetSharp
                 new LeakTrackingObjectPool<SocketAsyncEventArgs>(
                     new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
                         objectPoolSize));
-
-            acceptArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(), objectPoolSize);
-            connectArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(), objectPoolSize);
-            disconnectArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(), objectPoolSize);
-            receiveArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(), objectPoolSize);
-            sendArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(), objectPoolSize);
+            receiveArgsPool =
+                new LeakTrackingObjectPool<SocketAsyncEventArgs>(
+                    new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
+                        objectPoolSize));
+            sendArgsPool =
+                new LeakTrackingObjectPool<SocketAsyncEventArgs>(
+                    new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>(),
+                        objectPoolSize));
 
             for (int i = 0; i < objectPoolSize; i++)
             {
                 SocketAsyncEventArgs clientArgs = new SocketAsyncEventArgs();
                 clientArgs.Completed += HandleIOCompleted;
                 clientSocketArgsPool.Return(clientArgs);
-
-                SocketAsyncEventArgs acceptArgs = new SocketAsyncEventArgs();
-                acceptArgs.Completed += HandleIOCompleted;
-                acceptArgsPool.Return(acceptArgs);
-
-                SocketAsyncEventArgs connectArgs = new SocketAsyncEventArgs();
-                connectArgs.Completed += HandleIOCompleted;
-                connectArgsPool.Return(connectArgs);
-
-                SocketAsyncEventArgs disconnectArgs = new SocketAsyncEventArgs();
-                disconnectArgs.Completed += HandleIOCompleted;
-                disconnectArgsPool.Return(disconnectArgs);
 
                 SocketAsyncEventArgs receiveArgs = new SocketAsyncEventArgs();
                 receiveArgs.Completed += HandleIOCompleted;
@@ -289,8 +275,8 @@ namespace NetSharp
                 //TODO: Preallocate buffers someday
             }
 
-            streamConnections = new ConcurrentDictionary<EndPoint, SocketAsyncEventArgs>();
-            datagramConnections = new ConcurrentDictionary<EndPoint, SocketAsyncEventArgs>();
+            streamConnections = new ConcurrentDictionary<EndPoint, Socket>();
+            datagramConnections = new HashSet<EndPoint>();
 
             this.incomingPacketPipeline = incomingPacketPipeline;
             BoundedChannelOptions incomingChannelOptions = new BoundedChannelOptions(MaximumPacketBacklog)

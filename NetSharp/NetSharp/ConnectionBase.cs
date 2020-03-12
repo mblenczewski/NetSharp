@@ -23,15 +23,9 @@ namespace NetSharp
         /// </summary>
         private static readonly EndPoint AnyRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-        private readonly ObjectPool<SocketAsyncEventArgs> acceptArgsPool;
-
         private readonly ObjectPool<SocketAsyncEventArgs> clientSocketArgsPool;
 
-        private readonly ObjectPool<SocketAsyncEventArgs> connectArgsPool;
-
         private readonly Socket datagramSocket;
-
-        private readonly ObjectPool<SocketAsyncEventArgs> disconnectArgsPool;
 
         private readonly ObjectPool<SocketAsyncEventArgs> receiveArgsPool;
 
@@ -44,12 +38,6 @@ namespace NetSharp
         private readonly CancellationTokenSource serverShutdownTokenSource;
 
         private readonly Socket streamSocket;
-
-        /// <summary>
-        /// Socket async event args object used when the connection instance is used as a client. It is set when a
-        /// call to <see cref="TryConnectAsync"/> is made.
-        /// </summary>
-        private volatile SocketAsyncEventArgs? connectionAsyncEventArgs;
 
         /// <summary>
         /// Disposes of the managed and unmanaged resources held by this instance.
@@ -73,34 +61,47 @@ namespace NetSharp
         /// <param name="serverSocket">The socket which should be used to accept an incoming connection attempt.</param>
         /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
         /// <returns>The accepted socket.</returns>
-        private Task<SocketAsyncEventArgs> DoAcceptAsync(Socket serverSocket, CancellationToken cancellationToken = default)
+        private async Task<Socket> DoAcceptAsync(Socket serverSocket, CancellationToken cancellationToken = default)
         {
-            TaskCompletionSource<SocketAsyncEventArgs> tcs = new TaskCompletionSource<SocketAsyncEventArgs>();
+            TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>();
 
-            SocketAsyncEventArgs acceptArgs = acceptArgsPool.Get();
-            acceptArgs.AcceptSocket = null;
-            acceptArgs.UserToken = new AsyncAcceptToken(tcs, cancellationToken);
+            cancellationToken.Register(() => tcs.SetCanceled());
 
-            // if the accept operation doesn't complete synchronously, return the awaitable task
-            return serverSocket.AcceptAsync(acceptArgs) ? tcs.Task : Task.FromResult(acceptArgs);
+            Task<Socket> task = serverSocket.AcceptAsync();
+            Task<Socket> completedTask = await Task.WhenAny(task, tcs.Task);
+
+            if (completedTask == task)
+            {
+                Socket result = await task;
+
+                tcs.SetResult(result);
+            }
+
+            return await tcs.Task;
         }
 
         /// <summary>
         /// Provides an awaitable wrapper around an asynchronous socket connect operation.
         /// </summary>
-        /// <param name="disconnectedSocket">The socket which should asynchronously connect to the remote endpoint.</param>
+        /// <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
         /// <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
         /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        private Task<SocketAsyncEventArgs> DoConnectAsync(Socket disconnectedSocket, EndPoint remoteEndPoint, CancellationToken cancellationToken = default)
+        private async Task DoConnectAsync(Socket socket, EndPoint remoteEndPoint, CancellationToken cancellationToken = default)
         {
-            TaskCompletionSource<SocketAsyncEventArgs> tcs = new TaskCompletionSource<SocketAsyncEventArgs>();
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
-            SocketAsyncEventArgs connectArgs = connectArgsPool.Get();
-            connectArgs.RemoteEndPoint = remoteEndPoint;
-            connectArgs.UserToken = new AsyncConnectToken(tcs, cancellationToken);
+            cancellationToken.Register(() => tcs.SetCanceled());
 
-            // if the connect operation doesn't complete synchronously, return the awaitable task
-            return disconnectedSocket.ConnectAsync(connectArgs) ? tcs.Task : Task.FromResult(connectArgs);
+            Task task = socket.ConnectAsync(remoteEndPoint);
+            Task completedTask = await Task.WhenAny(task, tcs.Task);
+
+            if (completedTask == task)
+            {
+                await task;
+                tcs.SetResult(true);
+            }
+
+            await tcs.Task;
         }
 
         /// <summary>
@@ -110,21 +111,10 @@ namespace NetSharp
         /// <param name="cancellationToken">The cancellation token to observe for the operation.</param>
         private Task DoDisconnectAsync(Socket connectedSocket, CancellationToken cancellationToken = default)
         {
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-
-            SocketAsyncEventArgs disconnectArgs = disconnectArgsPool.Get();
-            disconnectArgs.DisconnectReuseSocket = true;
-            disconnectArgs.UserToken = new AsyncDisconnectToken(tcs, cancellationToken);
-
-            // if the disconnect operation doesn't complete synchronously, return the awaitable task
-            if (connectedSocket.DisconnectAsync(disconnectArgs))
+            return Task.Factory.StartNew(() =>
             {
-                return tcs.Task;
-            }
-
-            disconnectArgsPool.Return(disconnectArgs);
-
-            return Task.CompletedTask;
+                connectedSocket.Disconnect(true);
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -221,74 +211,6 @@ namespace NetSharp
         {
             switch (args.LastOperation)
             {
-                case SocketAsyncOperation.Accept:
-                    AsyncAcceptToken asyncAcceptToken = (AsyncAcceptToken)args.UserToken;
-
-                    if (asyncAcceptToken.CancellationToken.IsCancellationRequested)
-                    {
-                        asyncAcceptToken.CompletionSource.SetCanceled();
-                    }
-                    else
-                    {
-                        if (args.SocketError != SocketError.Success)
-                        {
-                            asyncAcceptToken.CompletionSource.SetException(
-                                new SocketException((int)args.SocketError));
-                        }
-                        else
-                        {
-                            asyncAcceptToken.CompletionSource.SetResult(args);
-                        }
-                    }
-
-                    break;
-
-                case SocketAsyncOperation.Connect:
-                    AsyncConnectToken asyncConnectToken = (AsyncConnectToken)args.UserToken;
-
-                    if (asyncConnectToken.CancellationToken.IsCancellationRequested)
-                    {
-                        asyncConnectToken.CompletionSource.SetCanceled();
-                    }
-                    else
-                    {
-                        if (args.SocketError != SocketError.Success)
-                        {
-                            asyncConnectToken.CompletionSource.SetException(
-                                new SocketException((int)args.SocketError));
-                        }
-                        else
-                        {
-                            asyncConnectToken.CompletionSource.SetResult(args);
-                        }
-                    }
-
-                    break;
-
-                case SocketAsyncOperation.Disconnect:
-                    AsyncDisconnectToken asyncDisconnectToken = (AsyncDisconnectToken)args.UserToken;
-
-                    if (asyncDisconnectToken.CancellationToken.IsCancellationRequested)
-                    {
-                        asyncDisconnectToken.CompletionSource.SetCanceled();
-                    }
-                    else
-                    {
-                        if (args.SocketError != SocketError.Success)
-                        {
-                            asyncDisconnectToken.CompletionSource.SetException(
-                                new SocketException((int)args.SocketError));
-                        }
-                        else
-                        {
-                            asyncDisconnectToken.CompletionSource.SetResult(true);
-                        }
-                    }
-
-                    disconnectArgsPool.Return(args);
-
-                    break;
-
                 case SocketAsyncOperation.SendTo:
                     AsyncWriteToken asyncSendToToken = (AsyncWriteToken)args.UserToken;
 
@@ -355,42 +277,6 @@ namespace NetSharp
             }
         }
 
-        private readonly struct AsyncAcceptToken
-        {
-            public readonly CancellationToken CancellationToken;
-            public readonly TaskCompletionSource<SocketAsyncEventArgs> CompletionSource;
-
-            public AsyncAcceptToken(TaskCompletionSource<SocketAsyncEventArgs> tcs, CancellationToken cancellationToken = default)
-            {
-                CompletionSource = tcs;
-                CancellationToken = cancellationToken;
-            }
-        }
-
-        private readonly struct AsyncConnectToken
-        {
-            public readonly CancellationToken CancellationToken;
-            public readonly TaskCompletionSource<SocketAsyncEventArgs> CompletionSource;
-
-            public AsyncConnectToken(TaskCompletionSource<SocketAsyncEventArgs> tcs, CancellationToken cancellationToken = default)
-            {
-                CompletionSource = tcs;
-                CancellationToken = cancellationToken;
-            }
-        }
-
-        private readonly struct AsyncDisconnectToken
-        {
-            public readonly CancellationToken CancellationToken;
-            public readonly TaskCompletionSource<bool> CompletionSource;
-
-            public AsyncDisconnectToken(TaskCompletionSource<bool> tcs, CancellationToken cancellationToken = default)
-            {
-                CompletionSource = tcs;
-                CancellationToken = cancellationToken;
-            }
-        }
-
         private readonly struct AsyncReadToken
         {
             public readonly CancellationToken CancellationToken;
@@ -450,13 +336,7 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, ServerShutdownToken);
 
-            if (connectionAsyncEventArgs == null)
-            {
-                throw new ConstraintException(
-                    $"{nameof(TryConnectAsync)} has not yet been called, or a valid connection has not been made.");
-            }
-
-            return DoReceiveFromAsync(connectionAsyncEventArgs.ConnectSocket, connectionAsyncEventArgs.ConnectSocket.RemoteEndPoint, flags, inputBuffer, cts.Token);
+            return DoReceiveFromAsync(streamSocket, streamSocket.RemoteEndPoint, flags, inputBuffer, cts.Token);
         }
 
         public Task<TransmissionResult> ReceiveFromAsync(EndPoint remoteEndPoint, Memory<byte> inputBuffer, SocketFlags flags, TimeSpan timeout)
@@ -474,13 +354,7 @@ namespace NetSharp
             using CancellationTokenSource cts =
                 CancellationTokenSource.CreateLinkedTokenSource(timeoutCancellationTokenSource.Token, ServerShutdownToken);
 
-            if (connectionAsyncEventArgs == null)
-            {
-                throw new ConstraintException(
-                    $"{nameof(TryConnectAsync)} has not yet been called, or a valid connection has not been made.");
-            }
-
-            return DoSendToAsync(connectionAsyncEventArgs.ConnectSocket, connectionAsyncEventArgs.ConnectSocket.RemoteEndPoint, flags, outputBuffer, cts.Token);
+            return DoSendToAsync(streamSocket, streamSocket.RemoteEndPoint, flags, outputBuffer, cts.Token);
         }
 
         public ValueTask<int> SendToAsync(EndPoint remoteEndPoint, Memory<byte> outputBuffer, SocketFlags flags, TimeSpan timeout)
@@ -548,7 +422,7 @@ namespace NetSharp
 
             try
             {
-                connectionAsyncEventArgs = await DoConnectAsync(streamSocket, remoteEndPoint, cts.Token);
+                await DoConnectAsync(streamSocket, remoteEndPoint, cts.Token);
 
                 return true;
             }
@@ -571,12 +445,10 @@ namespace NetSharp
 
             try
             {
-                if (connectionAsyncEventArgs == null) return false;
+                await DoDisconnectAsync(streamSocket, cts.Token);
 
                 streamSocket.Shutdown(SocketShutdown.Both);
                 streamSocket.Close(1);
-
-                await DoDisconnectAsync(streamSocket, cts.Token);
 
                 return true;
             }
