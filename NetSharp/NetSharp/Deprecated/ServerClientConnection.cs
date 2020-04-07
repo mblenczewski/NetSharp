@@ -2,8 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
-using NetSharp.Logging;
-using NetSharp.Utils;
 
 namespace NetSharp.Deprecated
 {

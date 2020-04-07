@@ -1,92 +1,48 @@
-﻿using System;
+﻿using NetSharp.Packets;
+
+using System;
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.ObjectPool;
-using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
-    public class SocketClient : IDisposable
+    public abstract class SocketClient : SocketConnection
     {
-        private readonly ObjectPool<SocketAsyncEventArgs> transmissionArgsPool;
+        protected readonly ArrayPool<byte> BufferPool;
 
-        /// <summary>
-        /// Destroys a socket client instance.
-        /// </summary>
-        ~SocketClient()
+        protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
+            : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
-            Dispose(false);
+            BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 10);
         }
 
-        protected readonly Socket transmitterSocket;
-
-        /// <summary>
-        /// Implementation of dispose pattern.
-        /// </summary>
-        /// <param name="disposing">
-        /// Whether this method is being called by the object finalizer, or by the <see cref="Dispose()"/> method.
-        /// </param>
-        protected virtual void Dispose(bool disposing)
+        public int SendBytes(Memory<byte> outgoingDataBuffer)
         {
-            if (disposing)
-            {
-                transmitterSocket.Dispose();
-            }
+            return connection.Send(outgoingDataBuffer.Span);
         }
 
-        public SocketClient(AddressFamily transmitterAddressFamily, SocketType transmitterSocketType,
-            ProtocolType transmitterProtocolType)
+        public int SendBytesTo(Memory<byte> outgoingDataBuffer, EndPoint remoteEndPoint)
         {
-            transmitterSocket = new Socket(transmitterAddressFamily, transmitterSocketType, transmitterProtocolType);
-
-            transmissionArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new DefaultPooledObjectPolicy<SocketAsyncEventArgs>());
+            return connection.SendTo(outgoingDataBuffer.ToArray(), remoteEndPoint);
         }
 
-        /// <inheritdoc />
-        public void Dispose()
+        public int ReceiveBytes(Memory<byte> incomingDataBuffer)
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            byte[] temporaryBuffer = new byte[NetworkPacket.TotalSize];
+            int receivedBytes = connection.Receive(temporaryBuffer);
+            temporaryBuffer.CopyTo(incomingDataBuffer);
+
+            return receivedBytes;
         }
 
-        public ValueTask<TransmissionResult> ReceiveAsync(EndPoint remoteEndPoint, SocketFlags receiveFlags, Memory<byte> receiveBuffer,
-            CancellationToken cancellationToken = default)
+        public int ReceiveBytesFrom(Memory<byte> incomingDataBuffer, ref EndPoint remoteEndPoint)
         {
-            return SocketOperations.ReceiveFromAsync(transmissionArgsPool, transmitterSocket, remoteEndPoint,
-                receiveFlags, receiveBuffer, cancellationToken);
-        }
+            byte[] temporaryBuffer = new byte[NetworkPacket.TotalSize];
+            int receivedBytes = connection.ReceiveFrom(temporaryBuffer, ref remoteEndPoint);
+            temporaryBuffer.CopyTo(incomingDataBuffer);
 
-        public ValueTask<TransmissionResult> SendAsync(EndPoint remoteEndPoint, SocketFlags sendFlags, Memory<byte> sendBuffer,
-            CancellationToken cancellationToken = default)
-        {
-            return SocketOperations.SendToAsync(transmissionArgsPool, transmitterSocket, remoteEndPoint, sendFlags,
-                sendBuffer, cancellationToken);
-        }
-
-        public Task<bool> TryBindAsync(EndPoint localEndPoint, TimeSpan timeout)
-        {
-            using CancellationTokenSource cts = new CancellationTokenSource(timeout);
-
-            try
-            {
-                return Task.Run(() =>
-                {
-                    transmitterSocket.Bind(localEndPoint);
-
-                    return true;
-                }, cts.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                return Task.FromResult(false);
-            }
-            catch (SocketException ex)
-            {
-                Console.WriteLine($"Socket exception on binding socket to {localEndPoint}: {ex}");
-                return Task.FromResult(false);
-            }
+            return receivedBytes;
         }
     }
 }

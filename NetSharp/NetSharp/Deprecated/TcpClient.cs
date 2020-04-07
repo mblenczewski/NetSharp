@@ -1,8 +1,8 @@
-﻿using System;
+﻿using NetSharp.Deprecated.Builtin;
+
+using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using NetSharp.Packets;
-using NetSharp.Packets.Builtin;
 
 namespace NetSharp.Deprecated
 {

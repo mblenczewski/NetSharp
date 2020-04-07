@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace NetSharp.Utils.Conversion
+namespace NetSharp.Deprecated.Conversion
 {
     /// <summary>
     /// Wraps the <see cref="BitConverter"/> class to provide conversion that is endian-aware.

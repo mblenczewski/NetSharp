@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace NetSharp.Utils
+namespace NetSharp.Deprecated
 {
     /// <summary>
     /// Represents a concurrent two-way dictionary, that can be indexed by either a key or a value.

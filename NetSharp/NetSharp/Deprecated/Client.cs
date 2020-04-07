@@ -1,10 +1,11 @@
-﻿using System;
+﻿using NetSharp.Deprecated.Builtin;
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Packets.Builtin;
 
 namespace NetSharp.Deprecated
 {

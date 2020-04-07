@@ -4,242 +4,198 @@
         <name>NetSharp</name>
     </assembly>
     <members>
-        <member name="T:NetSharp.Connection">
+        <member name="T:NetSharp.Deprecated.Builtin.ConnectPacket">
             <summary>
-            Encapsulates a connection capable of receiving packets and responding to them with registered packet handlers.
-            </summary>
-            <summary>
-            Implements low-level network access on top of which the rest of the connection is built upon.
+            A simple connection request packet for the UDP protocol.
             </summary>
         </member>
-        <member name="F:NetSharp.Connection.incomingPacketPipeline">
-            <summary>
-            Pipeline to convert incoming byte buffers to <see cref="T:NetSharp.Packets.NetworkPacket"/> instances.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.loggerLockObject">
-            <summary>
-            Lock synchronisation object for the <see cref="F:NetSharp.Connection.logger"/> variable.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.outgoingPacketPipeline">
-            <summary>
-            Pipeline to convert outgoing <see cref="T:NetSharp.Packets.NetworkPacket"/> instances to a byte buffer for sending.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.ServerShutdownToken">
-            <summary>
-            Cancellation token which allows observing the shutdown of the server. It is set when <see cref="M:NetSharp.Connection.ShutdownServer"/> is called.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.logger">
-            <summary>
-            A logger object allowing for writing debug messages to an output stream.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.Finalize">
-            <summary>
-            Destroys a <see cref="T:NetSharp.Connection"/> class instance, freeing all managed resources.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.RunServerAsync">
-            <summary>
-            Makes the connection listen for incoming request packets, and handle them according to registered packet handler delegates.
-            This work can be cancelled by calling <see cref="M:NetSharp.Connection.ShutdownServer"/>.
-            </summary>
-            <returns>The task representing the connection work.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.ShutdownServer">
-            <summary>
-            Shuts down the connection, and releases managed and unmanaged resources.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Connection.AnyRemoteEndPoint">
-            <summary>
-            Represents any remote endpoint for datagram operations.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Connection.Dispose(System.Boolean)">
-            <summary>
-            Disposes of the managed and unmanaged resources held by this instance.
-            </summary>
-            <param name="disposing">Whether this method is called by <see cref="M:NetSharp.Connection.Dispose"/> or by the finaliser.</param>
-        </member>
-        <member name="M:NetSharp.Connection.DoAcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket accept operation.
-            </summary>
-            <param name="serverSocket">The socket which should be used to accept an incoming connection attempt.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The accepted socket.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.DoConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket connect operation.
-            </summary>
-            <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
-            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        </member>
-        <member name="M:NetSharp.Connection.DoDisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
-            </summary>
-            <param name="connectedSocket">The socket which should asynchronously disconnect from its remote endpoint.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        </member>
-        <member name="M:NetSharp.Connection.DoReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket receive operation.
-            </summary>
-            <param name="listenerSocket">The socket which should receive data from the remote endpoint.</param>
-            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The result of the receive operation from the remote endpoint.</returns>
-        </member>
-        <member name="M:NetSharp.Connection.DoSendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket send operation.
-            </summary>
-            <param name="transmitterSocket">The socket which should send the data to the remote endpoint.</param>
-            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-            <param name="outputBuffer">The data buffer which should be sent.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The result of the send operation to the remote endpoint.</returns>
-        </member>
-        <member name="F:NetSharp.Connection.MaximumConnectionBacklog">
-            <summary>
-            The maximum number of stream connection that will be accepted.
-            </summary>
-            TODO change this to a configurable builder option
-        </member>
-        <member name="F:NetSharp.Connection.MaximumPacketBacklog">
-            <summary>
-            The maximum number of packets that will be stored before older packets start to be dropped.
-            </summary>
-            TODO change this to a configurable builder option
-        </member>
-        <member name="M:NetSharp.Connection.Dispose">
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectPacket.AfterDeserialisation">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Connection.SetLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
-            <summary>
-            Configures the logger to log messages to the given stream (or to <see cref="F:System.IO.Stream.Null"/> if <c>null</c>) and
-            to only log messages that are of severity <paramref name="minimumLoggedSeverity"/> or higher.
-            </summary>
-            <param name="loggingStream">The stream to which messages will be logged.</param>
-            <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectPacket.BeforeSerialisation">
+            <inheritdoc />
         </member>
-        <member name="M:NetSharp.Connection.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
-            <summary>
-            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
         </member>
-        <member name="T:NetSharp.ConnectionBuilder">
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectPacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.ConnectResponsePacket">
             <summary>
-            Allows for configuring and subsequently building a <see cref="T:NetSharp.Connection"/> instance.
+            A response packet for the <see cref="T:NetSharp.Deprecated.Builtin.ConnectPacket"/>.
             </summary>
         </member>
-        <member name="P:NetSharp.ConnectionBuilder.IncomingPacketPipelineStageCount">
+        <member name="P:NetSharp.Deprecated.Builtin.ConnectResponsePacket.RequestPacket">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectResponsePacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectResponsePacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.ConnectResponsePacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.DataPacket">
             <summary>
-            The number of stages in the currently configured incoming packet pipeline.
+            A simple data transfer packet, that allows for the transmission of an arbitrary number of frames.
             </summary>
         </member>
-        <member name="P:NetSharp.ConnectionBuilder.OutgoingPacketPipelineStageCount">
+        <member name="F:NetSharp.Deprecated.Builtin.DataPacket.RequestBuffer">
             <summary>
-            The number of stages in the currently configured outgoing packet pipeline.
+            The data that should be transferred across the network.
             </summary>
         </member>
-        <member name="M:NetSharp.ConnectionBuilder.Build">
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.#ctor">
             <summary>
-            Returns a new <see cref="T:NetSharp.Connection"/> instance with the current configuration.
-            </summary>
-            <returns>The configured <see cref="T:NetSharp.Connection"/> instance.</returns>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.WithIncomingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
-            <summary>
-            Adds an extra pipeline stage to the currently configured incoming packet pipeline, at the given index.
-            </summary>
-            <param name="transform">
-            The transformation that should be applied when a packet passes through the pipeline.
-            </param>
-            <param name="index">The position in the pipeline at which to place the transform.</param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.WithLogging(NetSharp.ConnectionBuilder.LoggingSettings)">
-            <summary>
-            Sets the logging settings for the currently configured connection.
-            </summary>
-            <param name="settings">The logging settings to use.</param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.WithOutgoingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
-            <summary>
-            Adds an extra pipeline stage to the currently configured outgoing packet pipeline, at the given index.
-            </summary>
-            <param name="transform">
-            The transformation that should be applied when a packet passes through the pipeline.
-            </param>
-            <param name="index">The position in the pipeline at which to place the transform.</param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.ConnectionBuilder.WithPooling(NetSharp.ConnectionBuilder.PoolingSettings)">
-            <summary>
-            Sets the pooling settings for the currently configured connection.
-            </summary>
-            <param name="settings">The pooling settings to use.</param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="T:NetSharp.ConnectionBuilder.LoggingSettings">
-            <summary>
-            Holds settings for configuring a connection's logging.
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.DataPacket"/> class.
             </summary>
         </member>
-        <member name="F:NetSharp.ConnectionBuilder.LoggingSettings.LoggingStream">
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.#ctor(System.Memory{System.Byte})">
             <summary>
-            The stream to which messages will be logged.
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.DataPacket"/> class.
+            </summary>
+            <param name="buffer">The data that this request packet should contain.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataPacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.DataResponsePacket">
+            <summary>
+            A response packet for the <see cref="T:NetSharp.Deprecated.Builtin.DataPacket"/>.
             </summary>
         </member>
-        <member name="F:NetSharp.ConnectionBuilder.LoggingSettings.MinimumLevel">
+        <member name="F:NetSharp.Deprecated.Builtin.DataResponsePacket.ResponseBuffer">
             <summary>
-            The minimum severity that a log message must have to be recorded.
+            The data that should be transferred across the network.
             </summary>
         </member>
-        <member name="M:NetSharp.ConnectionBuilder.LoggingSettings.#ctor(System.IO.Stream,NetSharp.Logging.LogLevel)">
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.#ctor">
             <summary>
-            Initialises a new instance of the <see cref="F:NetSharp.ConnectionBuilder.LoggingSettings.LoggingStream"/> struct.
-            </summary>
-            <param name="stream">The stream to which messages will be logged..</param>
-            <param name="minimumLevel">The minimum severity that a log message must have to be recorded.</param>
-        </member>
-        <member name="T:NetSharp.ConnectionBuilder.PoolingSettings">
-            <summary>
-            Holds settings for configuring a connection's buffer pooling.
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.DataResponsePacket"/> class.
             </summary>
         </member>
-        <member name="F:NetSharp.ConnectionBuilder.PoolingSettings.ObjectPoolSize">
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.#ctor(System.Memory{System.Byte})">
             <summary>
-            The number of objects that will be held in the object pools.
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.DataResponsePacket"/> class.
+            </summary>
+            <param name="buffer">The data that this response packet should contain.</param>
+        </member>
+        <member name="P:NetSharp.Deprecated.Builtin.DataResponsePacket.RequestPacket">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DataResponsePacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.DisconnectPacket">
+            <summary>
+            A simple disconnect packet for the UDP protocol.
             </summary>
         </member>
-        <member name="F:NetSharp.ConnectionBuilder.PoolingSettings.PreallocateBuffers">
+        <member name="M:NetSharp.Deprecated.Builtin.DisconnectPacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DisconnectPacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DisconnectPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.DisconnectPacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.PingPacket">
             <summary>
-            Whether the buffers for receiving messages should be preallocated.
+            A simple ping request packet for heartbeat monitoring and RTT measurement.
             </summary>
         </member>
-        <member name="M:NetSharp.ConnectionBuilder.PoolingSettings.#ctor(System.Int32,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Builtin.PingPacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingPacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingPacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.PingResponsePacket">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.ConnectionBuilder.PoolingSettings"/> struct.
+            A response packet for the <see cref="T:NetSharp.Deprecated.Builtin.PingPacket"/>.
             </summary>
-            <param name="poolSize">The number of objects that will be held in the object pools.</param>
-            <param name="preallocateBuffers">Whether the buffers for receiving messages should be preallocated.</param>
+        </member>
+        <member name="P:NetSharp.Deprecated.Builtin.PingResponsePacket.RequestPacket">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingResponsePacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingResponsePacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.PingResponsePacket.Serialise">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.Builtin.SimpleDataPacket">
+            <summary>
+            A simple one-time-use data transfer packet, that allows for the transmission of an arbitrary number of frames.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Builtin.SimpleDataPacket.RequestBuffer">
+            <summary>
+            The data that should be transferred across the network.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.#ctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.SimpleDataPacket"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.#ctor(System.Memory{System.Byte})">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Builtin.SimpleDataPacket"/> class.
+            </summary>
+            <param name="buffer">The data that this request packet should contain.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.AfterDeserialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.BeforeSerialisation">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Builtin.SimpleDataPacket.Serialise">
+            <inheritdoc />
         </member>
         <member name="T:NetSharp.Deprecated.Client">
             <summary>
@@ -510,6 +466,272 @@
             <param name="remotePort">The remote port to connect over.</param>
             <returns>Whether the connection was successful or not.</returns>
         </member>
+        <member name="T:NetSharp.Deprecated.Connection">
+            <summary>
+            Encapsulates a connection capable of receiving packets and responding to them with registered packet handlers.
+            </summary>
+            <summary>
+            Implements low-level network access on top of which the rest of the connection is built upon.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.incomingPacketPipeline">
+            <summary>
+            Pipeline to convert incoming byte buffers to <see cref="T:NetSharp.Deprecated.NetworkPacket"/> instances.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.loggerLockObject">
+            <summary>
+            Lock synchronisation object for the <see cref="F:NetSharp.Deprecated.Connection.logger"/> variable.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.outgoingPacketPipeline">
+            <summary>
+            Pipeline to convert outgoing <see cref="T:NetSharp.Deprecated.NetworkPacket"/> instances to a byte buffer for sending.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.ServerShutdownToken">
+            <summary>
+            Cancellation token which allows observing the shutdown of the server. It is set when <see cref="M:NetSharp.Deprecated.Connection.ShutdownServer"/> is called.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.logger">
+            <summary>
+            A logger object allowing for writing debug messages to an output stream.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.Finalize">
+            <summary>
+            Destroys a <see cref="T:NetSharp.Deprecated.Connection"/> class instance, freeing all managed resources.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.RunServerAsync">
+            <summary>
+            Makes the connection listen for incoming request packets, and handle them according to registered packet handler delegates.
+            This work can be cancelled by calling <see cref="M:NetSharp.Deprecated.Connection.ShutdownServer"/>.
+            </summary>
+            <returns>The task representing the connection work.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.ShutdownServer">
+            <summary>
+            Shuts down the connection, and releases managed and unmanaged resources.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.AnyRemoteEndPoint">
+            <summary>
+            Represents any remote endpoint for datagram operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.Dispose(System.Boolean)">
+            <summary>
+            Disposes of the managed and unmanaged resources held by this instance.
+            </summary>
+            <param name="disposing">Whether this method is called by <see cref="M:NetSharp.Deprecated.Connection.Dispose"/> or by the finaliser.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.DoAcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket accept operation.
+            </summary>
+            <param name="serverSocket">The socket which should be used to accept an incoming connection attempt.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The accepted socket.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.DoConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket connect operation.
+            </summary>
+            <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.DoDisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
+            </summary>
+            <param name="connectedSocket">The socket which should asynchronously disconnect from its remote endpoint.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.DoReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket receive operation.
+            </summary>
+            <param name="listenerSocket">The socket which should receive data from the remote endpoint.</param>
+            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
+            <param name="socketFlags">The socket flags associated with the receive operation.</param>
+            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the receive operation from the remote endpoint.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.DoSendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket send operation.
+            </summary>
+            <param name="transmitterSocket">The socket which should send the data to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
+            <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="outputBuffer">The data buffer which should be sent.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the send operation to the remote endpoint.</returns>
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.MaximumConnectionBacklog">
+            <summary>
+            The maximum number of stream connection that will be accepted.
+            </summary>
+            TODO change this to a configurable builder option
+        </member>
+        <member name="F:NetSharp.Deprecated.Connection.MaximumPacketBacklog">
+            <summary>
+            The maximum number of packets that will be stored before older packets start to be dropped.
+            </summary>
+            TODO change this to a configurable builder option
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.SetLoggingStream(System.IO.Stream,NetSharp.Deprecated.LogLevel)">
+            <summary>
+            Configures the logger to log messages to the given stream (or to <see cref="F:System.IO.Stream.Null"/> if <c>null</c>) and
+            to only log messages that are of severity <paramref name="minimumLoggedSeverity"/> or higher.
+            </summary>
+            <param name="loggingStream">The stream to which messages will be logged.</param>
+            <param name="minimumLoggedSeverity">The minimum severity a message must be to be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Connection.TryBindAsync(System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to asynchronously bind the underlying socket to the given local endpoint. Does not block.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.ConnectionBuilder">
+            <summary>
+            Allows for configuring and subsequently building a <see cref="T:NetSharp.Deprecated.Connection"/> instance.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.ConnectionBuilder.IncomingPacketPipelineStageCount">
+            <summary>
+            The number of stages in the currently configured incoming packet pipeline.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Deprecated.ConnectionBuilder.OutgoingPacketPipelineStageCount">
+            <summary>
+            The number of stages in the currently configured outgoing packet pipeline.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.Build">
+            <summary>
+            Returns a new <see cref="T:NetSharp.Deprecated.Connection"/> instance with the current configuration.
+            </summary>
+            <returns>The configured <see cref="T:NetSharp.Deprecated.Connection"/> instance.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.WithIncomingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
+            <summary>
+            Adds an extra pipeline stage to the currently configured incoming packet pipeline, at the given index.
+            </summary>
+            <param name="transform">
+            The transformation that should be applied when a packet passes through the pipeline.
+            </param>
+            <param name="index">The position in the pipeline at which to place the transform.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.WithLogging(NetSharp.Deprecated.ConnectionBuilder.LoggingSettings)">
+            <summary>
+            Sets the logging settings for the currently configured connection.
+            </summary>
+            <param name="settings">The logging settings to use.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.WithOutgoingPipelineStage(System.Func{System.Memory{System.Byte},System.Memory{System.Byte}}@,System.Int32)">
+            <summary>
+            Adds an extra pipeline stage to the currently configured outgoing packet pipeline, at the given index.
+            </summary>
+            <param name="transform">
+            The transformation that should be applied when a packet passes through the pipeline.
+            </param>
+            <param name="index">The position in the pipeline at which to place the transform.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.WithPooling(NetSharp.Deprecated.ConnectionBuilder.PoolingSettings)">
+            <summary>
+            Sets the pooling settings for the currently configured connection.
+            </summary>
+            <param name="settings">The pooling settings to use.</param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.ConnectionBuilder.LoggingSettings">
+            <summary>
+            Holds settings for configuring a connection's logging.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.ConnectionBuilder.LoggingSettings.LoggingStream">
+            <summary>
+            The stream to which messages will be logged.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.ConnectionBuilder.LoggingSettings.MinimumLevel">
+            <summary>
+            The minimum severity that a log message must have to be recorded.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.LoggingSettings.#ctor(System.IO.Stream,NetSharp.Deprecated.LogLevel)">
+            <summary>
+            Initialises a new instance of the <see cref="F:NetSharp.Deprecated.ConnectionBuilder.LoggingSettings.LoggingStream"/> struct.
+            </summary>
+            <param name="stream">The stream to which messages will be logged..</param>
+            <param name="minimumLevel">The minimum severity that a log message must have to be recorded.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.ConnectionBuilder.PoolingSettings">
+            <summary>
+            Holds settings for configuring a connection's buffer pooling.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.ConnectionBuilder.PoolingSettings.ObjectPoolSize">
+            <summary>
+            The number of objects that will be held in the object pools.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.ConnectionBuilder.PoolingSettings.PreallocateBuffers">
+            <summary>
+            Whether the buffers for receiving messages should be preallocated.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionBuilder.PoolingSettings.#ctor(System.Int32,System.Boolean)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.ConnectionBuilder.PoolingSettings"/> struct.
+            </summary>
+            <param name="poolSize">The number of objects that will be held in the object pools.</param>
+            <param name="preallocateBuffers">Whether the buffers for receiving messages should be preallocated.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.ConnectionBuilderExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.Deprecated.ConnectionBuilder"/> class.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.ConnectionExtensions">
+            <summary>
+            Provides additional methods and functionality to the <see cref="T:NetSharp.Deprecated.Connection"/> class.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.ConnectionExtensions.TryBind(NetSharp.Deprecated.Connection,System.Net.EndPoint,System.TimeSpan)">
+            <summary>
+            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
+            If the timeout is exceeded the binding attempt is aborted and the method returns false.
+            </summary>
+            <param name="localEndPoint">The local endpoint to bind to.</param>
+            <param name="timeout">The timeout within which to attempt the binding.</param>
+            <returns>Whether the binding was successful or not.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.Constants">
+            <summary>
+            Holds internal default configurations and constants.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Constants.DefaultPort">
+            <summary>
+            The default port over which a connection is made.
+            </summary>
+        </member>
         <member name="T:NetSharp.Deprecated.DefaultSocketOptions">
             <summary>
             Allows for manipulation of socket options.
@@ -744,6 +966,491 @@
             Shuts down the server.
             </summary>
         </member>
+        <member name="T:NetSharp.Deprecated.LogLevel">
+            <summary>
+            Specifies the severity level of a log message.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.LogLevel.Info">
+            <summary>
+            The logged message contains some information. Lowest severity.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.LogLevel.Warn">
+            <summary>
+            The logged message contains a warning. Higher severity.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.LogLevel.Error">
+            <summary>
+            The logged message contains details about an error. Higher severity.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.LogLevel.Exception">
+            <summary>
+            The logged message contains details about an exception. Highest severity.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.Logger">
+            <summary>
+            A simple logger capable of writing text to a stream.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Logger.loggingStream">
+            <summary>
+            The stream to which messages will be logged.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Logger.minimumSeverity">
+            <summary>
+            The minimum severity that log messages need to be logged to the underlying stream.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.Logger.writer">
+            <summary>
+            The text writer we will use to log messages to the underlying stream.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.#ctor(System.IO.Stream,NetSharp.Deprecated.LogLevel)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.Logger"/> struct.
+            </summary>
+            <param name="outputStream">The stream that the logger instance should log messages to.</param>
+            <param name="minimumLogSeverity">The minimum log level that will be logged to the output stream.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.Log(System.String,System.Exception,NetSharp.Deprecated.LogLevel)">
+            <summary>
+            Logs a message to the underlying stream, along with the given exception and at the given severity.
+            </summary>
+            <param name="message">The message that should be logged.</param>
+            <param name="exception">The exception that occurred (if any).</param>
+            <param name="severity">The severity of the message that is being logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogAsync(System.String,System.Exception,NetSharp.Deprecated.LogLevel)">
+            <summary>
+            Logs a message asynchronously to the underlying stream, along with the given exception and at the given severity.
+            </summary>
+            <param name="message">The message that should be logged.</param>
+            <param name="exception">The exception that occurred (if any).</param>
+            <param name="severity">The severity of the message that is being logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogError(System.String)">
+            <summary>
+            Logs an error to the underlying stream, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Info"/>.
+            </summary>
+            <param name="message">The error that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogErrorAsync(System.String)">
+            <summary>
+            Logs an error to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Error"/>.
+            </summary>
+            <param name="message">The error that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogException(System.Exception)">
+            <summary>
+            Logs an exception to the underlying stream, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Exception"/>.
+            </summary>
+            <param name="exception">The exception that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogException(System.String,System.Exception)">
+            <summary>
+            Logs an exception to the underlying stream, along with a short debug message, with severity
+            <see cref="F:NetSharp.Deprecated.LogLevel.Exception"/>.
+            </summary>
+            <param name="message">The debug message that should be logged with the exception.</param>
+            <param name="exception">The exception that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogExceptionAsync(System.Exception)">
+            <summary>
+            Logs an exception to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Exception"/>.
+            </summary>
+            <param name="exception">The exception that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogExceptionAsync(System.String,System.Exception)">
+            <summary>
+            Logs an exception to the underlying stream asynchronously, along with a short debug message, with severity
+            <see cref="F:NetSharp.Deprecated.LogLevel.Exception"/>.
+            </summary>
+            <param name="message">The debug message that should be logged with the exception.</param>
+            <param name="exception">The exception that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogMessage(System.String)">
+            <summary>
+            Logs a message to the underlying stream, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Info"/>.
+            </summary>
+            <param name="message">The message that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogMessageAsync(System.String)">
+            <summary>
+            Logs a message to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Info"/>.
+            </summary>
+            <param name="message">The message that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogWarning(System.String)">
+            <summary>
+            Logs a warning to the underlying stream, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Info"/>.
+            </summary>
+            <param name="message">The warning that should be logged.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.Logger.LogWarningAsync(System.String)">
+            <summary>
+            Logs a warning to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Deprecated.LogLevel.Warn"/>.
+            </summary>
+            <param name="message">The warning that should be logged.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.NetworkErrorCode">
+            <summary>
+            Enumerates the possible error codes for network operations, being held in the packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkErrorCode.Ok">
+            <summary>
+            Signifies that there was no error during transmission.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkErrorCode.Error">
+            <summary>
+            A generic error occurred during packet transmission.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.NetworkPacket">
+            <summary>
+            Represents a low-level packet that is transmitted over the network.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},NetSharp.Deprecated.NetworkPacketHeader,NetSharp.Deprecated.NetworkPacketFooter)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.NetworkPacket"/> struct.
+            </summary>
+            <param name="data">The data that should be transmitted in the packet.</param>
+            <param name="header">The header for the packet.</param>
+            <param name="footer">The footer for the packet.</param>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacket.DataSegmentSize">
+            <summary>
+            The number of bytes allocated in each packet for user data.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacket.FooterSize">
+            <summary>
+            The number of bytes taken up in each packet by its footer.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacket.HeaderSize">
+            <summary>
+            The number of bytes taken up in each packet by its header.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacket.PacketSize">
+            <summary>
+            The size of each packet, including its header, footer, and data segment.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacket.DataBuffer">
+            <summary>
+            The data held in this packet.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},System.Int32,System.UInt32,NetSharp.Deprecated.NetworkErrorCode,System.Boolean)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.NetworkPacket"/> struct.
+            </summary>
+            <param name="data">The data that should be transmitted in the packet.</param>
+            <param name="dataLength">The number of bytes that are held in the given data buffer.</param>
+            <param name="type">The packet type.</param>
+            <param name="errorCode">The error code associated with this transmission.</param>
+            <param name="hasSucceedingPacket">Whether this packet has a succeeding packet in the packet chain.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.NetworkPacket.Deserialise(System.Memory{System.Byte})">
+            <summary>
+            Deserialises the given buffer into a packet instance.
+            </summary>
+            <param name="buffer">The byte buffer to serialise.</param>
+            <returns>The deserialised packet instance.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.NetworkPacket.Serialise(NetSharp.Deprecated.NetworkPacket)">
+            <summary>
+            Serialises the given packet instance to a new byte buffer.
+            </summary>
+            <param name="instance">The packet instance to serialise.</param>
+            <returns>The byte buffer that represents the packet instance.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.NetworkPacket.SerialiseToBuffer(System.Memory{System.Byte},NetSharp.Deprecated.NetworkPacket)">
+            <summary>
+            Serialises the given packet instance into the given byte buffer.
+            </summary>
+            <param name="buffer">
+            The buffer to which the instance should be serialised. Must be at least of size <see cref="F:NetSharp.Deprecated.NetworkPacket.PacketSize"/>.
+            </param>
+            <param name="instance">The packet instance to serialise.</param>
+            <exception cref="T:System.ArgumentException">Thrown if the given buffer is too small.</exception>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacketFooter.Size">
+            <summary>
+            The number of bytes taken up by a packet footer.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacketHeader.Size">
+            <summary>
+            The number of bytes taken up by a packet header.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacketHeader.DataLength">
+            <summary>
+            The number of bytes of data held in the packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacketHeader.ErrorCode">
+            <summary>
+            The error code for this packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.NetworkPacketHeader.Type">
+            <summary>
+            The packet type.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.PacketPipeline`3">
+            <summary>
+            Represents a pipeline of transformations that packets must undergo.
+            </summary>
+            <typeparam name="TInput">The type of packet the pipeline receives.</typeparam>
+            <typeparam name="TIntermediate">The type of packet the pipeline internally handles.</typeparam>
+            <typeparam name="TOutput">The type of packet the pipeline outputs.</typeparam>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketPipeline`3.ProcessPacket(`0)">
+            <summary>
+            Passes the given packet through the pipeline.
+            </summary>
+            <param name="inputPacket">The incoming packet.</param>
+            <returns>The outgoing transformed packet.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.PacketPipelineStage`2">
+            <summary>
+            Represents a single transformation applied to a packet traveling through the pipeline.
+            </summary>
+            <typeparam name="TInput">The type the transformation takes as input.</typeparam>
+            <typeparam name="TOutput">The type the transformation produces as output.</typeparam>
+        </member>
+        <member name="T:NetSharp.Deprecated.PacketPipelineBuilder`3">
+            <summary>
+            Allows for configuring and subsequently building a <see cref="T:NetSharp.Deprecated.PacketPipeline`3"/> instance.
+            </summary>
+            <typeparam name="TInput">The type of packet that will be submitted to the pipeline.</typeparam>
+            <typeparam name="TIntermediate">The type of packet that will be handled internally by the pipeline.</typeparam>
+            <typeparam name="TOutput">The type of packet that will be requested from the pipeline.</typeparam>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketPipelineBuilder`3.Build">
+            <summary>
+            Returns the currently configured <see cref="T:NetSharp.Deprecated.PacketPipeline`3"/> instance.
+            </summary>
+            <returns>The configured <see cref="T:NetSharp.Deprecated.PacketPipeline`3"/> instance.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            Thrown when either <see cref="M:NetSharp.Deprecated.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)"/> or <see cref="M:NetSharp.Deprecated.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)"/> have not been called.
+            </exception>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)">
+            <summary>
+            Configures the input stage for the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to incoming packets, to convert them from the <typeparamref name="TInput"/>
+            type to the <typeparamref name="TIntermediate"/> type that the pipeline handles internally.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketPipelineBuilder`3.WithIntermediateStage(System.Func{`1,`1}@)">
+            <summary>
+            Adds the given intermediate stage to the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to packets traveling through the pipeline.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)">
+            <summary>
+            Configures the output stage for the pipeline.
+            </summary>
+            <param name="stage">
+            The transformation that should be applied to outgoing packets, to convert them from the
+            <typeparamref name="TIntermediate"/> type used internally to the <typeparamref name="TOutput"/> type.
+            </param>
+            <returns>The builder instance for further configuration.</returns>
+        </member>
+        <member name="T:NetSharp.Deprecated.PacketRegistry">
+            <summary>
+            Provides method of registering request packets and their relevant response packets, as well as mapping their ids.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.AutomaticPacketTypeIdStartPoint">
+            <summary>
+            The start id for automatically generated packet type ids. Any custom packet type ids lower than this value
+            that come from external assemblies will be incremented by this value, to ensure that there are no clashes.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.currentAutomaticPacketTypeIdCounterLockObject">
+            <summary>
+            The lock object for synchronising access to the <see cref="F:NetSharp.Deprecated.PacketRegistry.currentAutomaticPacketTypeIdCounter"/> field.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.idToPacketTypeMap">
+            <summary>
+            Maps a packet type id to its relevant packet type, and vice-versa.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.LibraryAssembly">
+            <summary>
+            The assembly that represents the library, where all of the builtin packets are defined.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.requestToResponseMap">
+            <summary>
+            Maps a request packet to its relevant response packet, and vice-versa.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.PacketRegistry.currentAutomaticPacketTypeIdCounter">
+            <summary>
+            The current id for registered packets.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetNewPacketTypeId(System.Type)">
+            <summary>
+            Fetches the packet type id of the given packet type. If the packet type is declared outside of the library
+            assembly, then its value is incremented by the <see cref="F:NetSharp.Deprecated.PacketRegistry.AutomaticPacketTypeIdStartPoint"/> value. This ensure that
+            there are no clashes between the packet type ids of packets declared in the library and external packets.
+            </summary>
+            <param name="packetType">The packet type whose id should be fetched.</param>
+            <returns>The id of the given packet type.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.DeregisterPacketType(System.Type,System.Type)">
+            <summary>
+            Deregisters the given packet type from the registry.
+            </summary>
+            <param name="requestPacketType">The request packet type to deregister, if it is registered.</param>
+            <param name="responsePacketType">The response packet associated with the request packet.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.DeregisterPacketTypes(System.Collections.Generic.Dictionary{System.Type,System.Type})">
+            <summary>
+            Deregisters the given packet types from the registry.
+            </summary>
+            <param name="requestToResponsePacketTypeMap">The list of packet types to deregister, if they are registered.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetPacketId(System.Type)">
+            <summary>
+            Returns the packet type id associated with the given packet type.
+            </summary>
+            <param name="packetType">The packet type whose id to fetch.</param>
+            <returns>The id of the packet type given.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetPacketId``1">
+            <summary>
+            Returns the packet type id associated with the given packet type.
+            </summary>
+            <typeparam name="TPacket">The packet type whose id to fetch.</typeparam>
+            <returns>The id of the packet type given.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetPacketType(System.UInt32)">
+            <summary>
+            Returns the packet type associated with the given id.
+            </summary>
+            <param name="packetTypeId">The packet id whose mapped type to fetch.</param>
+            <returns>The packet type mapped by the given id.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetRequestPacketType``1">
+            <summary>
+            Returns the type of request packet mapped by the given response packet type.
+            </summary>
+            <typeparam name="TResponse">The response packet type whose request packet type to fetch.</typeparam>
+            <returns>The request packet type, <c>null</c> if no type is mapped.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetRequestPacketType(System.Type)">
+            <summary>
+            Returns the type of request packet mapped by the given response packet type.
+            </summary>
+            <param name="responsePacketType">The response packet type whose request packet type to fetch.</param>
+            <returns>The request packet type, <c>null</c> if no type is mapped.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetResponsePacketType``1">
+            <summary>
+            Returns the type of response packet mapped by the given request packet type.
+            </summary>
+            <typeparam name="TRequest">The request packet type whose response packet type to fetch.</typeparam>
+            <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.GetResponsePacketType(System.Type)">
+            <summary>
+            Returns the type of response packet mapped by the given request packet type.
+            </summary>
+            <param name="requestPacketType">The request packet type whose response packet type to fetch.</param>
+            <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.RegisterPacketSourceAssemblies(System.Reflection.Assembly[])">
+            <summary>
+            Rebuilds the packet registry, by registering every <see cref="T:NetSharp.Deprecated.IPacket"/> inheritor in the given assemblies.
+            </summary>
+            <param name="packetSourceAssemblies">
+            The assemblies from which the packet types to register are sourced.
+            </param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.RegisterPacketSourceAssembly(System.Reflection.Assembly)">
+            <summary>
+            Registers all the <see cref="T:NetSharp.Deprecated.IPacket"/> implementors in the given assembly.
+            </summary>
+            <param name="packetSourceAssembly">The assembly whose packet types to register.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.RegisterPacketType(System.Type,System.Type)">
+            <summary>
+            Registers the given packet type to the registry.
+            </summary>
+            <param name="requestPacketType">The request packet type to register, if it is not registered.</param>
+            <param name="responsePacketType">The response packet associated with the request packet.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.RegisterPacketTypes(System.Collections.Generic.Dictionary{System.Type,System.Type})">
+            <summary>
+            Registers the given packet types to the registry.
+            </summary>
+            <param name="requestToResponsePacketTypeMap">
+            The dictionary mapping the request packet types to register, to their relevant response packet types.
+            The response packet type can be null; then the request packet type is treated as a 'simple' packet.
+            </param>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketRegistry.#cctor">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.PacketRegistry"/> class.
+            </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.PacketTypeIdAttribute">
+            <summary>
+            Allows the placing of a custom packet type on a class or struct. This is used if the class or struct
+            inherits from <see cref="T:NetSharp.Deprecated.IRequestPacket"/> or <see cref="T:NetSharp.Deprecated.IResponsePacket`1"/>.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.PacketTypeIdAttribute.#ctor(System.UInt32)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.PacketTypeIdAttribute"/> attribute.
+            </summary>
+            <param name="type">The custom type id that the decorated packet type should have.</param>
+        </member>
+        <member name="P:NetSharp.Deprecated.PacketTypeIdAttribute.Id">
+            <summary>
+            The custom type id that the decorated packet type should have. This overrides the automatically generated id.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.RemoteSocketClient.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Deprecated.RemoteSocketClient.Dispose(System.Boolean)">
+            <summary>
+            Implementation of dispose pattern.
+            </summary>
+            <param name="disposing">
+            Whether this method is being called by the object finalizer, or by the <see cref="M:NetSharp.Deprecated.RemoteSocketClient.Dispose"/> method.
+            </param>
+        </member>
         <member name="M:NetSharp.Deprecated.SerialisedPacket.From``1(``0)">
             <summary>
             Serialises the given serialisable packet instance and returns the <see cref="T:NetSharp.Deprecated.SerialisedPacket"/> instance
@@ -879,7 +1586,7 @@
         </member>
         <member name="M:NetSharp.Deprecated.Server.DeserialiseRequestPacket(System.UInt32,NetSharp.Deprecated.SerialisedPacket@)">
             <summary>
-            Deserialises the given <see cref="T:NetSharp.Packets.NetworkPacket"/> struct into an <see cref="T:NetSharp.Deprecated.IRequestPacket"/> implementor.
+            Deserialises the given <see cref="T:NetSharp.Deprecated.NetworkPacket"/> struct into an <see cref="T:NetSharp.Deprecated.IRequestPacket"/> implementor.
             </summary>
             <param name="packetType">The type id of packet that we should deserialise to.</param>
             <param name="rawRequestPacket">The packet that should be deserialised.</param>
@@ -1081,7 +1788,7 @@
             Signifies that some data was sent to the remote endpoint.
             </summary>
         </member>
-        <member name="M:NetSharp.Deprecated.ServerClientConnection.ChangeLoggingStream(System.IO.Stream,NetSharp.Logging.LogLevel)">
+        <member name="M:NetSharp.Deprecated.ServerClientConnection.ChangeLoggingStream(System.IO.Stream,NetSharp.Deprecated.LogLevel)">
             <summary>
             Makes the client log to the given stream.
             </summary>
@@ -1128,6 +1835,55 @@
             <param name="instance">The instance on which this extension method should be called.</param>
             <param name="localAddress">The local IP address to bind to.</param>
             <param name="localPort">The local port to bind to.</param>
+        </member>
+        <member name="T:NetSharp.Deprecated.SocketAcceptor">
+            <summary>
+            Helper class providing awaitable wrappers around asynchronous Accept, Connect, and Disconnect operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketAcceptor.AcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket accept operation.
+            </summary>
+            <param name="socket">The socket which should be used to accept an incoming connection attempt.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The accepted socket.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketAcceptor.ConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket connect operation.
+            </summary>
+            <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketAcceptor.DisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
+            </summary>
+            <param name="socket">The socket which should asynchronously disconnect from its remote endpoint.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketClient.Finalize">
+            <summary>
+            Destroys a socket client instance.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketClient.Dispose(System.Boolean)">
+            <summary>
+            Implementation of dispose pattern.
+            </summary>
+            <param name="disposing">
+            Whether this method is being called by the object finalizer, or by the <see cref="M:NetSharp.Deprecated.SocketClient.Dispose"/> method.
+            </param>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketClient.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.SocketOperations">
+            <summary>
+            Provides helper awaitable functions for wrapping the <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> pattern.
+            </summary>
         </member>
         <member name="T:NetSharp.Deprecated.SocketOptions">
             <summary>
@@ -1209,6 +1965,59 @@
             <summary>
             Whether this <see cref="T:System.Net.Sockets.Socket"/> should use a loopback address and bypass hardware.
             </summary>
+        </member>
+        <member name="T:NetSharp.Deprecated.SocketReader">
+            <summary>
+            Helper class providing awaitable wrappers around asynchronous Receive and ReceiveFrom operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketReader.ReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket receive operation.
+            </summary>
+            <param name="socket">The socket which should receive data from the remote endpoint.</param>
+            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
+            <param name="socketFlags">The socket flags associated with the receive operation.</param>
+            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The result of the receive operation.</returns>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketServer.Finalize">
+            <summary>
+            Destroys a socket server instance.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Deprecated.SocketServer.listenerSocket">
+            <summary>
+            The socket which should be used to listen for incoming data and to send outgoing data.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketServer.Dispose(System.Boolean)">
+            <summary>
+            Implementation of dispose pattern.
+            </summary>
+            <param name="disposing">
+            Whether this method is being called by the object finalizer, or by the <see cref="M:NetSharp.Deprecated.SocketServer.Dispose"/> method.
+            </param>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketServer.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Deprecated.SocketWriter">
+            <summary>
+            Helper class providing awaitable wrappers around asynchronous Send and SendTo operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Deprecated.SocketWriter.SendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
+            <summary>
+            Provides an awaitable wrapper around an asynchronous socket send operation.
+            </summary>
+            <param name="socket">The socket which should send the data to the remote endpoint.</param>
+            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
+            <param name="socketFlags">The socket flags associated with the send operation.</param>
+            <param name="outputBuffer">The data buffer which should be sent.</param>
+            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
+            <returns>The number of bytes of data which were written to the remote endpoint.</returns>
         </member>
         <member name="T:NetSharp.Deprecated.TcpClient">
             <summary>
@@ -1328,850 +2137,62 @@
         <member name="P:NetSharp.Deprecated.UdpSocketOptions.UseLoopback">
             <inheritdoc />
         </member>
-        <member name="T:NetSharp.Extensions.ConnectionBuilderExtensions">
-            <summary>
-            Provides additional methods and functionality to the <see cref="T:NetSharp.ConnectionBuilder"/> class.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Extensions.ConnectionExtensions">
-            <summary>
-            Provides additional methods and functionality to the <see cref="T:NetSharp.Connection"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Extensions.ConnectionExtensions.TryBind(NetSharp.Connection,System.Net.EndPoint,System.TimeSpan)">
-            <summary>
-            Attempts to synchronously bind the underlying socket to the given local endpoint. Blocks.
-            If the timeout is exceeded the binding attempt is aborted and the method returns false.
-            </summary>
-            <param name="localEndPoint">The local endpoint to bind to.</param>
-            <param name="timeout">The timeout within which to attempt the binding.</param>
-            <returns>Whether the binding was successful or not.</returns>
-        </member>
-        <member name="T:NetSharp.Logging.LogLevel">
-            <summary>
-            Specifies the severity level of a log message.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.LogLevel.Info">
-            <summary>
-            The logged message contains some information. Lowest severity.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.LogLevel.Warn">
-            <summary>
-            The logged message contains a warning. Higher severity.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.LogLevel.Error">
-            <summary>
-            The logged message contains details about an error. Higher severity.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.LogLevel.Exception">
-            <summary>
-            The logged message contains details about an exception. Highest severity.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Logging.Logger">
-            <summary>
-            A simple logger capable of writing text to a stream.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.Logger.loggingStream">
-            <summary>
-            The stream to which messages will be logged.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.Logger.minimumSeverity">
-            <summary>
-            The minimum severity that log messages need to be logged to the underlying stream.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Logging.Logger.writer">
-            <summary>
-            The text writer we will use to log messages to the underlying stream.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.#ctor(System.IO.Stream,NetSharp.Logging.LogLevel)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Logging.Logger"/> struct.
-            </summary>
-            <param name="outputStream">The stream that the logger instance should log messages to.</param>
-            <param name="minimumLogSeverity">The minimum log level that will be logged to the output stream.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.Dispose">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Logging.Logger.Log(System.String,System.Exception,NetSharp.Logging.LogLevel)">
-            <summary>
-            Logs a message to the underlying stream, along with the given exception and at the given severity.
-            </summary>
-            <param name="message">The message that should be logged.</param>
-            <param name="exception">The exception that occurred (if any).</param>
-            <param name="severity">The severity of the message that is being logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogAsync(System.String,System.Exception,NetSharp.Logging.LogLevel)">
-            <summary>
-            Logs a message asynchronously to the underlying stream, along with the given exception and at the given severity.
-            </summary>
-            <param name="message">The message that should be logged.</param>
-            <param name="exception">The exception that occurred (if any).</param>
-            <param name="severity">The severity of the message that is being logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogError(System.String)">
-            <summary>
-            Logs an error to the underlying stream, with severity <see cref="F:NetSharp.Logging.LogLevel.Info"/>.
-            </summary>
-            <param name="message">The error that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogErrorAsync(System.String)">
-            <summary>
-            Logs an error to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Logging.LogLevel.Error"/>.
-            </summary>
-            <param name="message">The error that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogException(System.Exception)">
-            <summary>
-            Logs an exception to the underlying stream, with severity <see cref="F:NetSharp.Logging.LogLevel.Exception"/>.
-            </summary>
-            <param name="exception">The exception that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogException(System.String,System.Exception)">
-            <summary>
-            Logs an exception to the underlying stream, along with a short debug message, with severity
-            <see cref="F:NetSharp.Logging.LogLevel.Exception"/>.
-            </summary>
-            <param name="message">The debug message that should be logged with the exception.</param>
-            <param name="exception">The exception that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogExceptionAsync(System.Exception)">
-            <summary>
-            Logs an exception to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Logging.LogLevel.Exception"/>.
-            </summary>
-            <param name="exception">The exception that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogExceptionAsync(System.String,System.Exception)">
-            <summary>
-            Logs an exception to the underlying stream asynchronously, along with a short debug message, with severity
-            <see cref="F:NetSharp.Logging.LogLevel.Exception"/>.
-            </summary>
-            <param name="message">The debug message that should be logged with the exception.</param>
-            <param name="exception">The exception that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogMessage(System.String)">
-            <summary>
-            Logs a message to the underlying stream, with severity <see cref="F:NetSharp.Logging.LogLevel.Info"/>.
-            </summary>
-            <param name="message">The message that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogMessageAsync(System.String)">
-            <summary>
-            Logs a message to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Logging.LogLevel.Info"/>.
-            </summary>
-            <param name="message">The message that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogWarning(System.String)">
-            <summary>
-            Logs a warning to the underlying stream, with severity <see cref="F:NetSharp.Logging.LogLevel.Info"/>.
-            </summary>
-            <param name="message">The warning that should be logged.</param>
-        </member>
-        <member name="M:NetSharp.Logging.Logger.LogWarningAsync(System.String)">
-            <summary>
-            Logs a warning to the underlying stream asynchronously, with severity <see cref="F:NetSharp.Logging.LogLevel.Warn"/>.
-            </summary>
-            <param name="message">The warning that should be logged.</param>
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.ConnectPacket">
-            <summary>
-            A simple connection request packet for the UDP protocol.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectPacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectPacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectPacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.ConnectResponsePacket">
-            <summary>
-            A response packet for the <see cref="T:NetSharp.Packets.Builtin.ConnectPacket"/>.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Packets.Builtin.ConnectResponsePacket.RequestPacket">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectResponsePacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectResponsePacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.ConnectResponsePacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.DataPacket">
-            <summary>
-            A simple data transfer packet, that allows for the transmission of an arbitrary number of frames.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.Builtin.DataPacket.RequestBuffer">
-            <summary>
-            The data that should be transferred across the network.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataPacket"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.#ctor(System.Memory{System.Byte})">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataPacket"/> class.
-            </summary>
-            <param name="buffer">The data that this request packet should contain.</param>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataPacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.DataResponsePacket">
-            <summary>
-            A response packet for the <see cref="T:NetSharp.Packets.Builtin.DataPacket"/>.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.Builtin.DataResponsePacket.ResponseBuffer">
-            <summary>
-            The data that should be transferred across the network.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataResponsePacket"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.#ctor(System.Memory{System.Byte})">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.DataResponsePacket"/> class.
-            </summary>
-            <param name="buffer">The data that this response packet should contain.</param>
-        </member>
-        <member name="P:NetSharp.Packets.Builtin.DataResponsePacket.RequestPacket">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DataResponsePacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.DisconnectPacket">
-            <summary>
-            A simple disconnect packet for the UDP protocol.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DisconnectPacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DisconnectPacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DisconnectPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.DisconnectPacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.PingPacket">
-            <summary>
-            A simple ping request packet for heartbeat monitoring and RTT measurement.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingPacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingPacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingPacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.PingResponsePacket">
-            <summary>
-            A response packet for the <see cref="T:NetSharp.Packets.Builtin.PingPacket"/>.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Packets.Builtin.PingResponsePacket.RequestPacket">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingResponsePacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingResponsePacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingResponsePacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.PingResponsePacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.Builtin.SimpleDataPacket">
-            <summary>
-            A simple one-time-use data transfer packet, that allows for the transmission of an arbitrary number of frames.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.Builtin.SimpleDataPacket.RequestBuffer">
-            <summary>
-            The data that should be transferred across the network.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.#ctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.SimpleDataPacket"/> class.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.#ctor(System.Memory{System.Byte})">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.Builtin.SimpleDataPacket"/> class.
-            </summary>
-            <param name="buffer">The data that this request packet should contain.</param>
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.AfterDeserialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.BeforeSerialisation">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Packets.Builtin.SimpleDataPacket.Serialise">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.NetworkErrorCode">
-            <summary>
-            Enumerates the possible error codes for network operations, being held in the packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkErrorCode.Ok">
-            <summary>
-            Signifies that there was no error during transmission.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkErrorCode.Error">
-            <summary>
-            A generic error occurred during packet transmission.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Packets.NetworkPacket">
-            <summary>
-            Represents a low-level packet that is transmitted over the network.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacketHeader,NetSharp.Packets.NetworkPacketFooter)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
-            </summary>
-            <param name="data">The data that should be transmitted in the packet.</param>
-            <param name="header">The header for the packet.</param>
-            <param name="footer">The footer for the packet.</param>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.DataSegmentSize">
-            <summary>
-            The number of bytes allocated in each packet for user data.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.FooterSize">
-            <summary>
-            The number of bytes taken up in each packet by its footer.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.HeaderSize">
-            <summary>
-            The number of bytes taken up in each packet by its header.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.PacketSize">
-            <summary>
-            The size of each packet, including its header, footer, and data segment.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.DataBuffer">
-            <summary>
-            The data held in this packet.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(System.ReadOnlyMemory{System.Byte},System.Int32,System.UInt32,NetSharp.Packets.NetworkErrorCode,System.Boolean)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
-            </summary>
-            <param name="data">The data that should be transmitted in the packet.</param>
-            <param name="dataLength">The number of bytes that are held in the given data buffer.</param>
-            <param name="type">The packet type.</param>
-            <param name="errorCode">The error code associated with this transmission.</param>
-            <param name="hasSucceedingPacket">Whether this packet has a succeeding packet in the packet chain.</param>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.Deserialise(System.Memory{System.Byte})">
-            <summary>
-            Deserialises the given buffer into a packet instance.
-            </summary>
-            <param name="buffer">The byte buffer to serialise.</param>
-            <returns>The deserialised packet instance.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.Serialise(NetSharp.Packets.NetworkPacket)">
-            <summary>
-            Serialises the given packet instance to a new byte buffer.
-            </summary>
-            <param name="instance">The packet instance to serialise.</param>
-            <returns>The byte buffer that represents the packet instance.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.SerialiseToBuffer(System.Memory{System.Byte},NetSharp.Packets.NetworkPacket)">
-            <summary>
-            Serialises the given packet instance into the given byte buffer.
-            </summary>
-            <param name="buffer">
-            The buffer to which the instance should be serialised. Must be at least of size <see cref="F:NetSharp.Packets.NetworkPacket.PacketSize"/>.
-            </param>
-            <param name="instance">The packet instance to serialise.</param>
-            <exception cref="T:System.ArgumentException">Thrown if the given buffer is too small.</exception>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketFooter.Size">
-            <summary>
-            The number of bytes taken up by a packet footer.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketHeader.Size">
-            <summary>
-            The number of bytes taken up by a packet header.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketHeader.DataLength">
-            <summary>
-            The number of bytes of data held in the packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketHeader.ErrorCode">
-            <summary>
-            The error code for this packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketHeader.Type">
-            <summary>
-            The packet type.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Packets.PacketRegistry">
-            <summary>
-            Provides method of registering request packets and their relevant response packets, as well as mapping their ids.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.AutomaticPacketTypeIdStartPoint">
-            <summary>
-            The start id for automatically generated packet type ids. Any custom packet type ids lower than this value
-            that come from external assemblies will be incremented by this value, to ensure that there are no clashes.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.currentAutomaticPacketTypeIdCounterLockObject">
-            <summary>
-            The lock object for synchronising access to the <see cref="F:NetSharp.Packets.PacketRegistry.currentAutomaticPacketTypeIdCounter"/> field.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.idToPacketTypeMap">
-            <summary>
-            Maps a packet type id to its relevant packet type, and vice-versa.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.LibraryAssembly">
-            <summary>
-            The assembly that represents the library, where all of the builtin packets are defined.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.requestToResponseMap">
-            <summary>
-            Maps a request packet to its relevant response packet, and vice-versa.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.PacketRegistry.currentAutomaticPacketTypeIdCounter">
-            <summary>
-            The current id for registered packets.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetNewPacketTypeId(System.Type)">
-            <summary>
-            Fetches the packet type id of the given packet type. If the packet type is declared outside of the library
-            assembly, then its value is incremented by the <see cref="F:NetSharp.Packets.PacketRegistry.AutomaticPacketTypeIdStartPoint"/> value. This ensure that
-            there are no clashes between the packet type ids of packets declared in the library and external packets.
-            </summary>
-            <param name="packetType">The packet type whose id should be fetched.</param>
-            <returns>The id of the given packet type.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.DeregisterPacketType(System.Type,System.Type)">
-            <summary>
-            Deregisters the given packet type from the registry.
-            </summary>
-            <param name="requestPacketType">The request packet type to deregister, if it is registered.</param>
-            <param name="responsePacketType">The response packet associated with the request packet.</param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.DeregisterPacketTypes(System.Collections.Generic.Dictionary{System.Type,System.Type})">
-            <summary>
-            Deregisters the given packet types from the registry.
-            </summary>
-            <param name="requestToResponsePacketTypeMap">The list of packet types to deregister, if they are registered.</param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetPacketId(System.Type)">
-            <summary>
-            Returns the packet type id associated with the given packet type.
-            </summary>
-            <param name="packetType">The packet type whose id to fetch.</param>
-            <returns>The id of the packet type given.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetPacketId``1">
-            <summary>
-            Returns the packet type id associated with the given packet type.
-            </summary>
-            <typeparam name="TPacket">The packet type whose id to fetch.</typeparam>
-            <returns>The id of the packet type given.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetPacketType(System.UInt32)">
-            <summary>
-            Returns the packet type associated with the given id.
-            </summary>
-            <param name="packetTypeId">The packet id whose mapped type to fetch.</param>
-            <returns>The packet type mapped by the given id.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetRequestPacketType``1">
-            <summary>
-            Returns the type of request packet mapped by the given response packet type.
-            </summary>
-            <typeparam name="TResponse">The response packet type whose request packet type to fetch.</typeparam>
-            <returns>The request packet type, <c>null</c> if no type is mapped.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetRequestPacketType(System.Type)">
-            <summary>
-            Returns the type of request packet mapped by the given response packet type.
-            </summary>
-            <param name="responsePacketType">The response packet type whose request packet type to fetch.</param>
-            <returns>The request packet type, <c>null</c> if no type is mapped.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetResponsePacketType``1">
-            <summary>
-            Returns the type of response packet mapped by the given request packet type.
-            </summary>
-            <typeparam name="TRequest">The request packet type whose response packet type to fetch.</typeparam>
-            <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.GetResponsePacketType(System.Type)">
-            <summary>
-            Returns the type of response packet mapped by the given request packet type.
-            </summary>
-            <param name="requestPacketType">The request packet type whose response packet type to fetch.</param>
-            <returns>The response packet type, <c>null</c> if no type is mapped.</returns>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketSourceAssemblies(System.Reflection.Assembly[])">
-            <summary>
-            Rebuilds the packet registry, by registering every <see cref="T:NetSharp.Deprecated.IPacket"/> inheritor in the given assemblies.
-            </summary>
-            <param name="packetSourceAssemblies">
-            The assemblies from which the packet types to register are sourced.
-            </param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketSourceAssembly(System.Reflection.Assembly)">
-            <summary>
-            Registers all the <see cref="T:NetSharp.Deprecated.IPacket"/> implementors in the given assembly.
-            </summary>
-            <param name="packetSourceAssembly">The assembly whose packet types to register.</param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketType(System.Type,System.Type)">
-            <summary>
-            Registers the given packet type to the registry.
-            </summary>
-            <param name="requestPacketType">The request packet type to register, if it is not registered.</param>
-            <param name="responsePacketType">The response packet associated with the request packet.</param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.RegisterPacketTypes(System.Collections.Generic.Dictionary{System.Type,System.Type})">
-            <summary>
-            Registers the given packet types to the registry.
-            </summary>
-            <param name="requestToResponsePacketTypeMap">
-            The dictionary mapping the request packet types to register, to their relevant response packet types.
-            The response packet type can be null; then the request packet type is treated as a 'simple' packet.
-            </param>
-        </member>
-        <member name="M:NetSharp.Packets.PacketRegistry.#cctor">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.PacketRegistry"/> class.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Packets.PacketTypeIdAttribute">
-            <summary>
-            Allows the placing of a custom packet type on a class or struct. This is used if the class or struct
-            inherits from <see cref="T:NetSharp.Deprecated.IRequestPacket"/> or <see cref="T:NetSharp.Deprecated.IResponsePacket`1"/>.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.PacketTypeIdAttribute.#ctor(System.UInt32)">
-            <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Packets.PacketTypeIdAttribute"/> attribute.
-            </summary>
-            <param name="type">The custom type id that the decorated packet type should have.</param>
-        </member>
-        <member name="P:NetSharp.Packets.PacketTypeIdAttribute.Id">
-            <summary>
-            The custom type id that the decorated packet type should have. This overrides the automatically generated id.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Pipelines.PacketPipeline`3">
-            <summary>
-            Represents a pipeline of transformations that packets must undergo.
-            </summary>
-            <typeparam name="TInput">The type of packet the pipeline receives.</typeparam>
-            <typeparam name="TIntermediate">The type of packet the pipeline internally handles.</typeparam>
-            <typeparam name="TOutput">The type of packet the pipeline outputs.</typeparam>
-        </member>
-        <member name="M:NetSharp.Pipelines.PacketPipeline`3.ProcessPacket(`0)">
-            <summary>
-            Passes the given packet through the pipeline.
-            </summary>
-            <param name="inputPacket">The incoming packet.</param>
-            <returns>The outgoing transformed packet.</returns>
-        </member>
-        <member name="T:NetSharp.Pipelines.PacketPipelineStage`2">
-            <summary>
-            Represents a single transformation applied to a packet traveling through the pipeline.
-            </summary>
-            <typeparam name="TInput">The type the transformation takes as input.</typeparam>
-            <typeparam name="TOutput">The type the transformation produces as output.</typeparam>
-        </member>
-        <member name="T:NetSharp.Pipelines.PacketPipelineBuilder`3">
-            <summary>
-            Allows for configuring and subsequently building a <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.
-            </summary>
-            <typeparam name="TInput">The type of packet that will be submitted to the pipeline.</typeparam>
-            <typeparam name="TIntermediate">The type of packet that will be handled internally by the pipeline.</typeparam>
-            <typeparam name="TOutput">The type of packet that will be requested from the pipeline.</typeparam>
-        </member>
-        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.Build">
-            <summary>
-            Returns the currently configured <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.
-            </summary>
-            <returns>The configured <see cref="T:NetSharp.Pipelines.PacketPipeline`3"/> instance.</returns>
-            <exception cref="T:System.ArgumentNullException">
-            Thrown when either <see cref="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)"/> or <see cref="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)"/> have not been called.
-            </exception>
-        </member>
-        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithInputStage(System.Func{`0,`1}@)">
-            <summary>
-            Configures the input stage for the pipeline.
-            </summary>
-            <param name="stage">
-            The transformation that should be applied to incoming packets, to convert them from the <typeparamref name="TInput"/>
-            type to the <typeparamref name="TIntermediate"/> type that the pipeline handles internally.
-            </param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithIntermediateStage(System.Func{`1,`1}@)">
-            <summary>
-            Adds the given intermediate stage to the pipeline.
-            </summary>
-            <param name="stage">
-            The transformation that should be applied to packets traveling through the pipeline.
-            </param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="M:NetSharp.Pipelines.PacketPipelineBuilder`3.WithOutputStage(System.Func{`1,`2}@)">
-            <summary>
-            Configures the output stage for the pipeline.
-            </summary>
-            <param name="stage">
-            The transformation that should be applied to outgoing packets, to convert them from the
-            <typeparamref name="TIntermediate"/> type used internally to the <typeparamref name="TOutput"/> type.
-            </param>
-            <returns>The builder instance for further configuration.</returns>
-        </member>
-        <member name="T:NetSharp.Sockets.SocketAcceptor">
-            <summary>
-            Helper class providing awaitable wrappers around asynchronous Accept, Connect, and Disconnect operations.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketAcceptor.AcceptAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket accept operation.
-            </summary>
-            <param name="socket">The socket which should be used to accept an incoming connection attempt.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The accepted socket.</returns>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketAcceptor.ConnectAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket connect operation.
-            </summary>
-            <param name="socket">The socket which should asynchronously connect to the remote endpoint.</param>
-            <param name="remoteEndPoint">The remote endpoint to which the socket should connect.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketAcceptor.DisconnectAsync(System.Net.Sockets.Socket,System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket disconnect operation.
-            </summary>
-            <param name="socket">The socket which should asynchronously disconnect from its remote endpoint.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Finalize">
-            <summary>
-            Destroys a socket client instance.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Dispose(System.Boolean)">
-            <summary>
-            Implementation of dispose pattern.
-            </summary>
-            <param name="disposing">
-            Whether this method is being called by the object finalizer, or by the <see cref="M:NetSharp.Sockets.SocketClient.Dispose"/> method.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Dispose">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Sockets.SocketOperations">
-            <summary>
-            Provides helper awaitable functions for wrapping the <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> pattern.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Sockets.SocketReader">
-            <summary>
-            Helper class providing awaitable wrappers around asynchronous Receive and ReceiveFrom operations.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketReader.ReceiveFromAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket receive operation.
-            </summary>
-            <param name="socket">The socket which should receive data from the remote endpoint.</param>
-            <param name="remoteEndPoint">The remove endpoint from which data should be received.</param>
-            <param name="socketFlags">The socket flags associated with the receive operation.</param>
-            <param name="inputBuffer">The memory buffer into which received data will be stored.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The result of the receive operation.</returns>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketServer.Finalize">
-            <summary>
-            Destroys a socket server instance.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketServer.listenerSocket">
-            <summary>
-            The socket which should be used to listen for incoming data and to send outgoing data.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketServer.Dispose(System.Boolean)">
-            <summary>
-            Implementation of dispose pattern.
-            </summary>
-            <param name="disposing">
-            Whether this method is being called by the object finalizer, or by the <see cref="M:NetSharp.Sockets.SocketServer.Dispose"/> method.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketServer.Dispose">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Sockets.SocketWriter">
-            <summary>
-            Helper class providing awaitable wrappers around asynchronous Send and SendTo operations.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketWriter.SendToAsync(System.Net.Sockets.Socket,System.Net.EndPoint,System.Net.Sockets.SocketFlags,System.Memory{System.Byte},System.Threading.CancellationToken)">
-            <summary>
-            Provides an awaitable wrapper around an asynchronous socket send operation.
-            </summary>
-            <param name="socket">The socket which should send the data to the remote endpoint.</param>
-            <param name="remoteEndPoint">The remote endpoint to which data should be written.</param>
-            <param name="socketFlags">The socket flags associated with the send operation.</param>
-            <param name="outputBuffer">The data buffer which should be sent.</param>
-            <param name="cancellationToken">The cancellation token to observe for the operation.</param>
-            <returns>The number of bytes of data which were written to the remote endpoint.</returns>
-        </member>
-        <member name="T:NetSharp.Utils.BiDictionary`2">
+        <member name="T:NetSharp.Deprecated.BiDictionary`2">
             <summary>
             Represents a concurrent two-way dictionary, that can be indexed by either a key or a value.
             </summary>
             <typeparam name="K">The type of key that will be stored.</typeparam>
             <typeparam name="V">The type of value that will be stored.</typeparam>
         </member>
-        <member name="F:NetSharp.Utils.BiDictionary`2.keyToValueMap">
+        <member name="F:NetSharp.Deprecated.BiDictionary`2.keyToValueMap">
             <summary>
             Maps keys to their corresponding values.
             </summary>
         </member>
-        <member name="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap">
+        <member name="F:NetSharp.Deprecated.BiDictionary`2.valueToKeyMap">
             <summary>
             Maps values to their corresponding keys.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.#ctor">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.#ctor">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.BiDictionary`2"/> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.BiDictionary`2"/> class.
             </summary>
         </member>
-        <member name="P:NetSharp.Utils.BiDictionary`2.Item(`1)">
+        <member name="P:NetSharp.Deprecated.BiDictionary`2.Item(`1)">
             <summary>
             Indexes this instance with the given value.
             </summary>
             <param name="index">The value whose key to get or set.</param>
             <returns>The fetched key.</returns>
         </member>
-        <member name="P:NetSharp.Utils.BiDictionary`2.Item(`0)">
+        <member name="P:NetSharp.Deprecated.BiDictionary`2.Item(`0)">
             <summary>
             Indexes this instance with the given key.
             </summary>
             <param name="index">The key whose value to get or set.</param>
             <returns>The fetched value.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.Clear">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.Clear">
             <summary>
-            Clears this instance's <see cref="F:NetSharp.Utils.BiDictionary`2.keyToValueMap"/> and <see cref="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap"/>.
+            Clears this instance's <see cref="F:NetSharp.Deprecated.BiDictionary`2.keyToValueMap"/> and <see cref="F:NetSharp.Deprecated.BiDictionary`2.valueToKeyMap"/>.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.ContainsKey(`0@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.ContainsKey(`0@)">
             <summary>
             Whether this instance contains the given key.
             </summary>
             <param name="key">The key to check.</param>
             <returns>Whether the given key was found.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.ContainsValue(`1@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.ContainsValue(`1@)">
             <summary>
             Whether this instance contains the given value.
             </summary>
             <param name="value">The value to check.</param>
             <returns>Whether the given value was found.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.SetOrUpdateKey(`1,`0)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.SetOrUpdateKey(`1,`0)">
             <summary>
             Attempts to set the key associated with the given value.
             </summary>
@@ -2179,7 +2200,7 @@
             <param name="key">The new value for the value's associated key.</param>
             <returns>Whether the new key was correctly set.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.SetOrUpdateValue(`0,`1)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.SetOrUpdateValue(`0,`1)">
             <summary>
             Attempts to set the value associated with the given key.
             </summary>
@@ -2187,7 +2208,7 @@
             <param name="value">The new value for the  key's associated value.</param>
             <returns>Whether the new value was correctly set.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TryClearKey(`1@,`0@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryClearKey(`1@,`0@)">
             <summary>
             Attempts to remove the key associated with the given value.
             </summary>
@@ -2195,7 +2216,7 @@
             <param name="key">The old key value.</param>
             <returns>Whether the given value had a valid key associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TryClearValue(`0@,`1@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryClearValue(`0@,`1@)">
             <summary>
             Attempts to remove the value associated with the given key.
             </summary>
@@ -2203,7 +2224,7 @@
             <param name="value">The old value.</param>
             <returns>Whether the given key had a valid valid associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TryGetKey(`1@,`0@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryGetKey(`1@,`0@)">
             <summary>
             Attempts to get the key associated with the given value.
             </summary>
@@ -2211,7 +2232,7 @@
             <param name="key">The returned key.</param>
             <returns>Whether the given value has a valid key associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TryGetValue(`0@,`1@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryGetValue(`0@,`1@)">
             <summary>
             Attempts to get the value associated with the given key.
             </summary>
@@ -2219,7 +2240,7 @@
             <param name="value">The returned value.</param>
             <returns>Whether the given key as a valid value associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TrySetKey(`1@,`0@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TrySetKey(`1@,`0@)">
             <summary>
             Attempts to set the key associated with the given value.
             </summary>
@@ -2227,7 +2248,7 @@
             <param name="key">The key which should be set for the given value.</param>
             <returns>Whether the given value was successfully set.</returns>
         </member>
-        <member name="M:NetSharp.Utils.BiDictionary`2.TrySetValue(`0@,`1@)">
+        <member name="M:NetSharp.Deprecated.BiDictionary`2.TrySetValue(`0@,`1@)">
             <summary>
             Attempts to set the value associated with the given key.
             </summary>
@@ -2235,85 +2256,93 @@
             <param name="value">The value which should be set for the given key.</param>
             <returns>Whether the given key was successfully set.</returns>
         </member>
-        <member name="T:NetSharp.Utils.Constants">
-            <summary>
-            Holds internal default configurations and constants.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Utils.Constants.DefaultPort">
-            <summary>
-            The default port over which a connection is made.
-            </summary>
-        </member>
-        <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
+        <member name="T:NetSharp.Deprecated.Conversion.EndianAwareBitConverter">
             <summary>
             Wraps the <see cref="T:System.BitConverter"/> class to provide conversion that is endian-aware.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
             <summary>
             Reverses the given bytes if the endian-nes doesn't match.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Boolean)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Char)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Double)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Single)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int64)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int16)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt32)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt64)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt16)"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToBoolean(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToChar(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToDouble(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt16(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt64(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToSingle(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt16(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt32(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})"/>
+        </member>
+        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(NetSharp.Packets.NetworkPacket.NetworkPacketHeader,System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacket.NetworkPacketFooter)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
+            </summary>
+            <param name="packetHeader">The header for this packet.</param>
+            <param name="packetDataBuffer">The data that should be stored in the packet.</param>
+            <param name="packetFooter">The footer for this packet.</param>
+            <exception cref="T:System.ArgumentException">
+            Thrown when the given <paramref name="packetDataBuffer"/> exceeds <see cref="F:NetSharp.Packets.NetworkPacket.TotalSize"/> bytes in size.
+            </exception>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketAsyncOperations.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed"/> event.
+            </summary>
+            <param name="sender">The object on which the event is raised.</param>
+            <param name="args">The event arguments.</param>
         </member>
         <member name="T:NetSharp.Utils.TransmissionResult">
             <summary>

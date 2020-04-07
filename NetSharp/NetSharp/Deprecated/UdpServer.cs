@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NetSharp.Deprecated.Builtin;
+
+using System;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -6,8 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using NetSharp.Packets;
-using NetSharp.Packets.Builtin;
 
 namespace NetSharp.Deprecated
 {
