@@ -1,5 +1,5 @@
 ﻿#define TCP
-//#undef TCP
+#undef TCP
 
 using NetSharp.Sockets.Datagram;
 using NetSharp.Sockets.Stream;
@@ -43,9 +43,9 @@ namespace NetSharpExamples
             const int clientCount = 16;
             const long packetsToSend = 100_000;
 
-            Thread[] clientThreads = new Thread[clientCount];
+            Task[] clientTasks = new Task[clientCount];
             double[] clientBandwidths = new double[clientCount];
-            HashSet<int> activeThreads = new HashSet<int>(clientCount);
+            HashSet<int> activeTasks = new HashSet<int>(clientCount);
 
             async void ClientTask(object id)
             {
@@ -136,9 +136,9 @@ namespace NetSharpExamples
 
                         lock (typeof(Console))
                         {
-                            if (!activeThreads.Contains((int)id))
+                            if (!activeTasks.Contains((int)id))
                             {
-                                activeThreads.Add((int)id);
+                                activeTasks.Add((int)id);
                             }
 
 #if DEBUG
@@ -195,24 +195,23 @@ namespace NetSharpExamples
 
             for (int clientId = 0; clientId < clientCount; clientId++)
             {
-                clientThreads[clientId] = new Thread(ClientTask) { Name = $"Client thread {clientId:D3}" };
-                clientThreads[clientId].Start(clientId);
+                clientTasks[clientId] = Task.Factory.StartNew(ClientTask, clientId, TaskCreationOptions.LongRunning);
             }
 
-            Console.ReadLine();
+            await Task.WhenAll(clientTasks);
 
             int totalActiveThreads = 0;
             for (int i = 0; i < clientCount; i++)
             {
-                Thread clientThread = clientThreads[i];
+                Task clientThread = clientTasks[i];
 
-                bool threadWasActive = activeThreads.Contains(i);
+                bool threadWasActive = activeTasks.Contains(i);
                 if (threadWasActive)
                 {
                     totalActiveThreads++;
                 }
 
-                Console.WriteLine($"{clientThread.Name} bandwidth: {clientBandwidths[i]}, was active? {threadWasActive}");
+                Console.WriteLine($"[Client task {i}] Approx bandwidth: {clientBandwidths[i]}, was active? {threadWasActive}");
             }
 
             Console.WriteLine($"Total server bandwidth: {clientBandwidths.Sum():F3} MBps, Total Active Threads: {totalActiveThreads}, Total Inactive Threads: {clientCount - totalActiveThreads}");
