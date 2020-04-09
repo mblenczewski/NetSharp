@@ -113,9 +113,10 @@ namespace NetSharpExamples
                         }
 #endif
 
+                        EndPoint serverEndPoint = ServerEndPoint;
+
                         rttStopwatch.Start();
                         bandwidthStopwatch.Start();
-                        EndPoint serverEndPoint = ServerEndPoint;
 
 #if TCP
                         int receiveResult = client.ReceiveBytes(responseBufferMemory);

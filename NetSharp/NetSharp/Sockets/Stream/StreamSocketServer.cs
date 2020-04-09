@@ -75,7 +75,8 @@ namespace NetSharp.Sockets.Stream
                 {
                     TransmissionResult receiveResult =
                         await SocketAsyncOperations
-                            .ReceiveAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None, requestBufferMemory, cancellationToken)
+                            .ReceiveAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None,
+                                requestBufferMemory, cancellationToken)
                             .ConfigureAwait(false);
 
                     if (receiveResult.Count == 0)
@@ -99,7 +100,8 @@ namespace NetSharp.Sockets.Stream
 
                     TransmissionResult sendResult =
                         await SocketAsyncOperations
-                            .SendAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None, responseBufferMemory, cancellationToken)
+                            .SendAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None, responseBufferMemory,
+                                cancellationToken)
                             .ConfigureAwait(false);
 
 #if DEBUG
@@ -111,7 +113,10 @@ namespace NetSharp.Sockets.Stream
 #endif
                 }
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"Client task for {clientArgs.RemoteEndPoint} cancelled!");
+            }
             finally
             {
                 DestroyConnectionArgs(clientArgs);
