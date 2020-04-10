@@ -1,43 +1,68 @@
-﻿using NetSharp.Packets;
-
-using System;
-using System.Buffers;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
+    //TODO document class
     public abstract class SocketClient : SocketConnection
     {
-        protected readonly SocketAsyncEventArgs Args;
+        //TODO document
+        protected readonly struct AsyncTransmissionToken
+        {
+            public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
+
+            public readonly CancellationToken CancellationToken;
+
+            public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in CancellationToken cancellationToken)
+            {
+                CompletionSource = completionSource;
+
+                CancellationToken = cancellationToken;
+            }
+        }
+
+        //TODO document
+        protected readonly struct AsyncOperationToken
+        {
+            public readonly TaskCompletionSource<bool> CompletionSource;
+
+            public readonly CancellationToken CancellationToken;
+
+            public AsyncOperationToken(in TaskCompletionSource<bool> completionSource, in CancellationToken cancellationToken)
+            {
+                CompletionSource = completionSource;
+
+                CancellationToken = cancellationToken;
+            }
+        }
 
         protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
             : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
-            Args = new SocketAsyncEventArgs();
-            Args.Completed += SocketAsyncOperations.HandleIoCompleted;
         }
 
-        public int SendBytes(Memory<byte> outgoingDataBuffer, SocketFlags flags = SocketFlags.None)
+        public void Connect(in EndPoint remoteEndPoint)
         {
-            byte[] temporaryBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
-            outgoingDataBuffer.CopyTo(temporaryBuffer);
-            int sentBytes = connection.Send(temporaryBuffer);
-            BufferPool.Return(temporaryBuffer);
-
-            return sentBytes;
+            connection.Connect(remoteEndPoint);
         }
 
-        public int ReceiveBytes(Memory<byte> incomingDataBuffer, SocketFlags flags = SocketFlags.None)
+        public ValueTask ConnectAsync(in EndPoint remoteEndPoint, CancellationToken cancellationToken = default)
         {
-            byte[] temporaryBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
-            int receivedBytes = connection.Receive(temporaryBuffer);
-            temporaryBuffer.CopyTo(incomingDataBuffer);
-            BufferPool.Return(temporaryBuffer);
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
-            return receivedBytes;
+            SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
+
+            args.RemoteEndPoint = remoteEndPoint;
+            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+
+            if (connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+
+            TransmissionArgsPool.Return(args);
+
+            return new ValueTask();
         }
     }
 }

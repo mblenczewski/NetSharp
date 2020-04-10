@@ -11,6 +11,7 @@ using NetSharp.Utils;
 
 namespace NetSharp.Sockets.Stream
 {
+    //TODO document
     public readonly struct StreamSocketServerOptions
     {
         public static readonly StreamSocketServerOptions Defaults =
@@ -18,45 +19,46 @@ namespace NetSharp.Sockets.Stream
 
         public readonly int PacketSize;
 
-        public readonly int ConcurrentReceiveCalls;
+        public readonly int ConcurrentAcceptCalls;
 
-        public StreamSocketServerOptions(int packetSize, int concurrentReceiveCalls)
+        public StreamSocketServerOptions(int packetSize, int concurrentAcceptCalls)
         {
             PacketSize = packetSize;
 
-            ConcurrentReceiveCalls = concurrentReceiveCalls;
+            ConcurrentAcceptCalls = concurrentAcceptCalls;
         }
     }
 
-    public class StreamSocketServer : SocketServer
+    //TODO fix memory leak issue
+    //TODO address the need to handle series of network packets, not just single packets
+    //TODO allow for the server to do more than just echo packets
+    //TODO document class
+    public sealed class StreamSocketServer : SocketServer
     {
-        private readonly ConcurrentDictionary<EndPoint, RemoteStreamClientToken> connectedClientTokens;
-
-        private readonly struct RemoteStreamClientToken
+        private class RemoteStreamClientToken : IDisposable
         {
-            private readonly Channel<NetworkPacket> PacketChannel;
+            public readonly Socket ClientSocket;
 
-            public readonly ChannelReader<NetworkPacket> PacketReader;
+            public byte[]? RentedBuffer;
 
-            public readonly ChannelWriter<NetworkPacket> PacketWriter;
-
-            public RemoteStreamClientToken(in Channel<NetworkPacket> packetChannel)
+            public RemoteStreamClientToken(in Socket clientSocket)
             {
-                PacketChannel = packetChannel;
-                PacketReader = packetChannel.Reader;
-                PacketWriter = packetChannel.Writer;
+                ClientSocket = clientSocket;
+            }
+
+            public void Dispose()
+            {
+                ClientSocket.Dispose();
             }
         }
 
         public readonly StreamSocketServerOptions ServerOptions;
 
         public StreamSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in StreamSocketServerOptions serverOptions = default) : base(in connectionAddressFamily, SocketType.Stream,
+            in StreamSocketServerOptions? serverOptions = null) : base(in connectionAddressFamily, SocketType.Stream,
             in connectionProtocolType)
         {
-            connectedClientTokens = new ConcurrentDictionary<EndPoint, RemoteStreamClientToken>();
-
-            ServerOptions = serverOptions.Equals(default) ? StreamSocketServerOptions.Defaults : serverOptions;
+            ServerOptions = serverOptions ?? StreamSocketServerOptions.Defaults;
         }
 
         protected override SocketAsyncEventArgs CreateTransmissionArgs()
@@ -75,7 +77,7 @@ namespace NetSharp.Sockets.Stream
 
         protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
         {
-            return false;
+            return true;
         }
 
         protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
@@ -90,98 +92,206 @@ namespace NetSharp.Sockets.Stream
 
         protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
         {
-            throw new NotImplementedException();
+            switch (args.LastOperation)
+            {
+                case SocketAsyncOperation.Accept:
+                    SocketAsyncEventArgs newAcceptArgs = TransmissionArgsPool.Rent();
+
+                    Accept(newAcceptArgs); // start a new accept operation to not miss any clients
+
+                    CompleteAccept(args);
+                    break;
+
+                case SocketAsyncOperation.Receive:
+                    CompleteReceive(args);
+                    break;
+
+                case SocketAsyncOperation.Send:
+                    CompleteSend(args);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"{nameof(HandleIoCompleted)} doesn't support {args.LastOperation}");
+            }
         }
 
-        protected async Task HandleClient(SocketAsyncEventArgs clientArgs, CancellationToken cancellationToken = default)
+        private void Accept(SocketAsyncEventArgs acceptArgs)
         {
-            EndPoint clientEndPoint = clientArgs.AcceptSocket.RemoteEndPoint;
-            RemoteStreamClientToken clientToken = connectedClientTokens[clientEndPoint];
+            bool operationPending = connection.AcceptAsync(acceptArgs);
 
-            Socket clientSocket = clientArgs.AcceptSocket;
+            if (!operationPending)
+            {
+                SocketAsyncEventArgs newAcceptArgs = TransmissionArgsPool.Rent();
 
-            byte[] requestBuffer = new byte[NetworkPacket.TotalSize];
+                Accept(newAcceptArgs); // start a new accept operation to not miss any clients
+
+                CompleteAccept(acceptArgs);
+            }
+        }
+
+        private void CompleteAccept(SocketAsyncEventArgs connectedClientArgs)
+        {
+            Socket clientSocket = connectedClientArgs.AcceptSocket;
+            
+            RemoteStreamClientToken clientToken = new RemoteStreamClientToken(in clientSocket);
+
+            connectedClientArgs.UserToken = clientToken;
+
+            Receive(connectedClientArgs);
+        }
+
+        private void Receive(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
+
+            byte[] requestBuffer = BufferPool.Rent(ServerOptions.PacketSize);
             Memory<byte> requestBufferMemory = new Memory<byte>(requestBuffer);
 
-            byte[] responseBuffer = new byte[NetworkPacket.TotalSize];
-            Memory<byte> responseBufferMemory = new Memory<byte>(responseBuffer);
+            clientToken.RentedBuffer = requestBuffer;
+            clientArgs.SetBuffer(clientToken.RentedBuffer, 0, ServerOptions.PacketSize);
 
-            try
+            bool operationPending = clientToken.ClientSocket.ReceiveAsync(clientArgs);
+
+            if (!operationPending)
             {
-                while (!cancellationToken.IsCancellationRequested)
+                CompleteReceive(clientArgs);
+            }
+        }
+
+        private void CompleteReceive(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken receiveToken = (RemoteStreamClientToken) clientArgs.UserToken;
+
+            if (clientArgs.SocketError == SocketError.Success)
+            {
+                if (clientArgs.BytesTransferred == ServerOptions.PacketSize)
                 {
-                    TransmissionResult receiveResult =
-                        await SocketAsyncOperations
-                            .ReceiveAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None,
-                                requestBufferMemory, cancellationToken)
-                            .ConfigureAwait(false);
+                    // buffer was fully received
 
-                    if (receiveResult.Count == 0)
-                    {
-                        break;
-                    }
-#if DEBUG
-                    lock (typeof(Console))
-                    {
-                        Console.WriteLine($"[Server] Received {receiveResult.Count} bytes from {receiveResult.RemoteEndPoint}");
-                        Console.WriteLine($"[Server] <<<< {Encoding.UTF8.GetString(receiveResult.Buffer.Span)}");
-                    }
-#endif
+                    NetworkPacket request = NetworkPacket.Deserialise(receiveToken.RentedBuffer);
 
-                    NetworkPacket request = NetworkPacket.Deserialise(requestBufferMemory);
-
-                    // TODO implement actual request handling, besides just an echo
+                    // TODO implement actual request processing, not just an echo server
                     NetworkPacket response = request;
+
+                    byte[] responseBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+                    Memory<byte> responseBufferMemory = new Memory<byte>(responseBuffer);
 
                     NetworkPacket.Serialise(response, responseBufferMemory);
 
-                    TransmissionResult sendResult =
-                        await SocketAsyncOperations
-                            .SendAsync(clientArgs, clientSocket, clientEndPoint, SocketFlags.None, responseBufferMemory,
-                                cancellationToken)
-                            .ConfigureAwait(false);
+                    BufferPool.Return(receiveToken.RentedBuffer, true); // at this point the request buffer can be returned
 
-#if DEBUG
-                    lock (typeof(Console))
-                    {
-                        Console.WriteLine($"[Server] Sent {sendResult.Count} bytes to {sendResult.RemoteEndPoint}");
-                        Console.WriteLine($"[Server] >>>> {Encoding.UTF8.GetString(sendResult.Buffer.Span)}");
-                    }
-#endif
+                    receiveToken.RentedBuffer = responseBuffer;
+                    clientArgs.SetBuffer(responseBuffer, 0, ServerOptions.PacketSize);
+
+                    Send(clientArgs);
+
+                }
+                else if (ServerOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
+                {
+                    // receive the remaining parts of the buffer
+
+                    int receivedBytes = clientArgs.BytesTransferred;
+
+                    clientArgs.SetBuffer(receivedBytes, ServerOptions.PacketSize - receivedBytes);
+
+                    Receive(clientArgs);
+                }
+                else
+                {
+                    // no bytes were received, remote socket is dead
+
+                    CloseClientSocket(clientArgs);
                 }
             }
-            catch (OperationCanceledException)
+            else
             {
-                Console.WriteLine($"Client task for {clientArgs.RemoteEndPoint} cancelled!");
+                CloseClientSocket(clientArgs);
             }
-            finally
+        }
+
+        private void Send(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
+
+            bool operationPending = clientToken.ClientSocket.SendAsync(clientArgs);
+
+            if (!operationPending)
             {
-                TransmissionArgsPool.Return(clientArgs);
+                CompleteSend(clientArgs);
             }
+        }
+
+        private void CompleteSend(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken sendToken = (RemoteStreamClientToken) clientArgs.UserToken;
+
+            if (clientArgs.SocketError == SocketError.Success)
+            {
+                if (clientArgs.BytesTransferred == ServerOptions.PacketSize)
+                {
+                    // buffer was fully sent
+
+                    BufferPool.Return(sendToken.RentedBuffer, true);
+
+                    sendToken.RentedBuffer = null;
+
+                    Receive(clientArgs);
+                }
+                else if (ServerOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
+                {
+                    // send the remaining parts of the buffer
+
+                    int sentBytes = clientArgs.BytesTransferred;
+
+                    clientArgs.SetBuffer(sentBytes, ServerOptions.PacketSize - sentBytes);
+
+                    Send(clientArgs);
+                }
+                else
+                {
+                    // no bytes were sent, remote socket is dead
+
+                    CloseClientSocket(clientArgs);
+                }
+            }
+            else
+            {
+                CloseClientSocket(clientArgs);
+            }
+        }
+
+        private void CloseClientSocket(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
+
+            try
+            {
+                clientToken.ClientSocket.Shutdown(SocketShutdown.Both);
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            clientToken.ClientSocket.Close();
+
+            TransmissionArgsPool.Return(clientArgs);
+
+            clientToken.Dispose();
         }
 
         public override async Task RunAsync(CancellationToken cancellationToken = default)
         {
             connection.Listen(100);
 
-            EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-            while (!cancellationToken.IsCancellationRequested)
+            for (int i = 0; i < ServerOptions.ConcurrentAcceptCalls; i++)
             {
-                SocketAsyncEventArgs clientArgs = TransmissionArgsPool.Rent();
-
-                await SocketAsyncOperations.AcceptAsync(clientArgs, connection, cancellationToken);
-
-                EndPoint clientEndPoint = clientArgs.AcceptSocket.RemoteEndPoint;
-
-                BoundedChannelOptions clientChannelOptions = new BoundedChannelOptions(60) 
-                    { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true, SingleWriter = true };
-                Channel<NetworkPacket> clientChannel = Channel.CreateBounded<NetworkPacket>(clientChannelOptions);
-
-                connectedClientTokens[clientEndPoint] = new RemoteStreamClientToken(in clientChannel);
-
-                ConnectedClientHandlerTasks[clientEndPoint] = HandleClient(clientArgs, cancellationToken);
+                SocketAsyncEventArgs acceptArgs = TransmissionArgsPool.Rent();
+                
+                Accept(acceptArgs);
             }
+
+            await cancellationToken.WaitHandle.WaitOneAsync();
         }
     }
 }

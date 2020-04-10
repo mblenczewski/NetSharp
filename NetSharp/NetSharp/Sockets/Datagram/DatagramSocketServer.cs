@@ -29,9 +29,10 @@ namespace NetSharp.Sockets.Datagram
         }
     }
 
-    //TODO address the need for a fixed packet size (NetworkPacket.TotalSize; lines 109 and 145)
-    //TODO address the need for a fixed number of initial ReceiveFrom method calls
+    //TODO fix memory leak issue
     //TODO address the need to handle series of network packets, not just single packets
+    //TODO allow for the server to do more than just echo packets
+    //TODO document class
     public sealed class DatagramSocketServer : SocketServer
     {
         private static readonly EndPoint AnyRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -39,10 +40,10 @@ namespace NetSharp.Sockets.Datagram
         public readonly DatagramSocketServerOptions ServerOptions;
 
         public DatagramSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in DatagramSocketServerOptions serverOptions = default) : base(in connectionAddressFamily, SocketType.Dgram,
+            in DatagramSocketServerOptions? serverOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
             in connectionProtocolType)
         {
-            ServerOptions = serverOptions.Equals(default) ? DatagramSocketServerOptions.Defaults : serverOptions;
+            ServerOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
         }
 
         private readonly struct SocketOperationToken
@@ -84,14 +85,17 @@ namespace NetSharp.Sockets.Datagram
         {
             switch (args.LastOperation)
             {
-                case SocketAsyncOperation.SendTo:
-                    CompleteSendTo(args);
-                    break;
-
                 case SocketAsyncOperation.ReceiveFrom:
-                    ReceiveFrom(AnyRemoteEndPoint); // start a new receive from operation immediately, to not drop any packets
+                    SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+                    newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
+
+                    ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
 
                     CompleteReceiveFrom(args);
+                    break;
+
+                case SocketAsyncOperation.SendTo:
+                    CompleteSendTo(args);
                     break;
 
                 default:
@@ -99,9 +103,64 @@ namespace NetSharp.Sockets.Datagram
             }
         }
 
+        private void ReceiveFrom(SocketAsyncEventArgs receiveArgs)
+        {
+            byte[] receiveBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+            Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
+
+            receiveArgs.SetBuffer(receiveBufferMemory);
+            receiveArgs.UserToken = new SocketOperationToken(in receiveBuffer);
+
+            bool operationPending = connection.ReceiveFromAsync(receiveArgs);
+
+            if (!operationPending)
+            {
+                SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+                newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
+
+                ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
+
+                CompleteReceiveFrom(receiveArgs);
+            }
+        }
+
+        private void CompleteReceiveFrom(SocketAsyncEventArgs receiveArgs)
+        {
+            SocketOperationToken receiveToken = (SocketOperationToken)receiveArgs.UserToken;
+
+            TransmissionResult receiveResult = new TransmissionResult(in receiveArgs);
+
+#if DEBUG
+                lock (typeof(Console))
+                {
+                    Console.WriteLine($"[Server] Received {receiveResult.Count} bytes from {receiveResult.RemoteEndPoint}");
+                    Console.WriteLine($"[Server] <<<< {Encoding.UTF8.GetString(receiveResult.Buffer.Span)}");
+                }
+#endif
+
+            NetworkPacket request = NetworkPacket.Deserialise(receiveArgs.MemoryBuffer);
+
+            // TODO implement actual request processing, not just an echo server
+            NetworkPacket response = request;
+
+            byte[] sendBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+            Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
+
+            NetworkPacket.Serialise(response, sendBufferMemory);
+
+            receiveArgs.SetBuffer(sendBufferMemory);
+            receiveArgs.UserToken = new SocketOperationToken(in sendBuffer);
+
+            SendTo(receiveArgs);
+
+            BufferPool.Return(receiveToken.RentedBuffer, true);
+        }
+
         private void SendTo(SocketAsyncEventArgs sendArgs)
         {
-            if (!connection.SendToAsync(sendArgs))
+            bool operationPending = connection.SendToAsync(sendArgs);
+
+            if (!operationPending)
             {
                 CompleteSendTo(sendArgs);
             }
@@ -126,67 +185,14 @@ namespace NetSharp.Sockets.Datagram
             TransmissionArgsPool.Return(sendArgs);
         }
 
-        private void ReceiveFrom(EndPoint remoteEndPoint)
-        {
-            SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
-
-            byte[] receiveBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
-            Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
-
-            args.SetBuffer(receiveBufferMemory);
-            args.RemoteEndPoint = remoteEndPoint;
-            args.UserToken = new SocketOperationToken(in receiveBuffer);
-
-            if (!connection.ReceiveFromAsync(args))
-            {
-                ReceiveFrom(AnyRemoteEndPoint); // start a new receive from operation immediately, to not drop any packets
-
-                CompleteReceiveFrom(args);
-            }
-        }
-
-        private void CompleteReceiveFrom(SocketAsyncEventArgs receiveArgs)
-        {
-            SocketOperationToken receiveToken = (SocketOperationToken)receiveArgs.UserToken;
-
-            TransmissionResult receiveResult = new TransmissionResult(in receiveArgs);
-
-#if DEBUG
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Server] Received {receiveResult.Count} bytes from {receiveResult.RemoteEndPoint}");
-                    Console.WriteLine($"[Server] <<<< {Encoding.UTF8.GetString(receiveResult.Buffer.Span)}");
-                }
-#endif
-
-            NetworkPacket request = NetworkPacket.Deserialise(receiveArgs.MemoryBuffer);
-
-            // TODO implement actual request processing, not just an echo server
-            NetworkPacket response = request;
-
-            SocketAsyncEventArgs sendArgs = TransmissionArgsPool.Rent();
-
-            byte[] sendBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
-            Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
-
-            NetworkPacket.Serialise(response, sendBufferMemory);
-
-            sendArgs.SetBuffer(sendBufferMemory);
-            sendArgs.RemoteEndPoint = receiveResult.RemoteEndPoint;
-            sendArgs.UserToken = new SocketOperationToken(in sendBuffer);
-
-            SendTo(sendArgs);
-
-            BufferPool.Return(receiveToken.RentedBuffer, true);
-
-            TransmissionArgsPool.Return(receiveArgs);
-        }
-
         public override Task RunAsync(CancellationToken cancellationToken = default)
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < ServerOptions.ConcurrentReceiveFromCalls; i++)
             {
-                ReceiveFrom(AnyRemoteEndPoint);
+                SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+                newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
+
+                ReceiveFrom(newReceiveArgs);
             }
 
             return cancellationToken.WaitHandle.WaitOneAsync();

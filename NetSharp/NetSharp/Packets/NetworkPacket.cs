@@ -4,13 +4,13 @@ namespace NetSharp.Packets
 {
     public readonly struct NetworkPacket
     {
-        public const int TotalSize = 4096;
+        public const int TotalSize = HeaderSize + DataSize + FooterSize;
 
         public const int HeaderSize = NetworkPacketHeader.TotalSize;
 
         public const int FooterSize = NetworkPacketFooter.TotalSize;
 
-        public const int DataSize = TotalSize - HeaderSize - FooterSize;
+        public const int DataSize = 8192;
 
         public readonly ReadOnlyMemory<byte> Data;
 

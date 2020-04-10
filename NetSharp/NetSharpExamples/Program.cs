@@ -1,5 +1,5 @@
 ﻿#define TCP
-#undef TCP
+//#undef TCP
 
 using NetSharp.Sockets.Datagram;
 using NetSharp.Sockets.Stream;
@@ -44,8 +44,8 @@ namespace NetSharpExamples
 
         private static async Task TestSocketClient()
         {
-            const int clientCount = 10;
-            const long packetsToSend = 1_000_000;
+            const int clientCount = 100;
+            const long packetsToSend = 100_000;
 
             Task[] clientTasks = new Task[clientCount];
             double[] clientBandwidths = new double[clientCount];
@@ -104,7 +104,7 @@ namespace NetSharpExamples
                         bandwidthStopwatch.Start();
 
 #if TCP
-                        int sendResult = client.SendBytes(requestBufferMemory);
+                        TransmissionResult sendResult = client.Send(requestBuffer);
 #else
                         TransmissionResult sendResult = client.SendTo(remoteEndPoint, requestBuffer);
 #endif
@@ -124,7 +124,7 @@ namespace NetSharpExamples
                         bandwidthStopwatch.Start();
 
 #if TCP
-                        int receiveResult = client.ReceiveBytes(responseBufferMemory);
+                        TransmissionResult receiveResult = client.Receive(responseBuffer);
 #else
                         TransmissionResult receiveResult = client.ReceiveFrom(ref remoteEndPoint, responseBuffer);
 #endif
@@ -135,7 +135,7 @@ namespace NetSharpExamples
 #if DEBUG
                         lock (typeof(Console))
                         {
-                            Console.WriteLine($"[Client {id}, Packet {i}] Received {receiveResult.Count} bytes from {serverEndPoint}");
+                            Console.WriteLine($"[Client {id}, Packet {i}] Received {receiveResult.Count} bytes from {remoteEndPoint}");
                             Console.WriteLine($"[Client {id}, Packet {i}] <<<< {Encoding.UTF8.GetString(responseBufferMemory.Span)}");
                         }
 #endif
@@ -171,7 +171,7 @@ namespace NetSharpExamples
                     }
 
 #if TCP
-                    client.Disconnect();
+                    client.Disconnect(true);
                     client.Shutdown(SocketShutdown.Both);
 #endif
 

@@ -7,6 +7,7 @@ using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
+    //TODO document class
     public abstract class SocketConnection : IDisposable
     {
         protected readonly Socket connection;
