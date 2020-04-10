@@ -1,5 +1,5 @@
 ﻿#define TCP
-//#undef TCP
+#undef TCP
 
 using NetSharp.Sockets.Datagram;
 using NetSharp.Sockets.Stream;
@@ -44,7 +44,7 @@ namespace NetSharpExamples
 
         private static async Task TestSocketClient()
         {
-            const int clientCount = 100;
+            const int clientCount = 16;
             const long packetsToSend = 100_000;
 
             Task[] clientTasks = new Task[clientCount];
