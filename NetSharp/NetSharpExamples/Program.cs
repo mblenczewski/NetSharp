@@ -13,7 +13,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using NetSharp.Utils;
 using NetworkPacket = NetSharp.Packets.NetworkPacket;
 using SocketServer = NetSharp.Sockets.SocketServer;
 
@@ -44,14 +44,14 @@ namespace NetSharpExamples
 
         private static async Task TestSocketClient()
         {
-            const int clientCount = 20;
+            const int clientCount = 24;
             const long packetsToSend = 100_000;
 
             Task[] clientTasks = new Task[clientCount];
             double[] clientBandwidths = new double[clientCount];
             HashSet<int> activeTasks = new HashSet<int>(clientCount);
 
-            async void ClientTask(object id)
+            async Task ClientTask(object id)
             {
                 try
                 {
@@ -103,7 +103,7 @@ namespace NetSharpExamples
 #if TCP
                         int sendResult = client.SendBytes(requestBufferMemory);
 #else
-                        int sendResult = client.SendBytesTo(requestBufferMemory, ServerEndPoint);
+                        TransmissionResult sendResult = await client.SendBytesTo(requestBufferMemory, ServerEndPoint);
 #endif
 
                         bandwidthStopwatch.Stop();
@@ -112,7 +112,7 @@ namespace NetSharpExamples
 #if DEBUG
                         lock (typeof(Console))
                         {
-                            Console.WriteLine($"[Client {id}, Packet {i}] Sent {sendResult} bytes to {ServerEndPoint}");
+                            Console.WriteLine($"[Client {id}, Packet {i}] Sent {sendResult.Count} bytes to {ServerEndPoint}");
                             Console.WriteLine($"[Client {id}, Packet {i}] >>>> {Encoding.UTF8.GetString(requestBufferMemory.Span)}");
                         }
 #endif
@@ -125,7 +125,7 @@ namespace NetSharpExamples
 #if TCP
                         int receiveResult = client.ReceiveBytes(responseBufferMemory);
 #else
-                        int receiveResult = client.ReceiveBytesFrom(responseBufferMemory, ref serverEndPoint);
+                        TransmissionResult receiveResult = await client.ReceiveBytesFrom(responseBufferMemory, ref serverEndPoint);
 #endif
 
                         bandwidthStopwatch.Stop();
@@ -134,7 +134,7 @@ namespace NetSharpExamples
 #if DEBUG
                         lock (typeof(Console))
                         {
-                            Console.WriteLine($"[Client {id}, Packet {i}] Received {receiveResult} bytes from {serverEndPoint}");
+                            Console.WriteLine($"[Client {id}, Packet {i}] Received {receiveResult.Count} bytes from {serverEndPoint}");
                             Console.WriteLine($"[Client {id}, Packet {i}] <<<< {Encoding.UTF8.GetString(responseBufferMemory.Span)}");
                         }
 #endif
@@ -200,7 +200,7 @@ namespace NetSharpExamples
 
             for (int clientId = 0; clientId < clientCount; clientId++)
             {
-                clientTasks[clientId] = Task.Factory.StartNew(ClientTask, clientId, TaskCreationOptions.LongRunning);
+                clientTasks[clientId] = Task.Factory.StartNew(ClientTask, clientId, TaskCreationOptions.LongRunning).Result;
             }
 
             await Task.WhenAll(clientTasks);

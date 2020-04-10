@@ -21,7 +21,7 @@ namespace NetSharp.Sockets.Datagram
 
         private readonly ConcurrentDictionary<EndPoint, RemoteDatagramClientToken> connectedClientTokens;
 
-        private readonly ObjectPool<SocketAsyncEventArgs> ArgsPool;
+        private readonly MyObjectPool<SocketAsyncEventArgs> ArgsPool;
 
         private readonly struct RemoteDatagramClientToken
         {
@@ -70,7 +70,7 @@ namespace NetSharp.Sockets.Datagram
                 return true;
             }
 
-            ArgsPool = new ObjectPool<SocketAsyncEventArgs>(CreateArgs, ResetArgs, DestroyArgs, ReBufferArgsPredicate);
+            ArgsPool = new MyObjectPool<SocketAsyncEventArgs>(CreateArgs, ResetArgs, DestroyArgs, ReBufferArgsPredicate);
         }
 
         protected override SocketAsyncEventArgs GenerateConnectionArgs(EndPoint remoteEndPoint)
@@ -229,6 +229,8 @@ namespace NetSharp.Sockets.Datagram
                     break;
 
                 case SocketAsyncOperation.ReceiveFrom:
+                    DoReceiveFrom(AnyRemoteEndPoint); // start a new receive from operation immediately, to not drop any packets
+
                     CompleteReceiveFrom(args);
                     break;
 
@@ -281,14 +283,14 @@ namespace NetSharp.Sockets.Datagram
 
             if (!completesAsync)
             {
+                DoReceiveFrom(AnyRemoteEndPoint); // start a new receive from operation immediately, to not drop any packets
+
                 CompleteReceiveFrom(args);
             }
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs receiveArgs)
         {
-            DoReceiveFrom(AnyRemoteEndPoint); // start a new receive from operation immediately, to not drop any packets
-
             SocketOperationToken receiveToken = (SocketOperationToken)receiveArgs.UserToken;
 
             TransmissionResult receiveResult = new TransmissionResult(receiveArgs);
@@ -533,56 +535,6 @@ namespace NetSharp.Sockets.Datagram
                 await connectedClientTokens[clientEndPoint].PacketWriter.WriteAsync(request, cancellationToken);
             }
             */
-        }
-    }
-
-    internal class ObjectPool<T> where T : class
-    {
-        internal delegate T CreateObjectDelegate();
-
-        internal delegate bool KeepObjectPredicate(in T instance);
-
-        internal delegate void ResetObjectDelegate(T instance);
-
-        internal delegate void DestroyObjectDelegate(T instance);
-
-        private readonly CreateObjectDelegate createObjectDelegate;
-        private readonly KeepObjectPredicate rebufferObjectPredicate;
-        private readonly ResetObjectDelegate resetObjectDelegate;
-        private readonly DestroyObjectDelegate destroyObjectDelegate;
-
-        private readonly ConcurrentBag<T> objectBuffer;
-
-        public ObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate, in DestroyObjectDelegate destroyDelegate, in KeepObjectPredicate keepObjectPredicate)
-        {
-            createObjectDelegate = createDelegate;
-
-            resetObjectDelegate = resetDelegate;
-
-            destroyObjectDelegate = destroyDelegate;
-
-            rebufferObjectPredicate = keepObjectPredicate;
-
-            objectBuffer = new ConcurrentBag<T>();
-        }
-
-        public T Rent()
-        {
-            return objectBuffer.TryTake(out T result) ? result : createObjectDelegate();
-        }
-
-        public void Return(T instance)
-        {
-            if (rebufferObjectPredicate(instance))
-            {
-                resetObjectDelegate(instance);
-
-                objectBuffer.Add(instance);
-            }
-            else
-            {
-                destroyObjectDelegate(instance);
-            }
         }
     }
 }

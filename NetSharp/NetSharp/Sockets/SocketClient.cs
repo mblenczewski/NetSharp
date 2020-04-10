@@ -4,6 +4,8 @@ using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
+using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
@@ -11,38 +13,45 @@ namespace NetSharp.Sockets
     {
         protected readonly ArrayPool<byte> BufferPool;
 
+        protected readonly SocketAsyncEventArgs Args;
+
         protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
             : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
             BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 10);
+
+            Args = new SocketAsyncEventArgs();
+            Args.Completed += SocketAsyncOperations.HandleIoCompleted;
         }
 
-        public int SendBytes(Memory<byte> outgoingDataBuffer)
+        public int SendBytes(Memory<byte> outgoingDataBuffer, SocketFlags flags = SocketFlags.None)
         {
-            return connection.Send(outgoingDataBuffer.Span);
+            byte[] temporaryBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
+            outgoingDataBuffer.CopyTo(temporaryBuffer);
+            int sentBytes = connection.Send(temporaryBuffer);
+            BufferPool.Return(temporaryBuffer);
+
+            return sentBytes;
         }
 
-        public int SendBytesTo(Memory<byte> outgoingDataBuffer, EndPoint remoteEndPoint)
+        public ValueTask<TransmissionResult> SendBytesTo(Memory<byte> outgoingDataBuffer, EndPoint remoteEndPoint, SocketFlags flags = SocketFlags.None)
         {
-            return connection.SendTo(outgoingDataBuffer.ToArray(), remoteEndPoint);
+            return SocketAsyncOperations.SendToAsync(Args, connection, remoteEndPoint, flags, outgoingDataBuffer);
         }
 
-        public int ReceiveBytes(Memory<byte> incomingDataBuffer)
+        public int ReceiveBytes(Memory<byte> incomingDataBuffer, SocketFlags flags = SocketFlags.None)
         {
-            byte[] temporaryBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] temporaryBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
             int receivedBytes = connection.Receive(temporaryBuffer);
             temporaryBuffer.CopyTo(incomingDataBuffer);
+            BufferPool.Return(temporaryBuffer);
 
             return receivedBytes;
         }
 
-        public int ReceiveBytesFrom(Memory<byte> incomingDataBuffer, ref EndPoint remoteEndPoint)
+        public ValueTask<TransmissionResult> ReceiveBytesFrom(Memory<byte> incomingDataBuffer, ref EndPoint remoteEndPoint, SocketFlags flags = SocketFlags.None)
         {
-            byte[] temporaryBuffer = new byte[NetworkPacket.TotalSize];
-            int receivedBytes = connection.ReceiveFrom(temporaryBuffer, ref remoteEndPoint);
-            temporaryBuffer.CopyTo(incomingDataBuffer);
-
-            return receivedBytes;
+            return SocketAsyncOperations.ReceiveFromAsync(Args, connection, remoteEndPoint, flags, incomingDataBuffer);
         }
     }
 }
