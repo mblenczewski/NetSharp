@@ -19,5 +19,30 @@ namespace NetSharp.Sockets.Stream
         {
             connection.Disconnect(true);
         }
+
+        protected override SocketAsyncEventArgs CreateTransmissionArgs()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -13,12 +13,24 @@ namespace NetSharp.Utils
         /// Initialises a new instance of the <see cref="TransmissionResult"/> struct.
         /// </summary>
         /// <param name="args">The socket arguments associated with the transmission.</param>
-        internal TransmissionResult(SocketAsyncEventArgs args)
+        internal TransmissionResult(in SocketAsyncEventArgs args)
         {
-            TransmissionArgs = args;
             Buffer = args.MemoryBuffer;
             Count = args.BytesTransferred;
             RemoteEndPoint = args.RemoteEndPoint;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="TransmissionResult"/> struct.
+        /// </summary>
+        /// <param name="buffer">The buffer associated with the transmission.</param>
+        /// <param name="count">The number of bytes written to or read from the buffer.</param>
+        /// <param name="remoteEndPoint">The remote end point associated with the transmission.</param>
+        internal TransmissionResult(in byte[] buffer, in int count, in EndPoint remoteEndPoint)
+        {
+            Buffer = buffer;
+            Count = count;
+            RemoteEndPoint = remoteEndPoint;
         }
 
         /// <summary>
@@ -35,10 +47,5 @@ namespace NetSharp.Utils
         /// The remote endpoint to which the buffer was transmitted.
         /// </summary>
         public readonly EndPoint RemoteEndPoint;
-
-        /// <summary>
-        /// Socket arguments and other data associated with the transmission.
-        /// </summary>
-        public readonly SocketAsyncEventArgs TransmissionArgs;
     }
 }

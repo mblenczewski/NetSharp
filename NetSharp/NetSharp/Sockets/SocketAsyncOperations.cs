@@ -101,7 +101,7 @@ namespace NetSharp.Sockets
                         }
                         else if (args.BytesTransferred > 0)
                         {
-                            TransmissionResult result = new TransmissionResult(args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
                             asyncReceiveToken.CompletionSource.SetResult(result);
                         }
@@ -130,7 +130,7 @@ namespace NetSharp.Sockets
                         }
                         else
                         {
-                            TransmissionResult result = new TransmissionResult(args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
                             asyncReceiveFromToken.CompletionSource.SetResult(result);
                         }
@@ -154,7 +154,7 @@ namespace NetSharp.Sockets
                         }
                         else
                         {
-                            TransmissionResult result = new TransmissionResult(args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
                             asyncSendToken.CompletionSource.SetResult(result);
                         }
@@ -178,7 +178,7 @@ namespace NetSharp.Sockets
                         }
                         else
                         {
-                            TransmissionResult result = new TransmissionResult(args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
                             asyncSendToToken.CompletionSource.SetResult(result);
                         }
@@ -245,7 +245,7 @@ namespace NetSharp.Sockets
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveAsync(socketArgs)) return new ValueTask<TransmissionResult>(tcs.Task);
 
-            TransmissionResult result = new TransmissionResult(socketArgs);
+            TransmissionResult result = new TransmissionResult(in socketArgs);
 
             return new ValueTask<TransmissionResult>(result);
         }
@@ -263,7 +263,7 @@ namespace NetSharp.Sockets
             // if the receive operation doesn't complete synchronously, returns the awaitable task
             if (socket.ReceiveFromAsync(socketArgs)) return new ValueTask<TransmissionResult>(tcs.Task);
 
-            TransmissionResult result = new TransmissionResult(socketArgs);
+            TransmissionResult result = new TransmissionResult(in socketArgs);
 
             return new ValueTask<TransmissionResult>(result);
         }
@@ -281,7 +281,7 @@ namespace NetSharp.Sockets
             // if the send operation doesn't complete synchronously, return the awaitable task
             if (socket.SendAsync(socketArgs)) return new ValueTask<TransmissionResult>(tcs.Task);
 
-            TransmissionResult result = new TransmissionResult(socketArgs);
+            TransmissionResult result = new TransmissionResult(in socketArgs);
 
             return new ValueTask<TransmissionResult>(result);
         }
@@ -299,7 +299,7 @@ namespace NetSharp.Sockets
             // if the send operation doesn't complete synchronously, return the awaitable task
             if (socket.SendToAsync(socketArgs)) return new ValueTask<TransmissionResult>(tcs.Task);
 
-            TransmissionResult result = new TransmissionResult(socketArgs);
+            TransmissionResult result = new TransmissionResult(in socketArgs);
 
             return new ValueTask<TransmissionResult>(result);
         }

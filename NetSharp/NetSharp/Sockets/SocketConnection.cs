@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using NetSharp.Packets;
+using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
@@ -8,10 +11,28 @@ namespace NetSharp.Sockets
     {
         protected readonly Socket connection;
 
+        protected readonly ArrayPool<byte> BufferPool;
+
+        protected readonly SlimObjectPool<SocketAsyncEventArgs> TransmissionArgsPool;
+
         protected SocketConnection(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
         {
             connection = new Socket(connectionAddressFamily, connectionSocketType, connectionProtocolType);
+
+            BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 1000);
+
+            TransmissionArgsPool = new SlimObjectPool<SocketAsyncEventArgs>(CreateTransmissionArgs, ResetTransmissionArgs, DestroyTransmissionArgs, CanTransmissionArgsBeReused);
         }
+
+        protected abstract SocketAsyncEventArgs CreateTransmissionArgs();
+
+        protected abstract void ResetTransmissionArgs(SocketAsyncEventArgs args);
+
+        protected abstract bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args);
+
+        protected abstract void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs);
+
+        protected abstract void HandleIoCompleted(object sender, SocketAsyncEventArgs args);
 
         public void Bind(in EndPoint localEndPoint)
         {

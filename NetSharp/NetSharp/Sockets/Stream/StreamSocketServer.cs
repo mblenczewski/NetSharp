@@ -11,6 +11,23 @@ using NetSharp.Utils;
 
 namespace NetSharp.Sockets.Stream
 {
+    public readonly struct StreamSocketServerOptions
+    {
+        public static readonly StreamSocketServerOptions Defaults =
+            new StreamSocketServerOptions(NetworkPacket.TotalSize, 8);
+
+        public readonly int PacketSize;
+
+        public readonly int ConcurrentReceiveCalls;
+
+        public StreamSocketServerOptions(int packetSize, int concurrentReceiveCalls)
+        {
+            PacketSize = packetSize;
+
+            ConcurrentReceiveCalls = concurrentReceiveCalls;
+        }
+    }
+
     public class StreamSocketServer : SocketServer
     {
         private readonly ConcurrentDictionary<EndPoint, RemoteStreamClientToken> connectedClientTokens;
@@ -31,22 +48,37 @@ namespace NetSharp.Sockets.Stream
             }
         }
 
-        public StreamSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType)
-            : base(in connectionAddressFamily, SocketType.Stream, in connectionProtocolType)
+        public readonly StreamSocketServerOptions ServerOptions;
+
+        public StreamSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
+            in StreamSocketServerOptions serverOptions = default) : base(in connectionAddressFamily, SocketType.Stream,
+            in connectionProtocolType)
         {
             connectedClientTokens = new ConcurrentDictionary<EndPoint, RemoteStreamClientToken>();
+
+            ServerOptions = serverOptions.Equals(default) ? StreamSocketServerOptions.Defaults : serverOptions;
         }
 
-        protected override SocketAsyncEventArgs GenerateConnectionArgs(EndPoint remoteEndPoint)
+        protected override SocketAsyncEventArgs CreateTransmissionArgs()
         {
-            SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs { RemoteEndPoint = remoteEndPoint };
+            SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs();
 
-            connectionArgs.Completed += SocketAsyncOperations.HandleIoCompleted;
+            connectionArgs.Completed += HandleIoCompleted;
 
             return connectionArgs;
         }
 
-        protected override void DestroyConnectionArgs(SocketAsyncEventArgs remoteConnectionArgs)
+        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
+        {
+
+        }
+
+        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        {
+            return false;
+        }
+
+        protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
         {
             remoteConnectionArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
             remoteConnectionArgs.AcceptSocket.Close();
@@ -56,7 +88,12 @@ namespace NetSharp.Sockets.Stream
             remoteConnectionArgs.Dispose();
         }
 
-        protected override async Task HandleClient(SocketAsyncEventArgs clientArgs, CancellationToken cancellationToken = default)
+        protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected async Task HandleClient(SocketAsyncEventArgs clientArgs, CancellationToken cancellationToken = default)
         {
             EndPoint clientEndPoint = clientArgs.AcceptSocket.RemoteEndPoint;
             RemoteStreamClientToken clientToken = connectedClientTokens[clientEndPoint];
@@ -119,7 +156,7 @@ namespace NetSharp.Sockets.Stream
             }
             finally
             {
-                DestroyConnectionArgs(clientArgs);
+                TransmissionArgsPool.Return(clientArgs);
             }
         }
 
@@ -131,7 +168,7 @@ namespace NetSharp.Sockets.Stream
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                SocketAsyncEventArgs clientArgs = GenerateConnectionArgs(remoteEndPoint);
+                SocketAsyncEventArgs clientArgs = TransmissionArgsPool.Rent();
 
                 await SocketAsyncOperations.AcceptAsync(clientArgs, connection, cancellationToken);
 

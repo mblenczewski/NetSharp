@@ -11,15 +11,11 @@ namespace NetSharp.Sockets
 {
     public abstract class SocketClient : SocketConnection
     {
-        protected readonly ArrayPool<byte> BufferPool;
-
         protected readonly SocketAsyncEventArgs Args;
 
         protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
             : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
-            BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 10);
-
             Args = new SocketAsyncEventArgs();
             Args.Completed += SocketAsyncOperations.HandleIoCompleted;
         }
@@ -34,11 +30,6 @@ namespace NetSharp.Sockets
             return sentBytes;
         }
 
-        public ValueTask<TransmissionResult> SendBytesTo(Memory<byte> outgoingDataBuffer, EndPoint remoteEndPoint, SocketFlags flags = SocketFlags.None)
-        {
-            return SocketAsyncOperations.SendToAsync(Args, connection, remoteEndPoint, flags, outgoingDataBuffer);
-        }
-
         public int ReceiveBytes(Memory<byte> incomingDataBuffer, SocketFlags flags = SocketFlags.None)
         {
             byte[] temporaryBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
@@ -47,11 +38,6 @@ namespace NetSharp.Sockets
             BufferPool.Return(temporaryBuffer);
 
             return receivedBytes;
-        }
-
-        public ValueTask<TransmissionResult> ReceiveBytesFrom(Memory<byte> incomingDataBuffer, ref EndPoint remoteEndPoint, SocketFlags flags = SocketFlags.None)
-        {
-            return SocketAsyncOperations.ReceiveFromAsync(Args, connection, remoteEndPoint, flags, incomingDataBuffer);
         }
     }
 }
