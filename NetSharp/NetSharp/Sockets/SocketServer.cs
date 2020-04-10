@@ -16,14 +16,14 @@ namespace NetSharp.Sockets
 
         protected readonly ArrayPool<byte> BufferPool;
 
-        protected readonly ObjectPool<SocketAsyncEventArgs> SocketArgsPool;
+        protected readonly ObjectPool<SocketAsyncEventArgs> TransmissionArgsPool;
 
         protected SocketServer(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
             : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
-            BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 10);
+            BufferPool = ArrayPool<byte>.Create(NetworkPacket.TotalSize, 100);
 
-            SocketArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new PooledSocketAsyncEventArgsPolicy());
+            TransmissionArgsPool = new DefaultObjectPool<SocketAsyncEventArgs>(new PooledSocketAsyncEventArgsPolicy());
 
             ConnectedClientHandlerTasks = new ConcurrentDictionary<EndPoint, Task>();
         }

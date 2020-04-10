@@ -23,15 +23,19 @@ namespace NetSharpExamples
     {
         private const int NetworkTimeout = 1_000_000;
         private const int ServerPort = 12374;
-        private static readonly IPAddress ServerAddress = IPAddress.Parse("192.168.0.15");
+        private static readonly IPAddress ServerAddress = IPAddress.Parse("192.168.0.10");
         private static readonly EndPoint ServerEndPoint = new IPEndPoint(ServerAddress, ServerPort);
 
         private static async Task Main()
         {
             Console.WriteLine("Hello World!");
 
-            await Task.Factory.StartNew(TestSocketServer);
-            await Task.Factory.StartNew(TestSocketClient).Result;
+            Console.WriteLine("Starting socket server test...");
+            Task serverTest = TestSocketServer();
+
+            Console.WriteLine("Starting socket client test...");
+            Task clientTest = TestSocketClient();
+            await clientTest;
 
             Console.ReadLine();
         }
@@ -40,7 +44,7 @@ namespace NetSharpExamples
 
         private static async Task TestSocketClient()
         {
-            const int clientCount = 16;
+            const int clientCount = 20;
             const long packetsToSend = 100_000;
 
             Task[] clientTasks = new Task[clientCount];
@@ -220,15 +224,23 @@ namespace NetSharpExamples
 
         private static async Task TestSocketServer()
         {
+            try
+            {
 #if TCP
-            using SocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp);
+                using SocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp);
 #else
-            using SocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp);
+                using SocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp);
 #endif
 
-            server.Bind(in ServerEndPoint);
+                server.Bind(in ServerEndPoint);
 
-            await server.RunAsync();
+                await server.RunAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw;
+            }
         }
 
 #endregion Socket Tests
