@@ -1,6 +1,7 @@
 ﻿#define TCP
 //#undef TCP
 
+using NetSharp.Packets;
 using NetSharp.Sockets.Datagram;
 using NetSharp.Sockets.Stream;
 using NetSharp.Utils;
@@ -13,9 +14,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-
-using NetworkPacket = NetSharp.Packets.NetworkPacket;
-using SocketServer = NetSharp.Sockets.SocketServer;
 
 namespace NetSharpExamples
 {
@@ -229,9 +227,9 @@ namespace NetSharpExamples
             try
             {
 #if TCP
-                using SocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp);
+                using StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp);
 #else
-                using SocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp);
+                using DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp);
 #endif
 
                 server.Bind(in ServerEndPoint);

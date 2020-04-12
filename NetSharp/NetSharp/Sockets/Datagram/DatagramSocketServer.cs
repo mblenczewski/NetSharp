@@ -1,4 +1,5 @@
-﻿using NetSharp.Utils;
+﻿using NetSharp.Packets;
+using NetSharp.Utils;
 
 using System;
 using System.Net;
@@ -6,15 +7,13 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NetworkPacket = NetSharp.Packets.NetworkPacket;
-
 namespace NetSharp.Sockets.Datagram
 {
     //TODO document
     public readonly struct DatagramSocketServerOptions
     {
         public static readonly DatagramSocketServerOptions Defaults =
-            new DatagramSocketServerOptions(NetworkPacket.TotalSize, 8);
+            new DatagramSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount);
 
         public readonly int PacketSize;
 
@@ -28,7 +27,6 @@ namespace NetSharp.Sockets.Datagram
         }
     }
 
-    //TODO fix memory leak issue
     //TODO address the need to handle series of network packets, not just single packets
     //TODO allow for the server to do more than just echo packets
     //TODO document class
@@ -36,13 +34,13 @@ namespace NetSharp.Sockets.Datagram
     {
         private static readonly EndPoint AnyRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-        public readonly DatagramSocketServerOptions ServerOptions;
+        private readonly DatagramSocketServerOptions serverOptions;
 
         public DatagramSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
             in DatagramSocketServerOptions? serverOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
-            in connectionProtocolType)
+            in connectionProtocolType, serverOptions?.PacketSize ?? DatagramSocketServerOptions.Defaults.PacketSize)
         {
-            ServerOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
+            this.serverOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
         }
 
         private readonly struct SocketOperationToken
@@ -55,6 +53,7 @@ namespace NetSharp.Sockets.Datagram
             }
         }
 
+        /// <inheritdoc />
         protected override SocketAsyncEventArgs CreateTransmissionArgs()
         {
             SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs();
@@ -64,15 +63,18 @@ namespace NetSharp.Sockets.Datagram
             return connectionArgs;
         }
 
+        /// <inheritdoc />
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
         }
 
+        /// <inheritdoc />
         protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
         {
             return true;
         }
 
+        /// <inheritdoc />
         protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
         {
             remoteConnectionArgs.Completed -= HandleIoCompleted;
@@ -80,6 +82,7 @@ namespace NetSharp.Sockets.Datagram
             remoteConnectionArgs.Dispose();
         }
 
+        /// <inheritdoc />
         protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
         {
             switch (args.LastOperation)
@@ -110,17 +113,16 @@ namespace NetSharp.Sockets.Datagram
             receiveArgs.SetBuffer(receiveBufferMemory);
             receiveArgs.UserToken = new SocketOperationToken(in receiveBuffer);
 
-            bool operationPending = connection.ReceiveFromAsync(receiveArgs);
+            bool operationPending = Connection.ReceiveFromAsync(receiveArgs);
 
-            if (!operationPending)
-            {
-                SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
-                newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
+            if (operationPending) return;
 
-                ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
+            SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+            newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
 
-                CompleteReceiveFrom(receiveArgs);
-            }
+            ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
+
+            CompleteReceiveFrom(receiveArgs);
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs receiveArgs)
@@ -157,7 +159,7 @@ namespace NetSharp.Sockets.Datagram
 
         private void SendTo(SocketAsyncEventArgs sendArgs)
         {
-            bool operationPending = connection.SendToAsync(sendArgs);
+            bool operationPending = Connection.SendToAsync(sendArgs);
 
             if (!operationPending)
             {
@@ -184,6 +186,12 @@ namespace NetSharp.Sockets.Datagram
             TransmissionArgsPool.Return(sendArgs);
         }
 
+        public ref readonly DatagramSocketServerOptions ServerOptions
+        {
+            get { return ref serverOptions; }
+        }
+
+        /// <inheritdoc />
         public override Task RunAsync(CancellationToken cancellationToken = default)
         {
             for (int i = 0; i < ServerOptions.ConcurrentReceiveFromCalls; i++)

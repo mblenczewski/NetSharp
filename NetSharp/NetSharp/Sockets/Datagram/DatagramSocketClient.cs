@@ -1,4 +1,5 @@
-﻿using NetSharp.Utils;
+﻿using NetSharp.Packets;
+using NetSharp.Utils;
 
 using System;
 using System.Net;
@@ -8,16 +9,31 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Sockets.Datagram
 {
-    //TODO fix memory leak issue
+    //TODO document
+    public readonly struct DatagramSocketClientOptions
+    {
+        public static readonly DatagramSocketClientOptions Defaults =
+            new DatagramSocketClientOptions(NetworkPacket.TotalSize);
+
+        public readonly int PacketSize;
+
+        public DatagramSocketClientOptions(int packetSize)
+        {
+            PacketSize = packetSize;
+        }
+    }
+
     //TODO address the need to handle series of network packets, not just single packets
     //TODO document class
     public sealed class DatagramSocketClient : SocketClient
     {
-        public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType)
-            : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType)
+        public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
+            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
+            in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize)
         {
         }
 
+        /// <inheritdoc />
         protected override SocketAsyncEventArgs CreateTransmissionArgs()
         {
             SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs();
@@ -27,15 +43,18 @@ namespace NetSharp.Sockets.Datagram
             return connectionArgs;
         }
 
+        /// <inheritdoc />
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
         }
 
+        /// <inheritdoc />
         protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
         {
             return true;
         }
 
+        /// <inheritdoc />
         protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
         {
             remoteConnectionArgs.Completed -= HandleIoCompleted;
@@ -43,6 +62,7 @@ namespace NetSharp.Sockets.Datagram
             remoteConnectionArgs.Dispose();
         }
 
+        /// <inheritdoc />
         protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
         {
             switch (args.LastOperation)
@@ -118,7 +138,7 @@ namespace NetSharp.Sockets.Datagram
 
         public TransmissionResult ReceiveFrom(ref EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)
         {
-            int receivedBytes = connection.ReceiveFrom(receiveBuffer, flags, ref remoteEndPoint);
+            int receivedBytes = Connection.ReceiveFrom(receiveBuffer, flags, ref remoteEndPoint);
 
             return new TransmissionResult(in receiveBuffer, in receivedBytes, in remoteEndPoint);
         }
@@ -136,7 +156,7 @@ namespace NetSharp.Sockets.Datagram
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
-            if (connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
 
@@ -147,7 +167,7 @@ namespace NetSharp.Sockets.Datagram
 
         public TransmissionResult SendTo(EndPoint remoteEndPoint, byte[] sendBuffer, SocketFlags flags = SocketFlags.None)
         {
-            int sentBytes = connection.SendTo(sendBuffer, flags, remoteEndPoint);
+            int sentBytes = Connection.SendTo(sendBuffer, flags, remoteEndPoint);
 
             return new TransmissionResult(in sendBuffer, in sentBytes, in remoteEndPoint);
         }
@@ -165,7 +185,7 @@ namespace NetSharp.Sockets.Datagram
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
-            if (connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
 
