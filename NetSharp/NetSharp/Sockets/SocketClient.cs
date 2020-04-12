@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using NetSharp.Utils;
+
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {
@@ -39,6 +40,21 @@ namespace NetSharp.Sockets
             }
         }
 
+        //TODO document
+        protected readonly struct AsyncCancellationToken
+        {
+            public readonly Socket Socket;
+
+            public readonly SocketAsyncEventArgs TransmissionArgs;
+
+            public AsyncCancellationToken(in Socket socket, in SocketAsyncEventArgs args)
+            {
+                Socket = socket;
+
+                TransmissionArgs = args;
+            }
+        }
+
         protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType)
             : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType)
         {
@@ -57,6 +73,13 @@ namespace NetSharp.Sockets
 
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+
+            cancellationToken.Register(token =>
+            {
+                AsyncCancellationToken cancellationArgs = (AsyncCancellationToken)token;
+
+                Socket.CancelConnectAsync(cancellationArgs.TransmissionArgs);
+            }, new AsyncCancellationToken(in connection, in args));
 
             if (connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
 

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using NetSharp.Packets;
+﻿using NetSharp.Packets;
 using NetSharp.Utils;
+
+using System;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace NetSharp.Sockets.Stream
 {
@@ -48,6 +45,8 @@ namespace NetSharp.Sockets.Stream
 
             public void Dispose()
             {
+                ClientSocket.Shutdown(SocketShutdown.Both);
+                ClientSocket.Close();
                 ClientSocket.Dispose();
             }
         }
@@ -72,7 +71,6 @@ namespace NetSharp.Sockets.Stream
 
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
-
         }
 
         protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
@@ -82,10 +80,7 @@ namespace NetSharp.Sockets.Stream
 
         protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
         {
-            remoteConnectionArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
-            remoteConnectionArgs.AcceptSocket.Close();
-
-            remoteConnectionArgs.Completed -= SocketAsyncOperations.HandleIoCompleted;
+            remoteConnectionArgs.Completed -= HandleIoCompleted;
 
             remoteConnectionArgs.Dispose();
         }
@@ -132,7 +127,7 @@ namespace NetSharp.Sockets.Stream
         private void CompleteAccept(SocketAsyncEventArgs connectedClientArgs)
         {
             Socket clientSocket = connectedClientArgs.AcceptSocket;
-            
+
             RemoteStreamClientToken clientToken = new RemoteStreamClientToken(in clientSocket);
 
             connectedClientArgs.UserToken = clientToken;
@@ -142,7 +137,7 @@ namespace NetSharp.Sockets.Stream
 
         private void Receive(SocketAsyncEventArgs clientArgs)
         {
-            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
 
             byte[] requestBuffer = BufferPool.Rent(ServerOptions.PacketSize);
             Memory<byte> requestBufferMemory = new Memory<byte>(requestBuffer);
@@ -160,7 +155,7 @@ namespace NetSharp.Sockets.Stream
 
         private void CompleteReceive(SocketAsyncEventArgs clientArgs)
         {
-            RemoteStreamClientToken receiveToken = (RemoteStreamClientToken) clientArgs.UserToken;
+            RemoteStreamClientToken receiveToken = (RemoteStreamClientToken)clientArgs.UserToken;
 
             if (clientArgs.SocketError == SocketError.Success)
             {
@@ -184,7 +179,6 @@ namespace NetSharp.Sockets.Stream
                     clientArgs.SetBuffer(responseBuffer, 0, ServerOptions.PacketSize);
 
                     Send(clientArgs);
-
                 }
                 else if (ServerOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
                 {
@@ -211,7 +205,7 @@ namespace NetSharp.Sockets.Stream
 
         private void Send(SocketAsyncEventArgs clientArgs)
         {
-            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
 
             bool operationPending = clientToken.ClientSocket.SendAsync(clientArgs);
 
@@ -223,7 +217,7 @@ namespace NetSharp.Sockets.Stream
 
         private void CompleteSend(SocketAsyncEventArgs clientArgs)
         {
-            RemoteStreamClientToken sendToken = (RemoteStreamClientToken) clientArgs.UserToken;
+            RemoteStreamClientToken sendToken = (RemoteStreamClientToken)clientArgs.UserToken;
 
             if (clientArgs.SocketError == SocketError.Success)
             {
@@ -262,22 +256,10 @@ namespace NetSharp.Sockets.Stream
 
         private void CloseClientSocket(SocketAsyncEventArgs clientArgs)
         {
-            RemoteStreamClientToken clientToken = (RemoteStreamClientToken) clientArgs.UserToken;
-
-            try
-            {
-                clientToken.ClientSocket.Shutdown(SocketShutdown.Both);
-            }
-            catch (SocketException ex)
-            {
-                Console.WriteLine(ex);
-            }
-
-            clientToken.ClientSocket.Close();
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
+            clientToken.Dispose();
 
             TransmissionArgsPool.Return(clientArgs);
-
-            clientToken.Dispose();
         }
 
         public override async Task RunAsync(CancellationToken cancellationToken = default)
@@ -287,11 +269,11 @@ namespace NetSharp.Sockets.Stream
             for (int i = 0; i < ServerOptions.ConcurrentAcceptCalls; i++)
             {
                 SocketAsyncEventArgs acceptArgs = TransmissionArgsPool.Rent();
-                
+
                 Accept(acceptArgs);
             }
 
-            await cancellationToken.WaitHandle.WaitOneAsync();
+            await cancellationToken.WaitHandle.WaitOneAsync(CancellationToken.None);
         }
     }
 }

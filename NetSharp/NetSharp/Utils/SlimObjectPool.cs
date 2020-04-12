@@ -2,6 +2,7 @@
 
 namespace NetSharp.Utils
 {
+    //TODO document
     public class SlimObjectPool<T> where T : class
     {
         public delegate T CreateObjectDelegate();
@@ -19,7 +20,8 @@ namespace NetSharp.Utils
 
         private readonly ConcurrentQueue<T> objectBuffer;
 
-        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate, in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate)
+        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
+            in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate)
         {
             createObjectDelegate = createDelegate;
 

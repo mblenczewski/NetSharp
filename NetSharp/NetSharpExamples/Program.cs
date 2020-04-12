@@ -1,8 +1,9 @@
 ﻿#define TCP
-#undef TCP
+//#undef TCP
 
 using NetSharp.Sockets.Datagram;
 using NetSharp.Sockets.Stream;
+using NetSharp.Utils;
 
 using System;
 using System.Collections.Generic;
@@ -11,9 +12,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Utils;
+
 using NetworkPacket = NetSharp.Packets.NetworkPacket;
 using SocketServer = NetSharp.Sockets.SocketServer;
 
@@ -30,6 +30,7 @@ namespace NetSharpExamples
         {
             Console.WriteLine("Hello World!");
 
+
             Console.WriteLine("Starting socket server test...");
             Task serverTest = TestSocketServer();
 
@@ -44,7 +45,7 @@ namespace NetSharpExamples
 
         private static async Task TestSocketClient()
         {
-            const int clientCount = 16;
+            const int clientCount = 4;
             const long packetsToSend = 100_000;
 
             Task[] clientTasks = new Task[clientCount];
@@ -185,7 +186,7 @@ namespace NetSharpExamples
                     {
                         Console.WriteLine($"[Client {id}] Sent {packetsToSend} packets to {ServerEndPoint} in {millis} milliseconds");
                         Console.WriteLine($"[Client {id}] Approximate bandwidth: {bandwidth:F3} MBps");
-                        
+
                         Console.WriteLine($"[Client {id}] Min RTT: {minRttTicks} ticks, {minRttMs} ms");
                         Console.WriteLine($"[Client {id}] Max RTT: {maxRttTicks} ticks, {maxRttMs} ms");
 
@@ -244,6 +245,6 @@ namespace NetSharpExamples
             }
         }
 
-#endregion Socket Tests
+        #endregion Socket Tests
     }
 }

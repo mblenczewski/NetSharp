@@ -15,69 +15,62 @@
             Thrown when the given <paramref name="packetDataBuffer"/> exceeds <see cref="F:NetSharp.Packets.NetworkPacket.TotalSize"/> bytes in size.
             </exception>
         </member>
-        <member name="M:NetSharp.Sockets.SocketAsyncOperations.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed"/> event.
-            </summary>
-            <param name="sender">The object on which the event is raised.</param>
-            <param name="args">The event arguments.</param>
-        </member>
-        <member name="T:NetSharp.Deprecated.BiDictionary`2">
+        <member name="T:NetSharp.Utils.BiDictionary`2">
             <summary>
             Represents a concurrent two-way dictionary, that can be indexed by either a key or a value.
             </summary>
             <typeparam name="K">The type of key that will be stored.</typeparam>
             <typeparam name="V">The type of value that will be stored.</typeparam>
         </member>
-        <member name="F:NetSharp.Deprecated.BiDictionary`2.keyToValueMap">
+        <member name="F:NetSharp.Utils.BiDictionary`2.keyToValueMap">
             <summary>
             Maps keys to their corresponding values.
             </summary>
         </member>
-        <member name="F:NetSharp.Deprecated.BiDictionary`2.valueToKeyMap">
+        <member name="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap">
             <summary>
             Maps values to their corresponding keys.
             </summary>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.#ctor">
+        <member name="M:NetSharp.Utils.BiDictionary`2.#ctor">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Deprecated.BiDictionary`2"/> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.BiDictionary`2"/> class.
             </summary>
         </member>
-        <member name="P:NetSharp.Deprecated.BiDictionary`2.Item(`1)">
+        <member name="P:NetSharp.Utils.BiDictionary`2.Item(`1)">
             <summary>
             Indexes this instance with the given value.
             </summary>
             <param name="index">The value whose key to get or set.</param>
             <returns>The fetched key.</returns>
         </member>
-        <member name="P:NetSharp.Deprecated.BiDictionary`2.Item(`0)">
+        <member name="P:NetSharp.Utils.BiDictionary`2.Item(`0)">
             <summary>
             Indexes this instance with the given key.
             </summary>
             <param name="index">The key whose value to get or set.</param>
             <returns>The fetched value.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.Clear">
+        <member name="M:NetSharp.Utils.BiDictionary`2.Clear">
             <summary>
-            Clears this instance's <see cref="F:NetSharp.Deprecated.BiDictionary`2.keyToValueMap"/> and <see cref="F:NetSharp.Deprecated.BiDictionary`2.valueToKeyMap"/>.
+            Clears this instance's <see cref="F:NetSharp.Utils.BiDictionary`2.keyToValueMap"/> and <see cref="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap"/>.
             </summary>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.ContainsKey(`0@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.ContainsKey(`0@)">
             <summary>
             Whether this instance contains the given key.
             </summary>
             <param name="key">The key to check.</param>
             <returns>Whether the given key was found.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.ContainsValue(`1@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.ContainsValue(`1@)">
             <summary>
             Whether this instance contains the given value.
             </summary>
             <param name="value">The value to check.</param>
             <returns>Whether the given value was found.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.SetOrUpdateKey(`1,`0)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.SetOrUpdateKey(`1,`0)">
             <summary>
             Attempts to set the key associated with the given value.
             </summary>
@@ -85,7 +78,7 @@
             <param name="key">The new value for the value's associated key.</param>
             <returns>Whether the new key was correctly set.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.SetOrUpdateValue(`0,`1)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.SetOrUpdateValue(`0,`1)">
             <summary>
             Attempts to set the value associated with the given key.
             </summary>
@@ -93,7 +86,7 @@
             <param name="value">The new value for the  key's associated value.</param>
             <returns>Whether the new value was correctly set.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryClearKey(`1@,`0@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TryClearKey(`1@,`0@)">
             <summary>
             Attempts to remove the key associated with the given value.
             </summary>
@@ -101,7 +94,7 @@
             <param name="key">The old key value.</param>
             <returns>Whether the given value had a valid key associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryClearValue(`0@,`1@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TryClearValue(`0@,`1@)">
             <summary>
             Attempts to remove the value associated with the given key.
             </summary>
@@ -109,7 +102,7 @@
             <param name="value">The old value.</param>
             <returns>Whether the given key had a valid valid associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryGetKey(`1@,`0@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TryGetKey(`1@,`0@)">
             <summary>
             Attempts to get the key associated with the given value.
             </summary>
@@ -117,7 +110,7 @@
             <param name="key">The returned key.</param>
             <returns>Whether the given value has a valid key associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TryGetValue(`0@,`1@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TryGetValue(`0@,`1@)">
             <summary>
             Attempts to get the value associated with the given key.
             </summary>
@@ -125,7 +118,7 @@
             <param name="value">The returned value.</param>
             <returns>Whether the given key as a valid value associated with it.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TrySetKey(`1@,`0@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TrySetKey(`1@,`0@)">
             <summary>
             Attempts to set the key associated with the given value.
             </summary>
@@ -133,7 +126,7 @@
             <param name="key">The key which should be set for the given value.</param>
             <returns>Whether the given value was successfully set.</returns>
         </member>
-        <member name="M:NetSharp.Deprecated.BiDictionary`2.TrySetValue(`0@,`1@)">
+        <member name="M:NetSharp.Utils.BiDictionary`2.TrySetValue(`0@,`1@)">
             <summary>
             Attempts to set the value associated with the given key.
             </summary>
@@ -141,74 +134,74 @@
             <param name="value">The value which should be set for the given key.</param>
             <returns>Whether the given key was successfully set.</returns>
         </member>
-        <member name="T:NetSharp.Deprecated.Conversion.EndianAwareBitConverter">
+        <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
             <summary>
             Wraps the <see cref="T:System.BitConverter"/> class to provide conversion that is endian-aware.
             </summary>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
             <summary>
             Reverses the given bytes if the endian-nes doesn't match.
             </summary>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Boolean)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Char)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Double)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Single)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int64)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int16)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt32)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt64)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt16)"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToBoolean(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToChar(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToDouble(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt16(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt64(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToSingle(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt16(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt32(System.ReadOnlySpan{System.Byte})"/>
         </member>
-        <member name="M:NetSharp.Deprecated.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})"/>
         </member>
         <member name="T:NetSharp.Utils.TransmissionResult">

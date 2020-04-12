@@ -1,9 +1,10 @@
-﻿using System;
+﻿using NetSharp.Packets;
+using NetSharp.Utils;
+
+using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
-using NetSharp.Packets;
-using NetSharp.Utils;
 
 namespace NetSharp.Sockets
 {

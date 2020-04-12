@@ -1,9 +1,9 @@
-﻿using System;
-using System.Net;
+﻿using NetSharp.Utils;
+
+using System;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Utils;
 
 namespace NetSharp.Sockets.Stream
 {
@@ -47,10 +47,12 @@ namespace NetSharp.Sockets.Stream
             switch (args.LastOperation)
             {
                 case SocketAsyncOperation.Connect:
-                    AsyncOperationToken connectToken = (AsyncOperationToken) args.UserToken;
+                    AsyncOperationToken connectToken = (AsyncOperationToken)args.UserToken;
 
                     if (connectToken.CancellationToken.IsCancellationRequested)
                     {
+                        connection.Disconnect(true);
+
                         connectToken.CompletionSource.SetCanceled();
                     }
                     else if (args.SocketError == SocketError.Success)
@@ -67,7 +69,7 @@ namespace NetSharp.Sockets.Stream
                     break;
 
                 case SocketAsyncOperation.Disconnect:
-                    AsyncOperationToken disconnectToken = (AsyncOperationToken) args.UserToken;
+                    AsyncOperationToken disconnectToken = (AsyncOperationToken)args.UserToken;
 
                     if (disconnectToken.CancellationToken.IsCancellationRequested)
                     {
@@ -87,7 +89,7 @@ namespace NetSharp.Sockets.Stream
                     break;
 
                 case SocketAsyncOperation.Receive:
-                    AsyncTransmissionToken receiveToken = (AsyncTransmissionToken) args.UserToken;
+                    AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
 
                     if (receiveToken.CancellationToken.IsCancellationRequested)
                     {
@@ -139,7 +141,7 @@ namespace NetSharp.Sockets.Stream
                     break;
 
                 case SocketAsyncOperation.Send:
-                    AsyncTransmissionToken sendToken = (AsyncTransmissionToken) args.UserToken;
+                    AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
 
                     if (sendToken.CancellationToken.IsCancellationRequested)
                     {

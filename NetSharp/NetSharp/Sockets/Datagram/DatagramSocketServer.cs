@@ -3,7 +3,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -168,7 +167,7 @@ namespace NetSharp.Sockets.Datagram
 
         private void CompleteSendTo(SocketAsyncEventArgs sendArgs)
         {
-            SocketOperationToken sendToken = (SocketOperationToken) sendArgs.UserToken;
+            SocketOperationToken sendToken = (SocketOperationToken)sendArgs.UserToken;
 
             TransmissionResult sendResult = new TransmissionResult(in sendArgs);
 
@@ -195,7 +194,7 @@ namespace NetSharp.Sockets.Datagram
                 ReceiveFrom(newReceiveArgs);
             }
 
-            return cancellationToken.WaitHandle.WaitOneAsync();
+            return cancellationToken.WaitHandle.WaitOneAsync(CancellationToken.None);
         }
     }
 }

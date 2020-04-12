@@ -1,9 +1,10 @@
-﻿using System;
+﻿using NetSharp.Utils;
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Utils;
 
 namespace NetSharp.Sockets.Datagram
 {
@@ -89,8 +90,8 @@ namespace NetSharp.Sockets.Datagram
                     break;
 
                 case SocketAsyncOperation.SendTo:
-                    AsyncTransmissionToken sendToken = (AsyncTransmissionToken) args.UserToken;
-                    
+                    AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
+
                     if (sendToken.CancellationToken.IsCancellationRequested)
                     {
                         sendToken.CompletionSource.SetCanceled();
@@ -167,7 +168,7 @@ namespace NetSharp.Sockets.Datagram
             if (connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
-            
+
             TransmissionArgsPool.Return(args);
 
             return new ValueTask<TransmissionResult>(result);
