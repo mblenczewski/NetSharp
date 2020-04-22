@@ -1,5 +1,4 @@
 ﻿using NetSharp.Packets;
-using NetSharp.Utils;
 
 using System;
 using System.Net.Sockets;
@@ -12,17 +11,21 @@ namespace NetSharp.Sockets.Stream
     public readonly struct StreamSocketServerOptions
     {
         public static readonly StreamSocketServerOptions Defaults =
-            new StreamSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount);
+            new StreamSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 0);
 
         public readonly int PacketSize;
 
         public readonly int ConcurrentAcceptCalls;
 
-        public StreamSocketServerOptions(int packetSize, int concurrentAcceptCalls)
+        public readonly ushort PreallocatedTransmissionArgs;
+
+        public StreamSocketServerOptions(int packetSize, int concurrentAcceptCalls, ushort preallocatedTransmissionArgs)
         {
             PacketSize = packetSize;
 
             ConcurrentAcceptCalls = concurrentAcceptCalls;
+
+            PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
         }
     }
 
@@ -52,9 +55,16 @@ namespace NetSharp.Sockets.Stream
 
         private readonly StreamSocketServerOptions serverOptions;
 
+        /// <summary>
+        /// Constructs a new instance of the <see cref="StreamSocketServer"/> class.
+        /// </summary>
+        /// <param name="serverOptions">Additional options to configure the server.</param>
+        /// <inheritdoc />
         public StreamSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in StreamSocketServerOptions? serverOptions = null) : base(in connectionAddressFamily, SocketType.Stream,
-            in connectionProtocolType, serverOptions?.PacketSize ?? StreamSocketServerOptions.Defaults.PacketSize)
+            in SocketServerPacketHandler packetHandler, in StreamSocketServerOptions? serverOptions = null)
+            : base(in connectionAddressFamily, SocketType.Stream, in connectionProtocolType, in packetHandler,
+            serverOptions?.PacketSize ?? StreamSocketServerOptions.Defaults.PacketSize,
+            serverOptions?.PreallocatedTransmissionArgs ?? StreamSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.serverOptions = serverOptions ?? StreamSocketServerOptions.Defaults;
         }
@@ -168,20 +178,28 @@ namespace NetSharp.Sockets.Stream
 
                     NetworkPacket request = NetworkPacket.Deserialise(receiveToken.RentedBuffer);
 
-                    // TODO implement actual request processing, not just an echo server
-                    NetworkPacket response = request;
+                    NetworkPacket response = PacketHandler(in request, clientArgs.RemoteEndPoint);
 
-                    byte[] responseBuffer = BufferPool.Rent(serverOptions.PacketSize);
-                    Memory<byte> responseBufferMemory = new Memory<byte>(responseBuffer);
+                    if (!response.Equals(NetworkPacket.NullPacket))
+                    {
+                        byte[] responseBuffer = BufferPool.Rent(serverOptions.PacketSize);
+                        Memory<byte> responseBufferMemory = new Memory<byte>(responseBuffer);
 
-                    NetworkPacket.Serialise(response, responseBufferMemory);
+                        NetworkPacket.Serialise(response, responseBufferMemory);
 
-                    BufferPool.Return(receiveToken.RentedBuffer, true); // at this point the request buffer can be returned
+                        BufferPool.Return(receiveToken.RentedBuffer, true); // at this point the request buffer can be returned
 
-                    receiveToken.RentedBuffer = responseBuffer;
-                    clientArgs.SetBuffer(responseBuffer, 0, serverOptions.PacketSize);
+                        receiveToken.RentedBuffer = responseBuffer;
+                        clientArgs.SetBuffer(responseBuffer, 0, serverOptions.PacketSize);
 
-                    Send(clientArgs);
+                        Send(clientArgs);
+                    }
+                    else
+                    {
+                        BufferPool.Return(receiveToken.RentedBuffer, true); // at this point the request buffer can be returned
+
+                        Receive(clientArgs);
+                    }
                 }
                 else if (serverOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
                 {
@@ -271,7 +289,7 @@ namespace NetSharp.Sockets.Stream
         }
 
         /// <inheritdoc />
-        public override async Task RunAsync(CancellationToken cancellationToken = default)
+        public override Task RunAsync(CancellationToken cancellationToken = default)
         {
             Connection.Listen(100);
 
@@ -282,7 +300,9 @@ namespace NetSharp.Sockets.Stream
                 Accept(acceptArgs);
             }
 
-            await cancellationToken.WaitHandle.WaitOneAsync(CancellationToken.None);
+            cancellationToken.WaitHandle.WaitOne();
+
+            return Task.CompletedTask;
         }
     }
 }

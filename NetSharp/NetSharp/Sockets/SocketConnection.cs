@@ -16,7 +16,7 @@ namespace NetSharp.Sockets
         /// <summary>
         /// The underlying <see cref="Socket"/> which provides access to network operations.
         /// </summary>
-        protected readonly Socket Connection;
+        protected Socket Connection;
 
         /// <summary>
         /// Pools arrays to function as temporary buffers during network read/write operations.
@@ -36,8 +36,9 @@ namespace NetSharp.Sockets
         /// <param name="connectionSocketType">The socket type for the underlying socket.</param>
         /// <param name="connectionProtocolType">The protocol type for the underlying socket.</param>
         /// <param name="maxPooledBufferLength">The maximum size of the buffers stored in the <see cref="BufferPool"/>.</param>
+        /// <param name="preallocatedTransmissionArgs"> The number of <see cref="SocketAsyncEventArgs"/> objects to initially preallocate.</param>
         protected internal SocketConnection(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType,
-            in ProtocolType connectionProtocolType, in int maxPooledBufferLength)
+            in ProtocolType connectionProtocolType, in int maxPooledBufferLength, in ushort preallocatedTransmissionArgs)
         {
             Connection = new Socket(connectionAddressFamily, connectionSocketType, connectionProtocolType);
 
@@ -45,6 +46,13 @@ namespace NetSharp.Sockets
 
             TransmissionArgsPool = new SlimObjectPool<SocketAsyncEventArgs>(CreateTransmissionArgs,
                 ResetTransmissionArgs, DestroyTransmissionArgs, CanTransmissionArgsBeReused);
+
+            for (ushort i = 0; i < preallocatedTransmissionArgs; i++)
+            {
+                SocketAsyncEventArgs args = CreateTransmissionArgs();
+
+                TransmissionArgsPool.Return(args);
+            }
         }
 
         /// <summary>

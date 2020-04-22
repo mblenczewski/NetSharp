@@ -2,8 +2,11 @@
 
 namespace NetSharp.Packets
 {
+    //TODO document
     public readonly struct NetworkPacket
     {
+        public static NetworkPacket NullPacket = new NetworkPacket();
+
         public const int TotalSize = HeaderSize + DataSize + FooterSize;
 
         public const int HeaderSize = NetworkPacketHeader.TotalSize;
@@ -63,33 +66,35 @@ namespace NetSharp.Packets
             Memory<byte> packetFooter = buffer.Slice(HeaderSize + DataSize, FooterSize);
             NetworkPacketFooter.Serialise(instance.Footer, packetFooter);
         }
+    }
 
-        public readonly struct NetworkPacketHeader
+    //TODO document
+    public readonly struct NetworkPacketHeader
+    {
+        public const int TotalSize = 0;
+
+        public static NetworkPacketHeader Deserialise(ReadOnlyMemory<byte> buffer)
         {
-            public const int TotalSize = 0;
-
-            public static NetworkPacketHeader Deserialise(ReadOnlyMemory<byte> buffer)
-            {
-                return new NetworkPacketHeader();
-            }
-
-            public static void Serialise(NetworkPacketHeader instance, Memory<byte> buffer)
-            {
-            }
+            return new NetworkPacketHeader();
         }
 
-        public readonly struct NetworkPacketFooter
+        public static void Serialise(NetworkPacketHeader instance, Memory<byte> buffer)
         {
-            public const int TotalSize = 0;
+        }
+    }
 
-            public static NetworkPacketFooter Deserialise(ReadOnlyMemory<byte> buffer)
-            {
-                return new NetworkPacketFooter();
-            }
+    //TODO document
+    public readonly struct NetworkPacketFooter
+    {
+        public const int TotalSize = 0;
 
-            public static void Serialise(NetworkPacketFooter instance, Memory<byte> buffer)
-            {
-            }
+        public static NetworkPacketFooter Deserialise(ReadOnlyMemory<byte> buffer)
+        {
+            return new NetworkPacketFooter();
+        }
+
+        public static void Serialise(NetworkPacketFooter instance, Memory<byte> buffer)
+        {
         }
     }
 }

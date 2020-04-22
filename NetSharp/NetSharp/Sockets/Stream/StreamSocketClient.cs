@@ -12,13 +12,17 @@ namespace NetSharp.Sockets.Stream
     public readonly struct StreamSocketClientOptions
     {
         public static readonly StreamSocketClientOptions Defaults =
-            new StreamSocketClientOptions(NetworkPacket.TotalSize);
+            new StreamSocketClientOptions(NetworkPacket.TotalSize, 0);
 
         public readonly int PacketSize;
 
-        public StreamSocketClientOptions(int packetSize)
+        public readonly ushort PreallocatedTransmissionArgs;
+
+        public StreamSocketClientOptions(int packetSize, ushort preallocatedTransmissionArgs)
         {
             PacketSize = packetSize;
+
+            PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
         }
     }
 
@@ -26,10 +30,14 @@ namespace NetSharp.Sockets.Stream
     //TODO document class
     public sealed class StreamSocketClient : SocketClient
     {
+        private readonly StreamSocketClientOptions clientOptions;
+
         public StreamSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
             in StreamSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Stream,
-            in connectionProtocolType, clientOptions?.PacketSize ?? StreamSocketClientOptions.Defaults.PacketSize)
+            in connectionProtocolType, clientOptions?.PacketSize ?? StreamSocketClientOptions.Defaults.PacketSize,
+            clientOptions?.PreallocatedTransmissionArgs ?? StreamSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
+            this.clientOptions = clientOptions ?? StreamSocketClientOptions.Defaults;
         }
 
         /// <inheritdoc />
@@ -215,6 +223,11 @@ namespace NetSharp.Sockets.Stream
                 default:
                     throw new NotSupportedException($"{nameof(HandleIoCompleted)} doesn't support {args.LastOperation}");
             }
+        }
+
+        public ref readonly StreamSocketClientOptions ClientOptions
+        {
+            get { return ref clientOptions; }
         }
 
         public void Disconnect(bool allowSocketReuse)

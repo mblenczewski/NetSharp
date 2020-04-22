@@ -13,13 +13,17 @@ namespace NetSharp.Sockets.Datagram
     public readonly struct DatagramSocketClientOptions
     {
         public static readonly DatagramSocketClientOptions Defaults =
-            new DatagramSocketClientOptions(NetworkPacket.TotalSize);
+            new DatagramSocketClientOptions(NetworkPacket.TotalSize, 0);
 
         public readonly int PacketSize;
 
-        public DatagramSocketClientOptions(int packetSize)
+        public readonly ushort PreallocatedTransmissionArgs;
+
+        public DatagramSocketClientOptions(int packetSize, ushort preallocatedTransmissionArgs)
         {
             PacketSize = packetSize;
+
+            PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
         }
     }
 
@@ -27,10 +31,14 @@ namespace NetSharp.Sockets.Datagram
     //TODO document class
     public sealed class DatagramSocketClient : SocketClient
     {
+        private readonly DatagramSocketClientOptions clientOptions;
+
         public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
             in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
-            in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize)
+            in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize,
+            clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
+            this.clientOptions = clientOptions ?? DatagramSocketClientOptions.Defaults;
         }
 
         /// <inheritdoc />
@@ -136,6 +144,11 @@ namespace NetSharp.Sockets.Datagram
             }
         }
 
+        public ref readonly DatagramSocketClientOptions ClientOptions
+        {
+            get { return ref clientOptions; }
+        }
+
         public TransmissionResult ReceiveFrom(ref EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)
         {
             int receivedBytes = Connection.ReceiveFrom(receiveBuffer, flags, ref remoteEndPoint);
@@ -155,6 +168,14 @@ namespace NetSharp.Sockets.Datagram
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+
+            // TODO implement cancellation for client sockets
+            cancellationToken.Register(token =>
+            {
+                AsyncTransmissionCancellationToken transmissionCancellationToken =
+                    (AsyncTransmissionCancellationToken) token;
+
+            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
@@ -184,6 +205,14 @@ namespace NetSharp.Sockets.Datagram
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+
+            // TODO implement cancellation for client sockets
+            cancellationToken.Register(token =>
+            {
+                AsyncTransmissionCancellationToken transmissionCancellationToken =
+                    (AsyncTransmissionCancellationToken)token;
+
+            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 

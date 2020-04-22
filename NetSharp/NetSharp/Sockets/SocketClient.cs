@@ -12,13 +12,26 @@ namespace NetSharp.Sockets
     /// </summary>
     public abstract class SocketClient : SocketConnection
     {
-        //TODO document
+        /// <summary>
+        /// A state token for asynchronous network IO operations.
+        /// </summary>
         protected readonly struct AsyncTransmissionToken
         {
+            /// <summary>
+            /// The completion source which wraps the event-based APM, and provides an awaitable <see cref="Task"/>.
+            /// </summary>
             public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
 
+            /// <summary>
+            /// The <see cref="System.Threading.CancellationToken"/> associated with the network IO operation.
+            /// </summary>
             public readonly CancellationToken CancellationToken;
 
+            /// <summary>
+            /// Constructs a new instance of the <see cref="AsyncTransmissionToken"/> struct.
+            /// </summary>
+            /// <param name="completionSource">The completion source to trigger when the IO operation completes.</param>
+            /// <param name="cancellationToken">The cancellation token to observe during the operation.</param>
             public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
@@ -27,13 +40,26 @@ namespace NetSharp.Sockets
             }
         }
 
-        //TODO document
+        /// <summary>
+        /// A state token for asynchronous socket operations.
+        /// </summary>
         protected readonly struct AsyncOperationToken
         {
+            /// <summary>
+            /// The completion source which wraps the event-based APM, and provides an awaitable <see cref="Task"/>.
+            /// </summary>
             public readonly TaskCompletionSource<bool> CompletionSource;
 
+            /// <summary>
+            /// The <see cref="System.Threading.CancellationToken"/> associated with the socket operation.
+            /// </summary>
             public readonly CancellationToken CancellationToken;
 
+            /// <summary>
+            /// Constructs a new instance of the <see cref="AsyncOperationToken"/> struct.
+            /// </summary>
+            /// <param name="completionSource">The completion source to trigger when the socket operation completes.</param>
+            /// <param name="cancellationToken">The cancellation token to observe during the operation.</param>
             public AsyncOperationToken(in TaskCompletionSource<bool> completionSource, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
@@ -42,28 +68,108 @@ namespace NetSharp.Sockets
             }
         }
 
-        //TODO document
-        protected readonly struct AsyncCancellationToken
+        /// <summary>
+        /// A state token for cancelling asynchronous network IO operations.
+        /// </summary>
+        protected readonly struct AsyncTransmissionCancellationToken
         {
+            /// <summary>
+            /// The socket on which the operation was started.
+            /// </summary>
             public readonly Socket Socket;
 
+            /// <summary>
+            /// The <see cref="SocketAsyncEventArgs"/> instance associated with the network IO operation.
+            /// </summary>
             public readonly SocketAsyncEventArgs TransmissionArgs;
 
-            public AsyncCancellationToken(in Socket socket, in SocketAsyncEventArgs args)
+            /// <summary>
+            /// The pool to which the <see cref="TransmissionArgs"/> should be returned upon operation cancellation.
+            /// </summary>
+            public readonly SlimObjectPool<SocketAsyncEventArgs> TransmissionArgsPool;
+
+            /// <summary>
+            /// The completion source associated with the network IO operation.
+            /// </summary>
+            public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
+
+            /// <summary>
+            /// Constructs a new instance of the <see cref="AsyncTransmissionCancellationToken"/> struct.
+            /// </summary>
+            /// <param name="socket">The socket on which the operation was started.</param>
+            /// <param name="args">The socket event args associated with the operation.</param>
+            /// <param name="argsPool">The pool to which the <paramref name="args"/> instance will be returned upon cancellation.</param>
+            /// <param name="completionSource">The completion source associated with the operation.</param>
+            public AsyncTransmissionCancellationToken(in Socket socket, in SocketAsyncEventArgs args,
+                in SlimObjectPool<SocketAsyncEventArgs> argsPool, in TaskCompletionSource<TransmissionResult> completionSource)
             {
                 Socket = socket;
 
                 TransmissionArgs = args;
+
+                TransmissionArgsPool = argsPool;
+
+                CompletionSource = completionSource;
+            }
+        }
+
+        /// <summary>
+        /// A state token for cancelling asynchronous socket operations.
+        /// </summary>
+        protected readonly struct AsyncOperationCancellationToken
+        {
+            /// <summary>
+            /// The socket on which the operation was started.
+            /// </summary>
+            public readonly Socket Socket;
+
+            /// <summary>
+            /// The <see cref="SocketAsyncEventArgs"/> instance associated with the socket operation.
+            /// </summary>
+            public readonly SocketAsyncEventArgs TransmissionArgs;
+
+            /// <summary>
+            /// The pool to which the <see cref="TransmissionArgs"/> should be returned upon operation cancellation.
+            /// </summary>
+            public readonly SlimObjectPool<SocketAsyncEventArgs> TransmissionArgsPool;
+
+            /// <summary>
+            /// The completion source associated with the network IO operation.
+            /// </summary>
+            public readonly TaskCompletionSource<bool> CompletionSource;
+
+            /// <summary>
+            /// Constructs a new instance of the <see cref="AsyncOperationCancellationToken"/> struct.
+            /// </summary>
+            /// <param name="socket">The socket on which the operation was started.</param>
+            /// <param name="args">The socket event args associated with the operation.</param>
+            /// <param name="argsPool">The pool to which the <paramref name="args"/> instance will be returned upon cancellation.</param>
+            /// <param name="completionSource">The completion source associated with the operation.</param>
+            public AsyncOperationCancellationToken(in Socket socket, in SocketAsyncEventArgs args,
+                in SlimObjectPool<SocketAsyncEventArgs> argsPool, in TaskCompletionSource<bool> completionSource)
+            {
+                Socket = socket;
+
+                TransmissionArgs = args;
+
+                TransmissionArgsPool = argsPool;
+
+                CompletionSource = completionSource;
             }
         }
 
         /// <summary>
         /// Constructs a new instance of the <see cref="SocketClient"/> class.
         /// </summary>
-        /// <inheritdoc />
+        /// <param name="connectionAddressFamily">The address family that the underlying connection should use.</param>
+        /// <param name="connectionSocketType">The socket type that the underlying connection should use.</param>
+        /// <param name="connectionProtocolType">The protocol type that the underlying connection should use.</param>
+        /// <param name="maxPooledBufferLength">The maximum length of a pooled network IO buffer.</param>
+        /// <param name="preallocatedTransmissionArgs">The number of transmission args to preallocate.</param>
         protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType,
-            in ProtocolType connectionProtocolType, in int maxPooledBufferLength) : base(in connectionAddressFamily,
-            in connectionSocketType, in connectionProtocolType, in maxPooledBufferLength)
+            in ProtocolType connectionProtocolType, in int maxPooledBufferLength, in ushort preallocatedTransmissionArgs)
+            : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType, in maxPooledBufferLength,
+            in preallocatedTransmissionArgs)
         {
         }
 
@@ -99,10 +205,14 @@ namespace NetSharp.Sockets
 
             cancellationToken.Register(token =>
             {
-                AsyncCancellationToken cancellationArgs = (AsyncCancellationToken)token;
+                AsyncOperationCancellationToken operationCancellationToken = (AsyncOperationCancellationToken) token;
 
-                Socket.CancelConnectAsync(cancellationArgs.TransmissionArgs);
-            }, new AsyncCancellationToken(in Connection, in args));
+                Socket.CancelConnectAsync(operationCancellationToken.TransmissionArgs);
+
+                operationCancellationToken.CompletionSource.SetCanceled();
+
+                operationCancellationToken.TransmissionArgsPool.Return(operationCancellationToken.TransmissionArgs);
+            }, new AsyncOperationCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
 

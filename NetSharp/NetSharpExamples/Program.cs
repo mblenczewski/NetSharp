@@ -1,5 +1,5 @@
 ﻿#define TCP
-//#undef TCP
+#undef TCP
 
 using NetSharp.Packets;
 using NetSharp.Sockets.Datagram;
@@ -14,6 +14,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using NetSharp.Sockets;
+using NetSharpExamples.Examples;
 
 namespace NetSharpExamples
 {
@@ -28,13 +30,17 @@ namespace NetSharpExamples
         {
             Console.WriteLine("Hello World!");
 
+            INetSharpExample udpSocketServerBenchmark = new UdpSocketServerBenchmark();
+            await udpSocketServerBenchmark.RunAsync();
 
+            /*
             Console.WriteLine("Starting socket server test...");
             Task serverTest = TestSocketServer();
 
             Console.WriteLine("Starting socket client test...");
             Task clientTest = TestSocketClient();
             await clientTest;
+            */
 
             Console.ReadLine();
         }
@@ -227,9 +233,17 @@ namespace NetSharpExamples
             try
             {
 #if TCP
-                using StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp);
+                StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(NetworkPacket.TotalSize,
+                                    Environment.ProcessorCount, (ushort) Environment.ProcessorCount);
+
+                using StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, 
+                    ProtocolType.Tcp, SocketServer.DefaultPacketHandler, serverOptions);
 #else
-                using DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp);
+                DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(NetworkPacket.TotalSize,
+                    Environment.ProcessorCount, (ushort) Environment.ProcessorCount);
+
+                using DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork,
+                    ProtocolType.Udp, SocketServer.DefaultPacketHandler, serverOptions);
 #endif
 
                 server.Bind(in ServerEndPoint);

@@ -1,5 +1,4 @@
 ﻿using NetSharp.Packets;
-using NetSharp.Utils;
 
 using System;
 using System.Net;
@@ -13,17 +12,21 @@ namespace NetSharp.Sockets.Datagram
     public readonly struct DatagramSocketServerOptions
     {
         public static readonly DatagramSocketServerOptions Defaults =
-            new DatagramSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount);
+            new DatagramSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 0);
 
         public readonly int PacketSize;
 
         public readonly int ConcurrentReceiveFromCalls;
 
-        public DatagramSocketServerOptions(int packetSize, int concurrentReceiveFromCalls)
+        public readonly ushort PreallocatedTransmissionArgs;
+
+        public DatagramSocketServerOptions(int packetSize, int concurrentReceiveFromCalls, ushort preallocatedTransmissionArgs)
         {
             PacketSize = packetSize;
 
             ConcurrentReceiveFromCalls = concurrentReceiveFromCalls;
+
+            PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
         }
     }
 
@@ -36,9 +39,18 @@ namespace NetSharp.Sockets.Datagram
 
         private readonly DatagramSocketServerOptions serverOptions;
 
+        private CancellationToken serverShutdownToken;
+
+        /// <summary>
+        /// Constructs a new instance of the <see cref="DatagramSocketServer"/> class.
+        /// </summary>
+        /// <param name="serverOptions">Additional options to configure the server.</param>
+        /// <inheritdoc />
         public DatagramSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in DatagramSocketServerOptions? serverOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
-            in connectionProtocolType, serverOptions?.PacketSize ?? DatagramSocketServerOptions.Defaults.PacketSize)
+            in SocketServerPacketHandler packetHandler, in DatagramSocketServerOptions? serverOptions = null)
+            : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType, in packetHandler,
+            serverOptions?.PacketSize ?? DatagramSocketServerOptions.Defaults.PacketSize,
+            serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.serverOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
         }
@@ -107,6 +119,13 @@ namespace NetSharp.Sockets.Datagram
 
         private void ReceiveFrom(SocketAsyncEventArgs receiveArgs)
         {
+            if (serverShutdownToken.IsCancellationRequested)
+            {
+                TransmissionArgsPool.Return(receiveArgs);
+
+                return;
+            }
+
             byte[] receiveBuffer = BufferPool.Rent(ServerOptions.PacketSize);
             Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
 
@@ -129,36 +148,48 @@ namespace NetSharp.Sockets.Datagram
         {
             SocketOperationToken receiveToken = (SocketOperationToken)receiveArgs.UserToken;
 
-            TransmissionResult receiveResult = new TransmissionResult(in receiveArgs);
+            if (receiveArgs.SocketError == SocketError.Success)
+            {
+                NetworkPacket request = NetworkPacket.Deserialise(receiveArgs.MemoryBuffer);
 
-#if DEBUG
-                lock (typeof(Console))
+                NetworkPacket response = PacketHandler(in request, receiveArgs.RemoteEndPoint);
+
+                if (!response.Equals(NetworkPacket.NullPacket))
                 {
-                    Console.WriteLine($"[Server] Received {receiveResult.Count} bytes from {receiveResult.RemoteEndPoint}");
-                    Console.WriteLine($"[Server] <<<< {Encoding.UTF8.GetString(receiveResult.Buffer.Span)}");
+                    byte[] sendBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+                    Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
+
+                    NetworkPacket.Serialise(response, sendBufferMemory);
+
+                    receiveArgs.SetBuffer(sendBufferMemory);
+                    receiveArgs.UserToken = new SocketOperationToken(in sendBuffer);
+
+                    SendTo(receiveArgs);
                 }
-#endif
 
-            NetworkPacket request = NetworkPacket.Deserialise(receiveArgs.MemoryBuffer);
+                BufferPool.Return(receiveToken.RentedBuffer, true);
+            }
+            else
+            {
+                BufferPool.Return(receiveToken.RentedBuffer, true);
 
-            // TODO implement actual request processing, not just an echo server
-            NetworkPacket response = request;
-
-            byte[] sendBuffer = BufferPool.Rent(ServerOptions.PacketSize);
-            Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
-
-            NetworkPacket.Serialise(response, sendBufferMemory);
-
-            receiveArgs.SetBuffer(sendBufferMemory);
-            receiveArgs.UserToken = new SocketOperationToken(in sendBuffer);
-
-            SendTo(receiveArgs);
-
-            BufferPool.Return(receiveToken.RentedBuffer, true);
+                TransmissionArgsPool.Return(receiveArgs);
+            }
         }
 
         private void SendTo(SocketAsyncEventArgs sendArgs)
         {
+            if (serverShutdownToken.IsCancellationRequested)
+            {
+                SocketOperationToken sendToken = (SocketOperationToken)sendArgs.UserToken;
+
+                BufferPool.Return(sendToken.RentedBuffer, true);
+
+                TransmissionArgsPool.Return(sendArgs);
+
+                return;
+            }
+
             bool operationPending = Connection.SendToAsync(sendArgs);
 
             if (!operationPending)
@@ -170,16 +201,6 @@ namespace NetSharp.Sockets.Datagram
         private void CompleteSendTo(SocketAsyncEventArgs sendArgs)
         {
             SocketOperationToken sendToken = (SocketOperationToken)sendArgs.UserToken;
-
-            TransmissionResult sendResult = new TransmissionResult(in sendArgs);
-
-#if DEBUG
-                    lock (typeof(Console))
-                    {
-                        Console.WriteLine($"[Server] Sent {sendResult.Count} bytes to {sendResult.RemoteEndPoint}");
-                        Console.WriteLine($"[Server] >>>> {Encoding.UTF8.GetString(sendResult.Buffer.Span)}");
-                    }
-#endif
 
             BufferPool.Return(sendToken.RentedBuffer, true);
 
@@ -194,6 +215,8 @@ namespace NetSharp.Sockets.Datagram
         /// <inheritdoc />
         public override Task RunAsync(CancellationToken cancellationToken = default)
         {
+            serverShutdownToken = cancellationToken;
+
             for (int i = 0; i < ServerOptions.ConcurrentReceiveFromCalls; i++)
             {
                 SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
@@ -202,7 +225,9 @@ namespace NetSharp.Sockets.Datagram
                 ReceiveFrom(newReceiveArgs);
             }
 
-            return cancellationToken.WaitHandle.WaitOneAsync(CancellationToken.None);
+            serverShutdownToken.WaitHandle.WaitOne();
+
+            return Task.CompletedTask;
         }
     }
 }
