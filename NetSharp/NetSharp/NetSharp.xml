@@ -6,13 +6,13 @@
     <members>
         <member name="M:NetSharp.Packets.NetworkPacket.#ctor(NetSharp.Packets.NetworkPacketHeader,System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacketFooter)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket"/> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket" /> struct.
             </summary>
             <param name="packetHeader">The header for this packet.</param>
             <param name="packetDataBuffer">The data that should be stored in the packet.</param>
             <param name="packetFooter">The footer for this packet.</param>
             <exception cref="T:System.ArgumentException">
-            Thrown when the given <paramref name="packetDataBuffer"/> exceeds <see cref="F:NetSharp.Packets.NetworkPacket.TotalSize"/> bytes in size.
+            Thrown when the given <paramref name="packetDataBuffer" /> exceeds <see cref="F:NetSharp.Packets.NetworkPacket.TotalSize" /> bytes in size.
             </exception>
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.CreateTransmissionArgs">
@@ -32,7 +32,7 @@
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Datagram.DatagramSocketServerOptions}@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketServer"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketServer" /> class.
             </summary>
             <param name="serverOptions">Additional options to configure the server.</param>
             <inheritdoc />
@@ -67,17 +67,17 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.CompletionSource">
             <summary>
-            The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task"/>.
+            The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.CancellationToken">
             <summary>
-            The <see cref="T:System.Threading.CancellationToken"/> associated with the network IO operation.
+            The <see cref="T:System.Threading.CancellationToken" /> associated with the network IO operation.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken"/> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken" /> struct.
             </summary>
             <param name="completionSource">The completion source to trigger when the IO operation completes.</param>
             <param name="cancellationToken">The cancellation token to observe during the operation.</param>
@@ -89,17 +89,17 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationToken.CompletionSource">
             <summary>
-            The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task"/>.
+            The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationToken.CancellationToken">
             <summary>
-            The <see cref="T:System.Threading.CancellationToken"/> associated with the socket operation.
+            The <see cref="T:System.Threading.CancellationToken" /> associated with the socket operation.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.AsyncOperationToken.#ctor(System.Threading.Tasks.TaskCompletionSource{System.Boolean}@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationToken"/> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationToken" /> struct.
             </summary>
             <param name="completionSource">The completion source to trigger when the socket operation completes.</param>
             <param name="cancellationToken">The cancellation token to observe during the operation.</param>
@@ -116,12 +116,12 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgs">
             <summary>
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance associated with the network IO operation.
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the network IO operation.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgsPool">
             <summary>
-            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgs"/> should be returned upon operation cancellation.
+            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgs" /> should be returned upon operation cancellation.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.CompletionSource">
@@ -131,11 +131,11 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.#ctor(System.Net.Sockets.Socket@,System.Net.Sockets.SocketAsyncEventArgs@,NetSharp.Utils.SlimObjectPool{System.Net.Sockets.SocketAsyncEventArgs}@,System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken"/> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken" /> struct.
             </summary>
             <param name="socket">The socket on which the operation was started.</param>
             <param name="args">The socket event args associated with the operation.</param>
-            <param name="argsPool">The pool to which the <paramref name="args"/> instance will be returned upon cancellation.</param>
+            <param name="argsPool">The pool to which the <paramref name="args" /> instance will be returned upon cancellation.</param>
             <param name="completionSource">The completion source associated with the operation.</param>
         </member>
         <member name="T:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken">
@@ -150,12 +150,12 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgs">
             <summary>
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance associated with the socket operation.
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the socket operation.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgsPool">
             <summary>
-            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgs"/> should be returned upon operation cancellation.
+            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgs" /> should be returned upon operation cancellation.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.CompletionSource">
@@ -165,16 +165,16 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.#ctor(System.Net.Sockets.Socket@,System.Net.Sockets.SocketAsyncEventArgs@,NetSharp.Utils.SlimObjectPool{System.Net.Sockets.SocketAsyncEventArgs}@,System.Threading.Tasks.TaskCompletionSource{System.Boolean}@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken"/> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken" /> struct.
             </summary>
             <param name="socket">The socket on which the operation was started.</param>
             <param name="args">The socket event args associated with the operation.</param>
-            <param name="argsPool">The pool to which the <paramref name="args"/> instance will be returned upon cancellation.</param>
+            <param name="argsPool">The pool to which the <paramref name="args" /> instance will be returned upon cancellation.</param>
             <param name="completionSource">The completion source associated with the operation.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient" /> class.
             </summary>
             <param name="connectionAddressFamily">The address family that the underlying connection should use.</param>
             <param name="connectionSocketType">The socket type that the underlying connection should use.</param>
@@ -184,23 +184,23 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)">
             <summary>
-            Connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram"/>-based client,
+            Connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client,
             this method configures the default remote host, and the client will ignore any packets not coming from this
-            default host (i.e the given <paramref name="remoteEndPoint"/>).
+            default host (i.e the given <paramref name="remoteEndPoint" />).
             </summary>
             <param name="remoteEndPoint">The remote end point which to which to connect the client.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)">
             <summary>
             Asynchronously connects the client to the specified end point. If called on a
-            <see cref="F:System.Net.Sockets.SocketType.Dgram"/>-based client, this method configures the default remote host, and the client
-            will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint"/>).
+            <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method configures the default remote host, and the client
+            will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
             </summary>
             <param name="remoteEndPoint">The remote end point which to which to connect the client.</param>
             <param name="cancellationToken">
-            The <see cref="T:System.Threading.CancellationToken"/> upon whose cancellation the connection attempt should be aborted.
+            The <see cref="T:System.Threading.CancellationToken" /> upon whose cancellation the connection attempt should be aborted.
             </param>
-            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> representing the connection attempt.</returns>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask" /> representing the connection attempt.</returns>
         </member>
         <member name="T:NetSharp.Sockets.SocketConnection">
             <summary>
@@ -210,7 +210,7 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketConnection.Connection">
             <summary>
-            The underlying <see cref="T:System.Net.Sockets.Socket"/> which provides access to network operations.
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> which provides access to network operations.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketConnection.BufferPool">
@@ -220,58 +220,58 @@
         </member>
         <member name="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool">
             <summary>
-            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> objects for use during network read/write operations and calls
-            to <see cref="T:System.Net.Sockets.Socket"/>.XXXAsync(<see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/>) methods.
+            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects for use during network read/write operations and calls
+            to <see cref="T:System.Net.Sockets.Socket" />.XXXAsync(<see cref="T:System.Net.Sockets.SocketAsyncEventArgs" />) methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketConnection"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketConnection" /> class.
             </summary>
             <param name="connectionAddressFamily">The address family for the underlying socket.</param>
             <param name="connectionSocketType">The socket type for the underlying socket.</param>
             <param name="connectionProtocolType">The protocol type for the underlying socket.</param>
-            <param name="maxPooledBufferLength">The maximum size of the buffers stored in the <see cref="F:NetSharp.Sockets.SocketConnection.BufferPool"/>.</param>
-            <param name="preallocatedTransmissionArgs"> The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> objects to initially preallocate.</param>
+            <param name="maxPooledBufferLength">The maximum size of the buffers stored in the <see cref="F:NetSharp.Sockets.SocketConnection.BufferPool" />.</param>
+            <param name="preallocatedTransmissionArgs"> The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects to initially preallocate.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.CreateTransmissionArgs">
             <summary>
-            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instances for use in the
-            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool"/>. The resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)"/>
-            as an event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed"/> event.
+            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for use in the
+            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />. The resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" />
+            as an event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
             </summary>
-            <returns>The configured <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance.</returns>
+            <returns>The configured <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance.</returns>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <summary>
-            Delegate method used to reset used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instances for later reuse by
-            the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool"/>.
+            Delegate method used to reset used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for later reuse by
+            the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />.
             </summary>
-            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance that should be reset.</param>
+            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance that should be reset.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.CanTransmissionArgsBeReused(System.Net.Sockets.SocketAsyncEventArgs@)">
             <summary>
-            Delegate method used to check whether the given used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance can be reused
-            by the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool"/>. If this method returns <c>true</c>, <see cref="M:NetSharp.Sockets.SocketConnection.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)"/>
-            is called on the given <paramref name="args"/>. Otherwise, <see cref="M:NetSharp.Sockets.SocketConnection.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)"/> is called.
+            Delegate method used to check whether the given used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance can be reused
+            by the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />. If this method returns <c>true</c>, <see cref="M:NetSharp.Sockets.SocketConnection.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)" />
+            is called on the given <paramref name="args" />. Otherwise, <see cref="M:NetSharp.Sockets.SocketConnection.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)" /> is called.
             </summary>
-            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance to check.</param>
-            <returns>Whether the given <paramref name="args"/> should be reset and reused, or should be destroyed.</returns>
+            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance to check.</param>
+            <returns>Whether the given <paramref name="args" /> should be reset and reused, or should be destroyed.</returns>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <summary>
-            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instances that cannot be reused by the
-            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool"/>. This method should deregister <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)"/> as an
-            event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed"/> event.
+            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that cannot be reused by the
+            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />. This method should deregister <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an
+            event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
             </summary>
-            <param name="remoteConnectionArgs">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> which should be destroyed.</param>
+            <param name="remoteConnectionArgs">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> which should be destroyed.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <summary>
-            Delegate method to handle asynchronous network IO completion via the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed"/> event.
+            Delegate method to handle asynchronous network IO completion via the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
             </summary>
             <param name="sender">The object which raised the event.</param>
-            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs"/> instance associated with the asynchronous network IO.</param>
+            <param name="args">The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the asynchronous network IO.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Bind(System.Net.EndPoint@)">
             <summary>
@@ -287,9 +287,9 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Dispose(System.Boolean)">
             <summary>
-            Disposes of managed and unmanaged resources used by the <see cref="T:NetSharp.Sockets.SocketConnection"/> class.
+            Disposes of managed and unmanaged resources used by the <see cref="T:NetSharp.Sockets.SocketConnection" /> class.
             </summary>
-            <param name="disposing">Whether this call was made by a call to <see cref="M:NetSharp.Sockets.SocketConnection.Dispose"/>.</param>
+            <param name="disposing">Whether this call was made by a call to <see cref="M:NetSharp.Sockets.SocketConnection.Dispose" />.</param>
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Dispose">
             <inheritdoc />
@@ -302,7 +302,7 @@
             <param name="clientEndPoint">The client from which the packet was received.</param>
             <returns>
             The response packet which should be sent out to the client. If no packet should be sent out,
-            this method must return <see cref="F:NetSharp.Packets.NetworkPacket.NullPacket"/>.
+            this method must return <see cref="F:NetSharp.Packets.NetworkPacket.NullPacket" />.
             </returns>
         </member>
         <member name="T:NetSharp.Sockets.SocketServer">
@@ -317,7 +317,7 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Int32@,System.UInt16@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketServer"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketServer" /> class.
             </summary>
             <param name="connectionAddressFamily">The address family that the underlying connection should use.</param>
             <param name="connectionSocketType">The socket type that the underlying connection should use.</param>
@@ -336,10 +336,10 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketServer.RunAsync(System.Threading.CancellationToken)">
             <summary>
-            Runs the server, handling requests from clients, until the <paramref name="cancellationToken"/> has its cancellation requested.
+            Runs the server, handling requests from clients, until the <paramref name="cancellationToken" /> has its cancellation requested.
             </summary>
-            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken"/> upon whose cancellation the server should shut down.</param>
-            <returns>A <see cref="T:System.Threading.Tasks.Task"/> representing the server's execution.</returns>
+            <param name="cancellationToken">The <see cref="T:System.Threading.CancellationToken" /> upon whose cancellation the server should shut down.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task" /> representing the server's execution.</returns>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.CreateTransmissionArgs">
             <inheritdoc />
@@ -358,7 +358,7 @@
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Stream.StreamSocketServerOptions}@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Stream.StreamSocketServer"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Stream.StreamSocketServer" /> class.
             </summary>
             <param name="serverOptions">Additional options to configure the server.</param>
             <inheritdoc />
@@ -400,7 +400,7 @@
         </member>
         <member name="M:NetSharp.Utils.BiDictionary`2.#ctor">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.BiDictionary`2"/> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.BiDictionary`2" /> class.
             </summary>
         </member>
         <member name="P:NetSharp.Utils.BiDictionary`2.Item(`1)">
@@ -419,7 +419,7 @@
         </member>
         <member name="M:NetSharp.Utils.BiDictionary`2.Clear">
             <summary>
-            Clears this instance's <see cref="F:NetSharp.Utils.BiDictionary`2.keyToValueMap"/> and <see cref="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap"/>.
+            Clears this instance's <see cref="F:NetSharp.Utils.BiDictionary`2.keyToValueMap" /> and <see cref="F:NetSharp.Utils.BiDictionary`2.valueToKeyMap" />.
             </summary>
         </member>
         <member name="M:NetSharp.Utils.BiDictionary`2.ContainsKey(`0@)">
@@ -502,7 +502,7 @@
         </member>
         <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
             <summary>
-            Wraps the <see cref="T:System.BitConverter"/> class to provide conversion that is endian-aware.
+            Wraps the <see cref="T:System.BitConverter" /> class to provide conversion that is endian-aware.
             </summary>
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
@@ -511,64 +511,64 @@
             </summary>
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Boolean)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Boolean)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Char)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Char)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Double)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Double)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Single)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Single)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int64)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int64)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int16)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int16)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt32)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt32)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt64)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt64)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt16)"/>
+            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt16)" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToBoolean(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToBoolean(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToChar(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToChar(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToDouble(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToDouble(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt16(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToInt16(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt64(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToInt64(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToSingle(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToSingle(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt16(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToUInt16(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt32(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToUInt32(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})"/>
+            <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1">
             <summary>
@@ -578,14 +578,14 @@
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1.CreateObjectDelegate">
             <summary>
-            Delegate method for creating fresh <typeparamref name="T"/> instances to be stored in the pool.
+            Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.
             </summary>
-            <returns>A configured <typeparamref name="T"/> instance.</returns>
+            <returns>A configured <typeparamref name="T" /> instance.</returns>
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1.CanRebufferObjectPredicate">
             <summary>
-            Delegate method to check whether the given <paramref name="instance"/> can and should be placed
-            back into the pool. If <c>true</c> is returned, the <paramref name="instance"/> is reset and placed
+            Delegate method to check whether the given <paramref name="instance" /> can and should be placed
+            back into the pool. If <c>true</c> is returned, the <paramref name="instance" /> is reset and placed
             back into the pool. Otherwise, the instance is destroyed.
             </summary>
             <param name="instance">The instance to check.</param>
@@ -593,19 +593,19 @@
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1.ResetObjectDelegate">
             <summary>
-            Delegate method to reset a used <paramref name="instance"/> before placing it back into the pool.
+            Delegate method to reset a used <paramref name="instance" /> before placing it back into the pool.
             </summary>
             <param name="instance">The instance which should be reset.</param>
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1.DestroyObjectDelegate">
             <summary>
-            Delegate method to destroy a used <paramref name="instance"/> which cannot be reused.
+            Delegate method to destroy a used <paramref name="instance" /> which cannot be reused.
             </summary>
             <param name="instance">The instance to destroy.</param>
         </member>
         <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanRebufferObjectPredicate@,System.Collections.Concurrent.IProducerConsumerCollection{`0}@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
             </summary>
             <param name="createDelegate">The delegate method to use to create new pooled object instances.</param>
             <param name="resetDelegate">The delegate method to use to reset used pooled object instances.</param>
@@ -615,7 +615,7 @@
         </member>
         <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanRebufferObjectPredicate@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1"/> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
             </summary>
             <param name="createDelegate">The delegate method to use to create new pooled object instances.</param>
             <param name="resetDelegate">The delegate method to use to reset used pooled object instances.</param>
@@ -624,13 +624,13 @@
         </member>
         <member name="M:NetSharp.Utils.SlimObjectPool`1.Rent">
             <summary>
-            Leases a new <typeparamref name="T"/> instance from the pool, and returns it.
+            Leases a new <typeparamref name="T" /> instance from the pool, and returns it.
             </summary>
-            <returns>The <typeparamref name="T"/> instance which was fetched from the pool.</returns>
+            <returns>The <typeparamref name="T" /> instance which was fetched from the pool.</returns>
         </member>
         <member name="M:NetSharp.Utils.SlimObjectPool`1.Return(`0)">
             <summary>
-            Returns a previously leased <typeparamref name="T"/> instance to the pool.
+            Returns a previously leased <typeparamref name="T" /> instance to the pool.
             </summary>
             <param name="instance">The previously leased instance which should be returned.</param>
         </member>
@@ -641,13 +641,13 @@
         </member>
         <member name="M:NetSharp.Utils.TransmissionResult.#ctor(System.Net.Sockets.SocketAsyncEventArgs@)">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult"/> struct.
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult" /> struct.
             </summary>
             <param name="args">The socket arguments associated with the transmission.</param>
         </member>
         <member name="M:NetSharp.Utils.TransmissionResult.#ctor(System.Byte[]@,System.Int32@,System.Net.EndPoint@)">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult"/> struct.
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.TransmissionResult" /> struct.
             </summary>
             <param name="buffer">The buffer associated with the transmission.</param>
             <param name="count">The number of bytes written to or read from the buffer.</param>

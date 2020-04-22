@@ -47,6 +47,7 @@ namespace NetSharp.Sockets
             TransmissionArgsPool = new SlimObjectPool<SocketAsyncEventArgs>(CreateTransmissionArgs,
                 ResetTransmissionArgs, DestroyTransmissionArgs, CanTransmissionArgsBeReused);
 
+            // TODO refactor into a cleaner structure, with a better method of seeding the object pool
             for (ushort i = 0; i < preallocatedTransmissionArgs; i++)
             {
                 SocketAsyncEventArgs args = CreateTransmissionArgs();

@@ -1,6 +1,6 @@
 ﻿using NetSharp.Packets;
 using NetSharp.Sockets;
-using NetSharp.Sockets.Datagram;
+using NetSharp.Sockets.Stream;
 
 using System;
 using System.Linq;
@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Examples
 {
-    public class UdpSocketServerBenchmark : INetSharpExample
+    public class TcpSocketServerBenchmark : INetSharpExample
     {
         private const int PacketCount = 1_000_000;
 
-        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12347);
+        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12348);
 
         private double[] ClientBandwidths;
 
@@ -26,12 +26,12 @@ namespace NetSharpExamples.Examples
 
             int clientCount = Environment.ProcessorCount / 2;
 
-            Console.WriteLine($"UDP Server Benchmark started!");
+            Console.WriteLine($"TCP Server Benchmark started!");
 
-            DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(NetworkPacket.TotalSize,
+            StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(NetworkPacket.TotalSize,
                 clientCount, (ushort)clientCount);
 
-            DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp,
+            StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp,
                 SocketServer.DefaultPacketHandler, serverOptions);
 
             server.Bind(ServerEndPoint);
@@ -56,7 +56,7 @@ namespace NetSharpExamples.Examples
 
             await serverTask;
 
-            Console.WriteLine($"UDP Server Benchmark finished!");
+            Console.WriteLine($"TCP Server Benchmark finished!");
         }
 
         private Task BenchmarkClientTask(object idObj)
@@ -65,9 +65,10 @@ namespace NetSharpExamples.Examples
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             clientSocket.Bind(new IPEndPoint(IPAddress.Any, 0));
+            clientSocket.Connect(ServerEndPoint);
 
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
             byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
@@ -86,7 +87,18 @@ namespace NetSharpExamples.Examples
 
                 benchmarkHelper.StartBandwidthStopwatch();
                 benchmarkHelper.StartRttStopwatch();
-                int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
+
+                int totalSent = 0;
+                do
+                {
+                    totalSent += clientSocket.Send(sendBuffer, totalSent, sendBuffer.Length - totalSent,
+                        SocketFlags.None);
+                } while (totalSent != 0 && totalSent != sendBuffer.Length);
+
+                if (totalSent == 0)
+                {
+                    break;
+                }
 
 #if DEBUG
                 lock (typeof(Console))
@@ -96,7 +108,18 @@ namespace NetSharpExamples.Examples
                 }
 #endif
 
-                int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
+                int totalReceived = 0;
+                do
+                {
+                    totalReceived += clientSocket.Receive(receiveBuffer, totalReceived,
+                        receiveBuffer.Length - totalReceived, SocketFlags.None);
+                } while (totalReceived != 0 && totalReceived != sendBuffer.Length);
+
+                if (totalReceived == 0)
+                {
+                    break;
+                }
+
                 benchmarkHelper.StopRttStopwatch();
                 benchmarkHelper.StopBandwidthStopwatch();
 
@@ -119,6 +142,9 @@ namespace NetSharpExamples.Examples
 
                 benchmarkHelper.ResetRttStopwatch();
             }
+
+            clientSocket.Disconnect(true);
+            clientSocket.Close();
 
             benchmarkHelper.PrintBandwidthStats(id, PacketCount, NetworkPacket.TotalSize);
             benchmarkHelper.PrintRttStats(id);

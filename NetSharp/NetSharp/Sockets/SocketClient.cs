@@ -205,7 +205,7 @@ namespace NetSharp.Sockets
 
             cancellationToken.Register(token =>
             {
-                AsyncOperationCancellationToken operationCancellationToken = (AsyncOperationCancellationToken) token;
+                AsyncOperationCancellationToken operationCancellationToken = (AsyncOperationCancellationToken)token;
 
                 Socket.CancelConnectAsync(operationCancellationToken.TransmissionArgs);
 

@@ -173,8 +173,7 @@ namespace NetSharp.Sockets.Datagram
             cancellationToken.Register(token =>
             {
                 AsyncTransmissionCancellationToken transmissionCancellationToken =
-                    (AsyncTransmissionCancellationToken) token;
-
+                    (AsyncTransmissionCancellationToken)token;
             }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
@@ -211,7 +210,6 @@ namespace NetSharp.Sockets.Datagram
             {
                 AsyncTransmissionCancellationToken transmissionCancellationToken =
                     (AsyncTransmissionCancellationToken)token;
-
             }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);

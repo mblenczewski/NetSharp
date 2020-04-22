@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using NetSharp.Packets;
+
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using NetSharp.Packets;
 
 namespace NetSharp.Sockets
 {
