@@ -5,30 +5,30 @@ namespace NetSharp.Packets
     //TODO document
     public readonly struct NetworkPacket
     {
-        public static NetworkPacket NullPacket = new NetworkPacket();
-
-        public const int TotalSize = HeaderSize + DataSize + FooterSize;
-
-        public const int HeaderSize = NetworkPacketHeader.TotalSize;
+        public const int DataSize = 8192;
 
         public const int FooterSize = NetworkPacketFooter.TotalSize;
 
-        public const int DataSize = 8192;
+        public const int HeaderSize = NetworkPacketHeader.TotalSize;
+
+        public const int TotalSize = HeaderSize + DataSize + FooterSize;
+
+        public static NetworkPacket NullPacket = new NetworkPacket();
 
         public readonly ReadOnlyMemory<byte> Data;
 
-        public readonly NetworkPacketHeader Header;
-
         public readonly NetworkPacketFooter Footer;
 
+        public readonly NetworkPacketHeader Header;
+
         /// <summary>
-        /// Constructs a new instance of the <see cref="NetworkPacket"/> struct.
+        /// Constructs a new instance of the <see cref="NetworkPacket" /> struct.
         /// </summary>
         /// <param name="packetHeader">The header for this packet.</param>
         /// <param name="packetDataBuffer">The data that should be stored in the packet.</param>
         /// <param name="packetFooter">The footer for this packet.</param>
         /// <exception cref="ArgumentException">
-        /// Thrown when the given <paramref name="packetDataBuffer"/> exceeds <see cref="TotalSize"/> bytes in size.
+        /// Thrown when the given <paramref name="packetDataBuffer" /> exceeds <see cref="TotalSize" /> bytes in size.
         /// </exception>
         private NetworkPacket(NetworkPacketHeader packetHeader, ReadOnlyMemory<byte> packetDataBuffer, NetworkPacketFooter packetFooter)
         {
@@ -69,21 +69,6 @@ namespace NetSharp.Packets
     }
 
     //TODO document
-    public readonly struct NetworkPacketHeader
-    {
-        public const int TotalSize = 0;
-
-        public static NetworkPacketHeader Deserialise(ReadOnlyMemory<byte> buffer)
-        {
-            return new NetworkPacketHeader();
-        }
-
-        public static void Serialise(NetworkPacketHeader instance, Memory<byte> buffer)
-        {
-        }
-    }
-
-    //TODO document
     public readonly struct NetworkPacketFooter
     {
         public const int TotalSize = 0;
@@ -94,6 +79,21 @@ namespace NetSharp.Packets
         }
 
         public static void Serialise(NetworkPacketFooter instance, Memory<byte> buffer)
+        {
+        }
+    }
+
+    //TODO document
+    public readonly struct NetworkPacketHeader
+    {
+        public const int TotalSize = 0;
+
+        public static NetworkPacketHeader Deserialise(ReadOnlyMemory<byte> buffer)
+        {
+            return new NetworkPacketHeader();
+        }
+
+        public static void Serialise(NetworkPacketHeader instance, Memory<byte> buffer)
         {
         }
     }

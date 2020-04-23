@@ -10,30 +10,6 @@ namespace NetSharp.Utils
     public readonly struct TransmissionResult
     {
         /// <summary>
-        /// Initialises a new instance of the <see cref="TransmissionResult"/> struct.
-        /// </summary>
-        /// <param name="args">The socket arguments associated with the transmission.</param>
-        internal TransmissionResult(in SocketAsyncEventArgs args)
-        {
-            Buffer = args.MemoryBuffer;
-            Count = args.BytesTransferred;
-            RemoteEndPoint = args.RemoteEndPoint;
-        }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="TransmissionResult"/> struct.
-        /// </summary>
-        /// <param name="buffer">The buffer associated with the transmission.</param>
-        /// <param name="count">The number of bytes written to or read from the buffer.</param>
-        /// <param name="remoteEndPoint">The remote end point associated with the transmission.</param>
-        internal TransmissionResult(in byte[] buffer, in int count, in EndPoint remoteEndPoint)
-        {
-            Buffer = buffer;
-            Count = count;
-            RemoteEndPoint = remoteEndPoint;
-        }
-
-        /// <summary>
         /// The byte buffer that was transmitted across the network.
         /// </summary>
         public readonly Memory<byte> Buffer;
@@ -47,5 +23,29 @@ namespace NetSharp.Utils
         /// The remote endpoint to which the buffer was transmitted.
         /// </summary>
         public readonly EndPoint RemoteEndPoint;
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="TransmissionResult" /> struct.
+        /// </summary>
+        /// <param name="args">The socket arguments associated with the transmission.</param>
+        internal TransmissionResult(in SocketAsyncEventArgs args)
+        {
+            Buffer = args.MemoryBuffer;
+            Count = args.BytesTransferred;
+            RemoteEndPoint = args.RemoteEndPoint;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="TransmissionResult" /> struct.
+        /// </summary>
+        /// <param name="buffer">The buffer associated with the transmission.</param>
+        /// <param name="count">The number of bytes written to or read from the buffer.</param>
+        /// <param name="remoteEndPoint">The remote end point associated with the transmission.</param>
+        internal TransmissionResult(in byte[] buffer, in int count, in EndPoint remoteEndPoint)
+        {
+            Buffer = buffer;
+            Count = count;
+            RemoteEndPoint = remoteEndPoint;
+        }
     }
 }

@@ -33,11 +33,22 @@ namespace NetSharp.Sockets.Stream
         private readonly StreamSocketClientOptions clientOptions;
 
         public StreamSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in StreamSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Stream,
-            in connectionProtocolType, clientOptions?.PacketSize ?? StreamSocketClientOptions.Defaults.PacketSize,
-            clientOptions?.PreallocatedTransmissionArgs ?? StreamSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
+                                                            in StreamSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Stream,
+                    in connectionProtocolType, clientOptions?.PacketSize ?? StreamSocketClientOptions.Defaults.PacketSize,
+                    clientOptions?.PreallocatedTransmissionArgs ?? StreamSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.clientOptions = clientOptions ?? StreamSocketClientOptions.Defaults;
+        }
+
+        public ref readonly StreamSocketClientOptions ClientOptions
+        {
+            get { return ref clientOptions; }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        {
+            return true;
         }
 
         /// <inheritdoc />
@@ -48,17 +59,6 @@ namespace NetSharp.Sockets.Stream
             connectionArgs.Completed += HandleIoCompleted;
 
             return connectionArgs;
-        }
-
-        /// <inheritdoc />
-        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
-        {
-        }
-
-        /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
-        {
-            return true;
         }
 
         /// <inheritdoc />
@@ -225,9 +225,9 @@ namespace NetSharp.Sockets.Stream
             }
         }
 
-        public ref readonly StreamSocketClientOptions ClientOptions
+        /// <inheritdoc />
+        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
-            get { return ref clientOptions; }
         }
 
         public void Disconnect(bool allowSocketReuse)

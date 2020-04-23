@@ -1,4 +1,4 @@
-﻿using NetSharpExamples.Examples;
+﻿using NetSharpExamples.Benchmarks;
 
 using System;
 using System.Threading.Tasks;

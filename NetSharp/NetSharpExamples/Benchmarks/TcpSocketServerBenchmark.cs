@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Examples
+namespace NetSharpExamples.Benchmarks
 {
     public class TcpSocketServerBenchmark : INetSharpExample
     {
@@ -20,6 +20,7 @@ namespace NetSharpExamples.Examples
 
         private double[] ClientBandwidths;
 
+        /// <inheritdoc />
         public async Task RunAsync()
         {
             CancellationTokenSource serverCts = new CancellationTokenSource();

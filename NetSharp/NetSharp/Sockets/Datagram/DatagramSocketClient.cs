@@ -34,11 +34,22 @@ namespace NetSharp.Sockets.Datagram
         private readonly DatagramSocketClientOptions clientOptions;
 
         public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
-            in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize,
-            clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
+                                                            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
+                    in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize,
+                    clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.clientOptions = clientOptions ?? DatagramSocketClientOptions.Defaults;
+        }
+
+        public ref readonly DatagramSocketClientOptions ClientOptions
+        {
+            get { return ref clientOptions; }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        {
+            return true;
         }
 
         /// <inheritdoc />
@@ -49,17 +60,6 @@ namespace NetSharp.Sockets.Datagram
             connectionArgs.Completed += HandleIoCompleted;
 
             return connectionArgs;
-        }
-
-        /// <inheritdoc />
-        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
-        {
-        }
-
-        /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
-        {
-            return true;
         }
 
         /// <inheritdoc />
@@ -144,9 +144,9 @@ namespace NetSharp.Sockets.Datagram
             }
         }
 
-        public ref readonly DatagramSocketClientOptions ClientOptions
+        /// <inheritdoc />
+        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
-            get { return ref clientOptions; }
         }
 
         public TransmissionResult ReceiveFrom(ref EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)

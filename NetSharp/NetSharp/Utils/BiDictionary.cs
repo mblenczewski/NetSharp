@@ -20,7 +20,7 @@ namespace NetSharp.Utils
         private readonly ConcurrentDictionary<V, K> valueToKeyMap;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="BiDictionary{K,V}"/> class.
+        /// Initialises a new instance of the <see cref="BiDictionary{K,V}" /> class.
         /// </summary>
         public BiDictionary()
         {
@@ -64,7 +64,7 @@ namespace NetSharp.Utils
         }
 
         /// <summary>
-        /// Clears this instance's <see cref="keyToValueMap"/> and <see cref="valueToKeyMap"/>.
+        /// Clears this instance's <see cref="keyToValueMap" /> and <see cref="valueToKeyMap" />.
         /// </summary>
         public void Clear()
         {
@@ -103,7 +103,7 @@ namespace NetSharp.Utils
         /// Attempts to set the value associated with the given key.
         /// </summary>
         /// <param name="key">The key whose value to set.</param>
-        /// <param name="value">The new value for the  key's associated value.</param>
+        /// <param name="value">The new value for the key's associated value.</param>
         /// <returns>Whether the new value was correctly set.</returns>
         public void SetOrUpdateValue(K key, V value)
         {

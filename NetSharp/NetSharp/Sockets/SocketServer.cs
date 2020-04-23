@@ -13,8 +13,8 @@ namespace NetSharp.Sockets
     /// <param name="requestPacket">The request packet received by the server.</param>
     /// <param name="clientEndPoint">The client from which the packet was received.</param>
     /// <returns>
-    /// The response packet which should be sent out to the client. If no packet should be sent out,
-    /// this method must return <see cref="NetworkPacket.NullPacket"/>.
+    /// The response packet which should be sent out to the client. If no packet should be sent out, this method must return <see
+    /// cref="NetworkPacket.NullPacket" />.
     /// </returns>
     public delegate NetworkPacket SocketServerPacketHandler(in NetworkPacket requestPacket, in EndPoint clientEndPoint);
 
@@ -29,7 +29,7 @@ namespace NetSharp.Sockets
         protected readonly SocketServerPacketHandler PacketHandler;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="SocketServer"/> class.
+        /// Constructs a new instance of the <see cref="SocketServer" /> class.
         /// </summary>
         /// <param name="connectionAddressFamily">The address family that the underlying connection should use.</param>
         /// <param name="connectionSocketType">The socket type that the underlying connection should use.</param>
@@ -57,10 +57,10 @@ namespace NetSharp.Sockets
         }
 
         /// <summary>
-        /// Runs the server, handling requests from clients, until the <paramref name="cancellationToken"/> has its cancellation requested.
+        /// Runs the server, handling requests from clients, until the <paramref name="cancellationToken" /> has its cancellation requested.
         /// </summary>
-        /// <param name="cancellationToken">The <see cref="CancellationToken"/> upon whose cancellation the server should shut down.</param>
-        /// <returns>A <see cref="Task"/> representing the server's execution.</returns>
+        /// <param name="cancellationToken">The <see cref="CancellationToken" /> upon whose cancellation the server should shut down.</param>
+        /// <returns>A <see cref="Task" /> representing the server's execution.</returns>
         public abstract Task RunAsync(CancellationToken cancellationToken = default);
     }
 }

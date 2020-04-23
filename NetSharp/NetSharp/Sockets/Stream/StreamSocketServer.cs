@@ -13,10 +13,8 @@ namespace NetSharp.Sockets.Stream
         public static readonly StreamSocketServerOptions Defaults =
             new StreamSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 0);
 
-        public readonly int PacketSize;
-
         public readonly int ConcurrentAcceptCalls;
-
+        public readonly int PacketSize;
         public readonly ushort PreallocatedTransmissionArgs;
 
         public StreamSocketServerOptions(int packetSize, int concurrentAcceptCalls, ushort preallocatedTransmissionArgs)
@@ -30,33 +28,13 @@ namespace NetSharp.Sockets.Stream
     }
 
     //TODO address the need to handle series of network packets, not just single packets
-    //TODO allow for the server to do more than just echo packets
     //TODO document class
     public sealed class StreamSocketServer : SocketServer
     {
-        private class RemoteStreamClientToken : IDisposable
-        {
-            public readonly Socket ClientSocket;
-
-            public byte[]? RentedBuffer;
-
-            public RemoteStreamClientToken(in Socket clientSocket)
-            {
-                ClientSocket = clientSocket;
-            }
-
-            public void Dispose()
-            {
-                ClientSocket.Shutdown(SocketShutdown.Both);
-                ClientSocket.Close();
-                ClientSocket.Dispose();
-            }
-        }
-
         private readonly StreamSocketServerOptions serverOptions;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="StreamSocketServer"/> class.
+        /// Constructs a new instance of the <see cref="StreamSocketServer" /> class.
         /// </summary>
         /// <param name="serverOptions">Additional options to configure the server.</param>
         /// <inheritdoc />
@@ -69,59 +47,9 @@ namespace NetSharp.Sockets.Stream
             this.serverOptions = serverOptions ?? StreamSocketServerOptions.Defaults;
         }
 
-        /// <inheritdoc />
-        protected override SocketAsyncEventArgs CreateTransmissionArgs()
+        public ref readonly StreamSocketServerOptions ServerOptions
         {
-            SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs();
-
-            connectionArgs.Completed += HandleIoCompleted;
-
-            return connectionArgs;
-        }
-
-        /// <inheritdoc />
-        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
-        {
-        }
-
-        /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
-        {
-            remoteConnectionArgs.Completed -= HandleIoCompleted;
-
-            remoteConnectionArgs.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
-        {
-            switch (args.LastOperation)
-            {
-                case SocketAsyncOperation.Accept:
-                    SocketAsyncEventArgs newAcceptArgs = TransmissionArgsPool.Rent();
-
-                    Accept(newAcceptArgs); // start a new accept operation to not miss any clients
-
-                    CompleteAccept(args);
-                    break;
-
-                case SocketAsyncOperation.Receive:
-                    CompleteReceive(args);
-                    break;
-
-                case SocketAsyncOperation.Send:
-                    CompleteSend(args);
-                    break;
-
-                default:
-                    throw new NotSupportedException($"{nameof(HandleIoCompleted)} doesn't support {args.LastOperation}");
-            }
+            get { return ref serverOptions; }
         }
 
         private void Accept(SocketAsyncEventArgs acceptArgs)
@@ -137,6 +65,14 @@ namespace NetSharp.Sockets.Stream
             CompleteAccept(acceptArgs);
         }
 
+        private void CloseClientSocket(SocketAsyncEventArgs clientArgs)
+        {
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
+            clientToken.Dispose();
+
+            TransmissionArgsPool.Return(clientArgs);
+        }
+
         private void CompleteAccept(SocketAsyncEventArgs connectedClientArgs)
         {
             Socket clientSocket = connectedClientArgs.AcceptSocket;
@@ -146,24 +82,6 @@ namespace NetSharp.Sockets.Stream
             connectedClientArgs.UserToken = clientToken;
 
             Receive(connectedClientArgs);
-        }
-
-        private void Receive(SocketAsyncEventArgs clientArgs)
-        {
-            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
-
-            byte[] requestBuffer = BufferPool.Rent(serverOptions.PacketSize);
-            Memory<byte> requestBufferMemory = new Memory<byte>(requestBuffer);
-
-            clientToken.RentedBuffer = requestBuffer;
-            clientArgs.SetBuffer(clientToken.RentedBuffer, 0, serverOptions.PacketSize);
-
-            bool operationPending = clientToken.ClientSocket.ReceiveAsync(clientArgs);
-
-            if (!operationPending)
-            {
-                CompleteReceive(clientArgs);
-            }
         }
 
         private void CompleteReceive(SocketAsyncEventArgs clientArgs)
@@ -224,18 +142,6 @@ namespace NetSharp.Sockets.Stream
             }
         }
 
-        private void Send(SocketAsyncEventArgs clientArgs)
-        {
-            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
-
-            bool operationPending = clientToken.ClientSocket.SendAsync(clientArgs);
-
-            if (!operationPending)
-            {
-                CompleteSend(clientArgs);
-            }
-        }
-
         private void CompleteSend(SocketAsyncEventArgs clientArgs)
         {
             RemoteStreamClientToken sendToken = (RemoteStreamClientToken)clientArgs.UserToken;
@@ -275,17 +181,89 @@ namespace NetSharp.Sockets.Stream
             }
         }
 
-        private void CloseClientSocket(SocketAsyncEventArgs clientArgs)
+        private void Receive(SocketAsyncEventArgs clientArgs)
         {
             RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
-            clientToken.Dispose();
 
-            TransmissionArgsPool.Return(clientArgs);
+            byte[] requestBuffer = BufferPool.Rent(serverOptions.PacketSize);
+            Memory<byte> requestBufferMemory = new Memory<byte>(requestBuffer);
+
+            clientToken.RentedBuffer = requestBuffer;
+            clientArgs.SetBuffer(clientToken.RentedBuffer, 0, serverOptions.PacketSize);
+
+            bool operationPending = clientToken.ClientSocket.ReceiveAsync(clientArgs);
+
+            if (!operationPending)
+            {
+                CompleteReceive(clientArgs);
+            }
         }
 
-        public ref readonly StreamSocketServerOptions ServerOptions
+        private void Send(SocketAsyncEventArgs clientArgs)
         {
-            get { return ref serverOptions; }
+            RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
+
+            bool operationPending = clientToken.ClientSocket.SendAsync(clientArgs);
+
+            if (!operationPending)
+            {
+                CompleteSend(clientArgs);
+            }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateTransmissionArgs()
+        {
+            SocketAsyncEventArgs connectionArgs = new SocketAsyncEventArgs();
+
+            connectionArgs.Completed += HandleIoCompleted;
+
+            return connectionArgs;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyTransmissionArgs(SocketAsyncEventArgs remoteConnectionArgs)
+        {
+            remoteConnectionArgs.Completed -= HandleIoCompleted;
+
+            remoteConnectionArgs.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            switch (args.LastOperation)
+            {
+                case SocketAsyncOperation.Accept:
+                    SocketAsyncEventArgs newAcceptArgs = TransmissionArgsPool.Rent();
+
+                    Accept(newAcceptArgs); // start a new accept operation to not miss any clients
+
+                    CompleteAccept(args);
+                    break;
+
+                case SocketAsyncOperation.Receive:
+                    CompleteReceive(args);
+                    break;
+
+                case SocketAsyncOperation.Send:
+                    CompleteSend(args);
+                    break;
+
+                default:
+                    throw new NotSupportedException($"{nameof(HandleIoCompleted)} doesn't support {args.LastOperation}");
+            }
+        }
+
+        /// <inheritdoc />
+        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
+        {
         }
 
         /// <inheritdoc />
@@ -303,6 +281,25 @@ namespace NetSharp.Sockets.Stream
             cancellationToken.WaitHandle.WaitOne();
 
             return Task.CompletedTask;
+        }
+
+        private class RemoteStreamClientToken : IDisposable
+        {
+            public readonly Socket ClientSocket;
+
+            public byte[]? RentedBuffer;
+
+            public RemoteStreamClientToken(in Socket clientSocket)
+            {
+                ClientSocket = clientSocket;
+            }
+
+            public void Dispose()
+            {
+                ClientSocket.Shutdown(SocketShutdown.Both);
+                ClientSocket.Close();
+                ClientSocket.Dispose();
+            }
         }
     }
 }
