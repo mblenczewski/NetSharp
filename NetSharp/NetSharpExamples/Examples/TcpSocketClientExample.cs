@@ -13,6 +13,9 @@ namespace NetSharpExamples.Examples
     public class TcpSocketClientExample : INetSharpExample
     {
         /// <inheritdoc />
+        public string Name { get; } = "TCP Socket Client Example";
+
+        /// <inheritdoc />
         public async Task RunAsync()
         {
             StreamSocketClientOptions clientOptions = new StreamSocketClientOptions(2);

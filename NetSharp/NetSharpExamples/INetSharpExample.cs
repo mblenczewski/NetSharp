@@ -8,6 +8,11 @@ namespace NetSharpExamples
     public interface INetSharpExample
     {
         /// <summary>
+        /// The name of the example.
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Runs the example asynchronously.
         /// </summary>
         Task RunAsync();

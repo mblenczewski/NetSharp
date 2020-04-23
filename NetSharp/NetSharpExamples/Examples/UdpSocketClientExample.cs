@@ -13,6 +13,9 @@ namespace NetSharpExamples.Examples
     public class UdpSocketClientExample : INetSharpExample
     {
         /// <inheritdoc />
+        public string Name { get; } = "UDP Socket Client Example";
+
+        /// <inheritdoc />
         public async Task RunAsync()
         {
             DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions(2);

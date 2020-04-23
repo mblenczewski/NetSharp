@@ -15,6 +15,9 @@ namespace NetSharpExamples.Examples
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
         public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12348);
 
+        /// <inheritdoc />
+        public string Name { get; } = "TCP Socket Server Example";
+
         public static NetworkPacket ServerPacketHandler(in NetworkPacket request, in EndPoint remoteEndPoint)
         {
             // lock is not necessary, but means that console output is clean and not interleaved

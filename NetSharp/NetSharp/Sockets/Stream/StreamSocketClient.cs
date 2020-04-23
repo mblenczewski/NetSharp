@@ -268,15 +268,15 @@ namespace NetSharp.Sockets.Stream
 
         public TransmissionResult Receive(byte[] buffer, SocketFlags flags = SocketFlags.None)
         {
-            int bytesToReceive = buffer.Length;
-            int bytesReceived = 0;
+            int expectedBytes = buffer.Length;
+            int receivedBytes = 0;
 
             do
             {
-                bytesReceived += Connection.Receive(buffer, bytesReceived, bytesToReceive - bytesReceived, flags);
-            } while (bytesReceived != 0 && bytesReceived < bytesToReceive);
+                receivedBytes += Connection.Receive(buffer, receivedBytes, expectedBytes - receivedBytes, flags);
+            } while (receivedBytes != 0 && receivedBytes < expectedBytes);
 
-            return new TransmissionResult(in buffer, in bytesReceived, Connection.RemoteEndPoint);
+            return new TransmissionResult(in buffer, in receivedBytes, Connection.RemoteEndPoint);
         }
 
         public ValueTask<TransmissionResult> ReceiveAsync(Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None,
@@ -302,15 +302,15 @@ namespace NetSharp.Sockets.Stream
 
         public TransmissionResult Send(byte[] buffer, SocketFlags flags = SocketFlags.None)
         {
-            int bytesToSend = buffer.Length;
-            int bytesSent = 0;
+            int expectedBytes = buffer.Length;
+            int sentBytes = 0;
 
             do
             {
-                bytesSent += Connection.Send(buffer, bytesSent, bytesToSend - bytesSent, flags);
-            } while (bytesSent != 0 && bytesSent < bytesToSend);
+                sentBytes += Connection.Send(buffer, sentBytes, expectedBytes - sentBytes, flags);
+            } while (sentBytes != 0 && sentBytes < expectedBytes);
 
-            return new TransmissionResult(in buffer, in bytesSent, Connection.RemoteEndPoint);
+            return new TransmissionResult(in buffer, in sentBytes, Connection.RemoteEndPoint);
         }
 
         public ValueTask<TransmissionResult> SendAsync(Memory<byte> sendBuffer, SocketFlags flags = SocketFlags.None,
@@ -325,7 +325,7 @@ namespace NetSharp.Sockets.Stream
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
-            if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.SendAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
 

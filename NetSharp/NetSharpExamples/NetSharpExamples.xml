@@ -4,5 +4,110 @@
         <name>NetSharpExamples</name>
     </assembly>
     <members>
+        <member name="F:NetSharpExamples.Benchmarks.TcpSocketClientAsyncBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.TcpSocketClientAsyncBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.TcpSocketClientAsyncBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="F:NetSharpExamples.Benchmarks.TcpSocketClientSyncBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.TcpSocketClientSyncBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.TcpSocketClientSyncBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="F:NetSharpExamples.Benchmarks.TcpSocketServerBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.TcpSocketServerBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.TcpSocketServerBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="F:NetSharpExamples.Benchmarks.UdpSocketClientAsyncBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.UdpSocketClientAsyncBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.UdpSocketClientAsyncBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="F:NetSharpExamples.Benchmarks.UdpSocketClientSyncBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.UdpSocketClientSyncBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.UdpSocketClientSyncBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="F:NetSharpExamples.Benchmarks.UdpSocketServerBenchmark.PacketCount">
+            <summary>
+            Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.Benchmarks.UdpSocketServerBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.UdpSocketServerBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.TcpSocketClientExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.TcpSocketClientExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.TcpSocketServerExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.TcpSocketServerExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.UdpSocketClientExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.UdpSocketClientExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.UdpSocketServerExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.UdpSocketServerExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="T:NetSharpExamples.INetSharpExample">
+            <summary>
+            Defines an example program.
+            </summary>
+        </member>
+        <member name="P:NetSharpExamples.INetSharpExample.Name">
+            <summary>
+            The name of the example.
+            </summary>
+        </member>
+        <member name="M:NetSharpExamples.INetSharpExample.RunAsync">
+            <summary>
+            Runs the example asynchronously.
+            </summary>
+        </member>
     </members>
 </doc>

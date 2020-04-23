@@ -14,11 +14,17 @@ namespace NetSharpExamples.Benchmarks
 {
     public class UdpSocketServerBenchmark : INetSharpExample
     {
+        /// <summary>
+        /// Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
+        /// </summary>
         private const int PacketCount = 1_000_000;
 
         private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12347);
 
         private double[] ClientBandwidths;
+
+        /// <inheritdoc />
+        public string Name { get; } = "UDP Socket Server Benchmark";
 
         private Task BenchmarkClientTask(object idObj)
         {
@@ -54,7 +60,6 @@ namespace NetSharpExamples.Benchmarks
                 benchmarkHelper.StopBandwidthStopwatch();
 
                 benchmarkHelper.UpdateRttStats(id);
-
                 benchmarkHelper.ResetRttStopwatch();
             }
 
@@ -74,6 +79,11 @@ namespace NetSharpExamples.Benchmarks
             int clientCount = Environment.ProcessorCount / 2;
 
             Console.WriteLine($"UDP Server Benchmark started!");
+
+            if (PacketCount > 10_000)
+            {
+                Console.WriteLine($"{PacketCount} packets will be sent. This could take a long time (maybe more than a minute)!");
+            }
 
             DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(clientCount, (ushort)clientCount);
 
