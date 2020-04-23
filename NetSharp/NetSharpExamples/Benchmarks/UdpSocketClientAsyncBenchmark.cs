@@ -52,7 +52,7 @@ namespace NetSharpExamples.Benchmarks
 
             if (PacketCount > 10_000)
             {
-                Console.WriteLine($"{PacketCount} packets will be sent. This could take a long time (maybe more than a minute)!");
+                Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();

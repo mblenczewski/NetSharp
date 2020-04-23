@@ -67,6 +67,8 @@ namespace NetSharpExamples
                     Console.WriteLine("Invalid option selected. Please try again!");
                 }
             }
+
+            Console.WriteLine();
         }
     }
 }
