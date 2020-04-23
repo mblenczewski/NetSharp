@@ -15,13 +15,13 @@ namespace NetSharpExamples.Examples
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions(NetworkPacket.TotalSize, 2);
+            DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions(2);
 
             using DatagramSocketClient client = new DatagramSocketClient(AddressFamily.InterNetwork, ProtocolType.Udp, clientOptions);
 
             Encoding dataEncoding = UdpSocketServerExample.ServerEncoding;
-            byte[] sendBuffer = new byte[clientOptions.PacketSize];
-            byte[] receiveBuffer = new byte[clientOptions.PacketSize];
+            byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
 
             EndPoint remoteEndPoint = UdpSocketServerExample.ServerEndPoint;
 

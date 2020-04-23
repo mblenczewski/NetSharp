@@ -12,16 +12,13 @@ namespace NetSharp.Sockets.Datagram
     public readonly struct DatagramSocketServerOptions
     {
         public static readonly DatagramSocketServerOptions Defaults =
-            new DatagramSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 0);
+            new DatagramSocketServerOptions(Environment.ProcessorCount, 0);
 
         public readonly int ConcurrentReceiveFromCalls;
-        public readonly int PacketSize;
         public readonly ushort PreallocatedTransmissionArgs;
 
-        public DatagramSocketServerOptions(int packetSize, int concurrentReceiveFromCalls, ushort preallocatedTransmissionArgs)
+        public DatagramSocketServerOptions(int concurrentReceiveFromCalls, ushort preallocatedTransmissionArgs)
         {
-            PacketSize = packetSize;
-
             ConcurrentReceiveFromCalls = concurrentReceiveFromCalls;
 
             PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
@@ -41,13 +38,14 @@ namespace NetSharp.Sockets.Datagram
         /// <summary>
         /// Constructs a new instance of the <see cref="DatagramSocketServer" /> class.
         /// </summary>
-        /// <param name="serverOptions">Additional options to configure the server.</param>
+        /// <param name="serverOptions">
+        /// Additional options to configure the server.
+        /// </param>
         /// <inheritdoc />
         public DatagramSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
             in SocketServerPacketHandler packetHandler, in DatagramSocketServerOptions? serverOptions = null)
             : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType, in packetHandler,
-            serverOptions?.PacketSize ?? DatagramSocketServerOptions.Defaults.PacketSize,
-            serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
+            NetworkPacket.TotalSize, serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.serverOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
         }
@@ -63,13 +61,13 @@ namespace NetSharp.Sockets.Datagram
 
             if (receiveArgs.SocketError == SocketError.Success)
             {
-                NetworkPacket request = NetworkPacket.Deserialise(receiveArgs.MemoryBuffer);
+                NetworkPacket.Deserialise(receiveArgs.MemoryBuffer, out NetworkPacket request);
 
                 NetworkPacket response = PacketHandler(in request, receiveArgs.RemoteEndPoint);
 
                 if (!response.Equals(NetworkPacket.NullPacket))
                 {
-                    byte[] sendBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+                    byte[] sendBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
                     Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
 
                     NetworkPacket.Serialise(response, sendBufferMemory);
@@ -108,7 +106,7 @@ namespace NetSharp.Sockets.Datagram
                 return;
             }
 
-            byte[] receiveBuffer = BufferPool.Rent(ServerOptions.PacketSize);
+            byte[] receiveBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
             Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
 
             receiveArgs.SetBuffer(receiveBufferMemory);
@@ -183,10 +181,12 @@ namespace NetSharp.Sockets.Datagram
                     ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
 
                     CompleteReceiveFrom(args);
+
                     break;
 
                 case SocketAsyncOperation.SendTo:
                     CompleteSendTo(args);
+
                     break;
 
                 default:

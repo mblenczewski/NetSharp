@@ -33,7 +33,7 @@ namespace NetSharpExamples.Examples
         public Task RunAsync()
         {
             StreamSocketServerOptions serverOptions =
-                new StreamSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 2);
+                new StreamSocketServerOptions(Environment.ProcessorCount, 2);
 
             using StreamSocketServer server =
                 new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp, ServerPacketHandler, serverOptions);

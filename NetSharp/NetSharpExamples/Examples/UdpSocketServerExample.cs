@@ -33,7 +33,7 @@ namespace NetSharpExamples.Examples
         public Task RunAsync()
         {
             DatagramSocketServerOptions serverOptions =
-                new DatagramSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 2);
+                new DatagramSocketServerOptions(Environment.ProcessorCount, 2);
 
             using DatagramSocketServer server =
                 new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp, ServerPacketHandler, serverOptions);

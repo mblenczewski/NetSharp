@@ -5,7 +5,9 @@ namespace NetSharp.Utils
     /// <summary>
     /// Provides a lightweight implementation of an object pool for classes.
     /// </summary>
-    /// <typeparam name="T">The type of item stored in the pool.</typeparam>
+    /// <typeparam name="T">
+    /// The type of item stored in the pool.
+    /// </typeparam>
     public class SlimObjectPool<T> where T : class
     {
         private readonly CanRebufferObjectPredicate canObjectBeRebufferedPredicate;
@@ -21,11 +23,21 @@ namespace NetSharp.Utils
         /// <summary>
         /// Constructs a new instance of the <see cref="SlimObjectPool{T}" /> class.
         /// </summary>
-        /// <param name="createDelegate">The delegate method to use to create new pooled object instances.</param>
-        /// <param name="resetDelegate">The delegate method to use to reset used pooled object instances.</param>
-        /// <param name="destroyDelegate">The delegate method to use to destroy pooled object instances that cannot be reused.</param>
-        /// <param name="rebufferPredicate">The delegate method to use to decide whether an instance can be reused.</param>
-        /// <param name="baseCollection">The underlying pooled object buffer to use.</param>
+        /// <param name="createDelegate">
+        /// The delegate method to use to create new pooled object instances.
+        /// </param>
+        /// <param name="resetDelegate">
+        /// The delegate method to use to reset used pooled object instances.
+        /// </param>
+        /// <param name="destroyDelegate">
+        /// The delegate method to use to destroy pooled object instances that cannot be reused.
+        /// </param>
+        /// <param name="rebufferPredicate">
+        /// The delegate method to use to decide whether an instance can be reused.
+        /// </param>
+        /// <param name="baseCollection">
+        /// The underlying pooled object buffer to use.
+        /// </param>
         public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
             in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate,
             in IProducerConsumerCollection<T> baseCollection)
@@ -44,10 +56,18 @@ namespace NetSharp.Utils
         /// <summary>
         /// Constructs a new instance of the <see cref="SlimObjectPool{T}" /> class.
         /// </summary>
-        /// <param name="createDelegate">The delegate method to use to create new pooled object instances.</param>
-        /// <param name="resetDelegate">The delegate method to use to reset used pooled object instances.</param>
-        /// <param name="destroyDelegate">The delegate method to use to destroy pooled object instances that cannot be reused.</param>
-        /// <param name="rebufferPredicate">The delegate method to use to decide whether an instance can be reused.</param>
+        /// <param name="createDelegate">
+        /// The delegate method to use to create new pooled object instances.
+        /// </param>
+        /// <param name="resetDelegate">
+        /// The delegate method to use to reset used pooled object instances.
+        /// </param>
+        /// <param name="destroyDelegate">
+        /// The delegate method to use to destroy pooled object instances that cannot be reused.
+        /// </param>
+        /// <param name="rebufferPredicate">
+        /// The delegate method to use to decide whether an instance can be reused.
+        /// </param>
         public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
             in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate)
             : this(in createDelegate, in resetDelegate, in destroyDelegate, in rebufferPredicate, new ConcurrentBag<T>())
@@ -58,32 +78,44 @@ namespace NetSharp.Utils
         /// Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is
         /// returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
         /// </summary>
-        /// <param name="instance">The instance to check.</param>
-        /// <returns>Whether the given instance should be placed back into the pool.</returns>
+        /// <param name="instance">
+        /// The instance to check.
+        /// </param>
+        /// <returns>
+        /// Whether the given instance should be placed back into the pool.
+        /// </returns>
         public delegate bool CanRebufferObjectPredicate(in T instance);
 
         /// <summary>
         /// Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.
         /// </summary>
-        /// <returns>A configured <typeparamref name="T" /> instance.</returns>
+        /// <returns>
+        /// A configured <typeparamref name="T" /> instance.
+        /// </returns>
         public delegate T CreateObjectDelegate();
 
         /// <summary>
         /// Delegate method to destroy a used <paramref name="instance" /> which cannot be reused.
         /// </summary>
-        /// <param name="instance">The instance to destroy.</param>
+        /// <param name="instance">
+        /// The instance to destroy.
+        /// </param>
         public delegate void DestroyObjectDelegate(T instance);
 
         /// <summary>
         /// Delegate method to reset a used <paramref name="instance" /> before placing it back into the pool.
         /// </summary>
-        /// <param name="instance">The instance which should be reset.</param>
+        /// <param name="instance">
+        /// The instance which should be reset.
+        /// </param>
         public delegate void ResetObjectDelegate(T instance);
 
         /// <summary>
         /// Leases a new <typeparamref name="T" /> instance from the pool, and returns it.
         /// </summary>
-        /// <returns>The <typeparamref name="T" /> instance which was fetched from the pool.</returns>
+        /// <returns>
+        /// The <typeparamref name="T" /> instance which was fetched from the pool.
+        /// </returns>
         public T Rent()
         {
             return objectBuffer.TryTake(out T result) ? result : createObjectDelegate();
@@ -92,7 +124,9 @@ namespace NetSharp.Utils
         /// <summary>
         /// Returns a previously leased <typeparamref name="T" /> instance to the pool.
         /// </summary>
-        /// <param name="instance">The previously leased instance which should be returned.</param>
+        /// <param name="instance">
+        /// The previously leased instance which should be returned.
+        /// </param>
         public void Return(T instance)
         {
             if (canObjectBeRebufferedPredicate(instance))

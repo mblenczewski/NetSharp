@@ -11,16 +11,13 @@ namespace NetSharp.Sockets.Stream
     public readonly struct StreamSocketServerOptions
     {
         public static readonly StreamSocketServerOptions Defaults =
-            new StreamSocketServerOptions(NetworkPacket.TotalSize, Environment.ProcessorCount, 0);
+            new StreamSocketServerOptions(Environment.ProcessorCount, 0);
 
         public readonly int ConcurrentAcceptCalls;
-        public readonly int PacketSize;
         public readonly ushort PreallocatedTransmissionArgs;
 
-        public StreamSocketServerOptions(int packetSize, int concurrentAcceptCalls, ushort preallocatedTransmissionArgs)
+        public StreamSocketServerOptions(int concurrentAcceptCalls, ushort preallocatedTransmissionArgs)
         {
-            PacketSize = packetSize;
-
             ConcurrentAcceptCalls = concurrentAcceptCalls;
 
             PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
@@ -36,13 +33,14 @@ namespace NetSharp.Sockets.Stream
         /// <summary>
         /// Constructs a new instance of the <see cref="StreamSocketServer" /> class.
         /// </summary>
-        /// <param name="serverOptions">Additional options to configure the server.</param>
+        /// <param name="serverOptions">
+        /// Additional options to configure the server.
+        /// </param>
         /// <inheritdoc />
         public StreamSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
             in SocketServerPacketHandler packetHandler, in StreamSocketServerOptions? serverOptions = null)
             : base(in connectionAddressFamily, SocketType.Stream, in connectionProtocolType, in packetHandler,
-            serverOptions?.PacketSize ?? StreamSocketServerOptions.Defaults.PacketSize,
-            serverOptions?.PreallocatedTransmissionArgs ?? StreamSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
+            NetworkPacket.TotalSize, serverOptions?.PreallocatedTransmissionArgs ?? StreamSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.serverOptions = serverOptions ?? StreamSocketServerOptions.Defaults;
         }
@@ -90,17 +88,17 @@ namespace NetSharp.Sockets.Stream
 
             if (clientArgs.SocketError == SocketError.Success)
             {
-                if (clientArgs.BytesTransferred == serverOptions.PacketSize)
+                if (clientArgs.BytesTransferred == NetworkPacket.TotalSize)
                 {
                     // buffer was fully received
 
-                    NetworkPacket request = NetworkPacket.Deserialise(receiveToken.RentedBuffer);
+                    NetworkPacket.Deserialise(receiveToken.RentedBuffer, out NetworkPacket request);
 
                     NetworkPacket response = PacketHandler(in request, clientArgs.RemoteEndPoint);
 
                     if (!response.Equals(NetworkPacket.NullPacket))
                     {
-                        byte[] responseBuffer = BufferPool.Rent(serverOptions.PacketSize);
+                        byte[] responseBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
                         Memory<byte> responseBufferMemory = new Memory<byte>(responseBuffer);
 
                         NetworkPacket.Serialise(response, responseBufferMemory);
@@ -108,7 +106,7 @@ namespace NetSharp.Sockets.Stream
                         BufferPool.Return(receiveToken.RentedBuffer, true); // at this point the request buffer can be returned
 
                         receiveToken.RentedBuffer = responseBuffer;
-                        clientArgs.SetBuffer(responseBuffer, 0, serverOptions.PacketSize);
+                        clientArgs.SetBuffer(responseBuffer, 0, NetworkPacket.TotalSize);
 
                         Send(clientArgs);
                     }
@@ -119,13 +117,13 @@ namespace NetSharp.Sockets.Stream
                         Receive(clientArgs);
                     }
                 }
-                else if (serverOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
+                else if (NetworkPacket.TotalSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
                 {
                     // receive the remaining parts of the buffer
 
                     int receivedBytes = clientArgs.BytesTransferred;
 
-                    clientArgs.SetBuffer(receivedBytes, serverOptions.PacketSize - receivedBytes);
+                    clientArgs.SetBuffer(receivedBytes, NetworkPacket.TotalSize - receivedBytes);
 
                     Receive(clientArgs);
                 }
@@ -148,7 +146,7 @@ namespace NetSharp.Sockets.Stream
 
             if (clientArgs.SocketError == SocketError.Success)
             {
-                if (clientArgs.BytesTransferred == serverOptions.PacketSize)
+                if (clientArgs.BytesTransferred == NetworkPacket.TotalSize)
                 {
                     // buffer was fully sent
 
@@ -158,13 +156,13 @@ namespace NetSharp.Sockets.Stream
 
                     Receive(clientArgs);
                 }
-                else if (serverOptions.PacketSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
+                else if (NetworkPacket.TotalSize > clientArgs.BytesTransferred && clientArgs.BytesTransferred > 0)
                 {
                     // send the remaining parts of the buffer
 
                     int sentBytes = clientArgs.BytesTransferred;
 
-                    clientArgs.SetBuffer(sentBytes, serverOptions.PacketSize - sentBytes);
+                    clientArgs.SetBuffer(sentBytes, NetworkPacket.TotalSize - sentBytes);
 
                     Send(clientArgs);
                 }
@@ -185,11 +183,11 @@ namespace NetSharp.Sockets.Stream
         {
             RemoteStreamClientToken clientToken = (RemoteStreamClientToken)clientArgs.UserToken;
 
-            byte[] requestBuffer = BufferPool.Rent(serverOptions.PacketSize);
+            byte[] requestBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
             Memory<byte> requestBufferMemory = new Memory<byte>(requestBuffer);
 
             clientToken.RentedBuffer = requestBuffer;
-            clientArgs.SetBuffer(clientToken.RentedBuffer, 0, serverOptions.PacketSize);
+            clientArgs.SetBuffer(clientToken.RentedBuffer, 0, NetworkPacket.TotalSize);
 
             bool operationPending = clientToken.ClientSocket.ReceiveAsync(clientArgs);
 
@@ -246,14 +244,17 @@ namespace NetSharp.Sockets.Stream
                     Accept(newAcceptArgs); // start a new accept operation to not miss any clients
 
                     CompleteAccept(args);
+
                     break;
 
                 case SocketAsyncOperation.Receive:
                     CompleteReceive(args);
+
                     break;
 
                 case SocketAsyncOperation.Send:
                     CompleteSend(args);
+
                     break;
 
                 default:

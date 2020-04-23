@@ -13,16 +13,12 @@ namespace NetSharp.Sockets.Datagram
     public readonly struct DatagramSocketClientOptions
     {
         public static readonly DatagramSocketClientOptions Defaults =
-            new DatagramSocketClientOptions(NetworkPacket.TotalSize, 0);
-
-        public readonly int PacketSize;
+            new DatagramSocketClientOptions(0);
 
         public readonly ushort PreallocatedTransmissionArgs;
 
-        public DatagramSocketClientOptions(int packetSize, ushort preallocatedTransmissionArgs)
+        public DatagramSocketClientOptions(ushort preallocatedTransmissionArgs)
         {
-            PacketSize = packetSize;
-
             PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
         }
     }
@@ -34,9 +30,8 @@ namespace NetSharp.Sockets.Datagram
         private readonly DatagramSocketClientOptions clientOptions;
 
         public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-                                                            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram,
-                    in connectionProtocolType, clientOptions?.PacketSize ?? DatagramSocketClientOptions.Defaults.PacketSize,
-                    clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
+            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType,
+            NetworkPacket.TotalSize, clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
             this.clientOptions = clientOptions ?? DatagramSocketClientOptions.Defaults;
         }
@@ -44,6 +39,70 @@ namespace NetSharp.Sockets.Datagram
         public ref readonly DatagramSocketClientOptions ClientOptions
         {
             get { return ref clientOptions; }
+        }
+
+        private void CompleteConnect(SocketAsyncEventArgs args)
+        {
+            AsyncOperationToken connectToken = (AsyncOperationToken)args.UserToken;
+
+            if (connectToken.CancellationToken.IsCancellationRequested)
+            {
+                connectToken.CompletionSource.SetCanceled();
+            }
+            else if (args.SocketError == SocketError.Success)
+            {
+                connectToken.CompletionSource.SetResult(true);
+            }
+            else
+            {
+                connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+            }
+
+            TransmissionArgsPool.Return(args);
+        }
+
+        private void CompleteReceiveFrom(SocketAsyncEventArgs args)
+        {
+            AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
+
+            if (receiveToken.CancellationToken.IsCancellationRequested)
+            {
+                receiveToken.CompletionSource.SetCanceled();
+            }
+            else if (args.SocketError == SocketError.Success)
+            {
+                TransmissionResult result = new TransmissionResult(in args);
+
+                receiveToken.CompletionSource.SetResult(result);
+            }
+            else
+            {
+                receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+            }
+
+            TransmissionArgsPool.Return(args);
+        }
+
+        private void CompleteSendTo(SocketAsyncEventArgs args)
+        {
+            AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
+
+            if (sendToken.CancellationToken.IsCancellationRequested)
+            {
+                sendToken.CompletionSource.SetCanceled();
+            }
+            else if (args.SocketError == SocketError.Success)
+            {
+                TransmissionResult result = new TransmissionResult(in args);
+
+                sendToken.CompletionSource.SetResult(result);
+            }
+            else
+            {
+                sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+            }
+
+            TransmissionArgsPool.Return(args);
         }
 
         /// <inheritdoc />
@@ -76,66 +135,17 @@ namespace NetSharp.Sockets.Datagram
             switch (args.LastOperation)
             {
                 case SocketAsyncOperation.Connect:
-                    AsyncOperationToken connectToken = (AsyncOperationToken)args.UserToken;
-
-                    if (connectToken.CancellationToken.IsCancellationRequested)
-                    {
-                        connectToken.CompletionSource.SetCanceled();
-                    }
-                    else if (args.SocketError == SocketError.Success)
-                    {
-                        connectToken.CompletionSource.SetResult(true);
-                    }
-                    else
-                    {
-                        connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-                    }
-
-                    TransmissionArgsPool.Return(args);
+                    CompleteConnect(args);
 
                     break;
 
                 case SocketAsyncOperation.ReceiveFrom:
-                    AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
-
-                    if (receiveToken.CancellationToken.IsCancellationRequested)
-                    {
-                        receiveToken.CompletionSource.SetCanceled();
-                    }
-                    else if (args.SocketError == SocketError.Success)
-                    {
-                        TransmissionResult result = new TransmissionResult(in args);
-
-                        receiveToken.CompletionSource.SetResult(result);
-                    }
-                    else
-                    {
-                        receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-                    }
-
-                    TransmissionArgsPool.Return(args);
+                    CompleteReceiveFrom(args);
 
                     break;
 
                 case SocketAsyncOperation.SendTo:
-                    AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
-
-                    if (sendToken.CancellationToken.IsCancellationRequested)
-                    {
-                        sendToken.CompletionSource.SetCanceled();
-                    }
-                    else if (args.SocketError == SocketError.Success)
-                    {
-                        TransmissionResult result = new TransmissionResult(in args);
-
-                        sendToken.CompletionSource.SetResult(result);
-                    }
-                    else
-                    {
-                        sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-                    }
-
-                    TransmissionArgsPool.Return(args);
+                    CompleteSendTo(args);
 
                     break;
 

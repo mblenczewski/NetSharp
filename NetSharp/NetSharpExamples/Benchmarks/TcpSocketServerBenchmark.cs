@@ -20,46 +20,6 @@ namespace NetSharpExamples.Benchmarks
 
         private double[] ClientBandwidths;
 
-        /// <inheritdoc />
-        public async Task RunAsync()
-        {
-            CancellationTokenSource serverCts = new CancellationTokenSource();
-
-            int clientCount = Environment.ProcessorCount / 2;
-
-            Console.WriteLine($"TCP Server Benchmark started!");
-
-            StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(NetworkPacket.TotalSize,
-                clientCount, (ushort)clientCount);
-
-            StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp,
-                SocketServer.DefaultPacketHandler, serverOptions);
-
-            server.Bind(ServerEndPoint);
-
-            Task serverTask = Task.Factory.StartNew(() =>
-            {
-                server.RunAsync(serverCts.Token).GetAwaiter().GetResult();
-            }, TaskCreationOptions.LongRunning);
-
-            ClientBandwidths = new double[clientCount];
-            Task[] clientTasks = new Task[clientCount];
-            for (int i = 0; i < clientTasks.Length; i++)
-            {
-                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
-            }
-
-            await Task.WhenAll(clientTasks);
-
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
-
-            serverCts.Cancel();
-
-            await serverTask;
-
-            Console.WriteLine($"TCP Server Benchmark finished!");
-        }
-
         private Task BenchmarkClientTask(object idObj)
         {
             int id = (int)idObj;
@@ -101,14 +61,6 @@ namespace NetSharpExamples.Benchmarks
                     break;
                 }
 
-#if DEBUG
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}, Packet {i}] Sent {sentBytes} bytes to {remoteEndPoint}");
-                    Console.WriteLine($"[Client {id}, Packet {i}] >>>> {Encoding.UTF8.GetString(sendBuffer)}");
-                }
-#endif
-
                 int totalReceived = 0;
                 do
                 {
@@ -124,22 +76,7 @@ namespace NetSharpExamples.Benchmarks
                 benchmarkHelper.StopRttStopwatch();
                 benchmarkHelper.StopBandwidthStopwatch();
 
-#if DEBUG
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}, Packet {i}] Received {receivedBytes} bytes from {remoteEndPoint}");
-                    Console.WriteLine($"[Client {id}, Packet {i}] <<<< {Encoding.UTF8.GetString(receiveBuffer)}");
-                }
-#endif
-
                 benchmarkHelper.UpdateRttStats(id);
-
-                /*
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}] Current RTT: {benchmarkHelper.RttTicks} ticks, {benchmarkHelper.RttMs} ms");
-                }
-                */
 
                 benchmarkHelper.ResetRttStopwatch();
             }
@@ -153,6 +90,45 @@ namespace NetSharpExamples.Benchmarks
             ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(PacketCount, NetworkPacket.TotalSize);
 
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public async Task RunAsync()
+        {
+            CancellationTokenSource serverCts = new CancellationTokenSource();
+
+            int clientCount = Environment.ProcessorCount / 2;
+
+            Console.WriteLine($"TCP Server Benchmark started!");
+
+            StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(clientCount, (ushort)clientCount);
+
+            StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp,
+                SocketServer.DefaultPacketHandler, serverOptions);
+
+            server.Bind(ServerEndPoint);
+
+            Task serverTask = Task.Factory.StartNew(() =>
+            {
+                server.RunAsync(serverCts.Token).GetAwaiter().GetResult();
+            }, TaskCreationOptions.LongRunning);
+
+            ClientBandwidths = new double[clientCount];
+            Task[] clientTasks = new Task[clientCount];
+            for (int i = 0; i < clientTasks.Length; i++)
+            {
+                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
+            }
+
+            await Task.WhenAll(clientTasks);
+
+            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
+
+            serverCts.Cancel();
+
+            await serverTask;
+
+            Console.WriteLine($"TCP Server Benchmark finished!");
         }
     }
 }

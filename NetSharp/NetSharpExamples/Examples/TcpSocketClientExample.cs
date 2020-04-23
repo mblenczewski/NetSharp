@@ -15,13 +15,13 @@ namespace NetSharpExamples.Examples
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            StreamSocketClientOptions clientOptions = new StreamSocketClientOptions(NetworkPacket.TotalSize, 2);
+            StreamSocketClientOptions clientOptions = new StreamSocketClientOptions(2);
 
             using StreamSocketClient client = new StreamSocketClient(AddressFamily.InterNetwork, ProtocolType.Tcp, clientOptions);
 
             Encoding dataEncoding = UdpSocketServerExample.ServerEncoding;
-            byte[] sendBuffer = new byte[clientOptions.PacketSize];
-            byte[] receiveBuffer = new byte[clientOptions.PacketSize];
+            byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
 
             EndPoint remoteEndPoint = TcpSocketServerExample.ServerEndPoint;
 

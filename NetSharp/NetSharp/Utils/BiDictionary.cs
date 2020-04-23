@@ -5,8 +5,12 @@ namespace NetSharp.Utils
     /// <summary>
     /// Represents a concurrent two-way dictionary, that can be indexed by either a key or a value.
     /// </summary>
-    /// <typeparam name="K">The type of key that will be stored.</typeparam>
-    /// <typeparam name="V">The type of value that will be stored.</typeparam>
+    /// <typeparam name="K">
+    /// The type of key that will be stored.
+    /// </typeparam>
+    /// <typeparam name="V">
+    /// The type of value that will be stored.
+    /// </typeparam>
     public class BiDictionary<K, V>
     {
         /// <summary>
@@ -32,8 +36,12 @@ namespace NetSharp.Utils
         /// <summary>
         /// Indexes this instance with the given value.
         /// </summary>
-        /// <param name="index">The value whose key to get or set.</param>
-        /// <returns>The fetched key.</returns>
+        /// <param name="index">
+        /// The value whose key to get or set.
+        /// </param>
+        /// <returns>
+        /// The fetched key.
+        /// </returns>
         public K this[V index]
         {
             get
@@ -49,8 +57,12 @@ namespace NetSharp.Utils
         /// <summary>
         /// Indexes this instance with the given key.
         /// </summary>
-        /// <param name="index">The key whose value to get or set.</param>
-        /// <returns>The fetched value.</returns>
+        /// <param name="index">
+        /// The key whose value to get or set.
+        /// </param>
+        /// <returns>
+        /// The fetched value.
+        /// </returns>
         public V this[K index]
         {
             get
@@ -75,23 +87,37 @@ namespace NetSharp.Utils
         /// <summary>
         /// Whether this instance contains the given key.
         /// </summary>
-        /// <param name="key">The key to check.</param>
-        /// <returns>Whether the given key was found.</returns>
+        /// <param name="key">
+        /// The key to check.
+        /// </param>
+        /// <returns>
+        /// Whether the given key was found.
+        /// </returns>
         public bool ContainsKey(in K key) => keyToValueMap.ContainsKey(key);
 
         /// <summary>
         /// Whether this instance contains the given value.
         /// </summary>
-        /// <param name="value">The value to check.</param>
-        /// <returns>Whether the given value was found.</returns>
+        /// <param name="value">
+        /// The value to check.
+        /// </param>
+        /// <returns>
+        /// Whether the given value was found.
+        /// </returns>
         public bool ContainsValue(in V value) => valueToKeyMap.ContainsKey(value);
 
         /// <summary>
         /// Attempts to set the key associated with the given value.
         /// </summary>
-        /// <param name="value">The value whose key to set.</param>
-        /// <param name="key">The new value for the value's associated key.</param>
-        /// <returns>Whether the new key was correctly set.</returns>
+        /// <param name="value">
+        /// The value whose key to set.
+        /// </param>
+        /// <param name="key">
+        /// The new value for the value's associated key.
+        /// </param>
+        /// <returns>
+        /// Whether the new key was correctly set.
+        /// </returns>
         public void SetOrUpdateKey(V value, K key)
         {
             valueToKeyMap.AddOrUpdate(value, key, (v, k) => key);
@@ -102,9 +128,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to set the value associated with the given key.
         /// </summary>
-        /// <param name="key">The key whose value to set.</param>
-        /// <param name="value">The new value for the key's associated value.</param>
-        /// <returns>Whether the new value was correctly set.</returns>
+        /// <param name="key">
+        /// The key whose value to set.
+        /// </param>
+        /// <param name="value">
+        /// The new value for the key's associated value.
+        /// </param>
+        /// <returns>
+        /// Whether the new value was correctly set.
+        /// </returns>
         public void SetOrUpdateValue(K key, V value)
         {
             keyToValueMap.AddOrUpdate(key, value, (k, v) => value);
@@ -115,9 +147,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to remove the key associated with the given value.
         /// </summary>
-        /// <param name="value">The value whose key to remove.</param>
-        /// <param name="key">The old key value.</param>
-        /// <returns>Whether the given value had a valid key associated with it.</returns>
+        /// <param name="value">
+        /// The value whose key to remove.
+        /// </param>
+        /// <param name="key">
+        /// The old key value.
+        /// </param>
+        /// <returns>
+        /// Whether the given value had a valid key associated with it.
+        /// </returns>
         public bool TryClearKey(in V value, out K key)
         {
             bool clearedValue = valueToKeyMap.TryRemove(value, out key);
@@ -130,9 +168,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to remove the value associated with the given key.
         /// </summary>
-        /// <param name="key">The key whose value to remove.</param>
-        /// <param name="value">The old value.</param>
-        /// <returns>Whether the given key had a valid valid associated with it.</returns>
+        /// <param name="key">
+        /// The key whose value to remove.
+        /// </param>
+        /// <param name="value">
+        /// The old value.
+        /// </param>
+        /// <returns>
+        /// Whether the given key had a valid valid associated with it.
+        /// </returns>
         public bool TryClearValue(in K key, out V value)
         {
             bool clearedKey = keyToValueMap.TryRemove(key, out value);
@@ -145,9 +189,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to get the key associated with the given value.
         /// </summary>
-        /// <param name="value">The value whose key to get.</param>
-        /// <param name="key">The returned key.</param>
-        /// <returns>Whether the given value has a valid key associated with it.</returns>
+        /// <param name="value">
+        /// The value whose key to get.
+        /// </param>
+        /// <param name="key">
+        /// The returned key.
+        /// </param>
+        /// <returns>
+        /// Whether the given value has a valid key associated with it.
+        /// </returns>
         public bool TryGetKey(in V value, out K key)
         {
             return valueToKeyMap.TryGetValue(value, out key);
@@ -156,9 +206,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to get the value associated with the given key.
         /// </summary>
-        /// <param name="key">The key whose value to get.</param>
-        /// <param name="value">The returned value.</param>
-        /// <returns>Whether the given key as a valid value associated with it.</returns>
+        /// <param name="key">
+        /// The key whose value to get.
+        /// </param>
+        /// <param name="value">
+        /// The returned value.
+        /// </param>
+        /// <returns>
+        /// Whether the given key as a valid value associated with it.
+        /// </returns>
         public bool TryGetValue(in K key, out V value)
         {
             return keyToValueMap.TryGetValue(key, out value);
@@ -167,9 +223,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to set the key associated with the given value.
         /// </summary>
-        /// <param name="value">The value whose key to set.</param>
-        /// <param name="key">The key which should be set for the given value.</param>
-        /// <returns>Whether the given value was successfully set.</returns>
+        /// <param name="value">
+        /// The value whose key to set.
+        /// </param>
+        /// <param name="key">
+        /// The key which should be set for the given value.
+        /// </param>
+        /// <returns>
+        /// Whether the given value was successfully set.
+        /// </returns>
         public bool TrySetKey(in V value, in K key)
         {
             K newKey = key;
@@ -184,9 +246,15 @@ namespace NetSharp.Utils
         /// <summary>
         /// Attempts to set the value associated with the given key.
         /// </summary>
-        /// <param name="key">The key whose value to set.</param>
-        /// <param name="value">The value which should be set for the given key.</param>
-        /// <returns>Whether the given key was successfully set.</returns>
+        /// <param name="key">
+        /// The key whose value to set.
+        /// </param>
+        /// <param name="value">
+        /// The value which should be set for the given key.
+        /// </param>
+        /// <returns>
+        /// Whether the given key was successfully set.
+        /// </returns>
         public bool TrySetValue(in K key, in V value)
         {
             V newValue = value;

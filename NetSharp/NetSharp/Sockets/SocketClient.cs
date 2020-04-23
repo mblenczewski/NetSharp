@@ -15,24 +15,34 @@ namespace NetSharp.Sockets
         /// <summary>
         /// Constructs a new instance of the <see cref="SocketClient" /> class.
         /// </summary>
-        /// <param name="connectionAddressFamily">The address family that the underlying connection should use.</param>
-        /// <param name="connectionSocketType">The socket type that the underlying connection should use.</param>
-        /// <param name="connectionProtocolType">The protocol type that the underlying connection should use.</param>
-        /// <param name="maxPooledBufferLength">The maximum length of a pooled network IO buffer.</param>
-        /// <param name="preallocatedTransmissionArgs">The number of transmission args to preallocate.</param>
-        protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType,
-            in ProtocolType connectionProtocolType, in int maxPooledBufferLength, in ushort preallocatedTransmissionArgs)
-            : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType, in maxPooledBufferLength,
-            in preallocatedTransmissionArgs)
+        /// <param name="connectionAddressFamily">
+        /// The address family that the underlying connection should use.
+        /// </param>
+        /// <param name="connectionSocketType">
+        /// The socket type that the underlying connection should use.
+        /// </param>
+        /// <param name="connectionProtocolType">
+        /// The protocol type that the underlying connection should use.
+        /// </param>
+        /// <param name="pooledBufferMaxSize">
+        /// The maximum size in bytes of buffers held in the buffer pool.
+        /// </param>
+        /// <param name="preallocatedTransmissionArgs">
+        /// The number of transmission args to preallocate.
+        /// </param>
+        protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType,
+            in int pooledBufferMaxSize, in ushort preallocatedTransmissionArgs) : base(in connectionAddressFamily, in connectionSocketType,
+            in connectionProtocolType, pooledBufferMaxSize, preallocatedTransmissionArgs)
         {
         }
 
         /// <summary>
         /// Connects the client to the specified end point. If called on a <see cref="SocketType.Dgram" />-based client, this method configures the
-        /// default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref
-        /// name="remoteEndPoint" />).
+        /// default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
         /// </summary>
-        /// <param name="remoteEndPoint">The remote end point which to which to connect the client.</param>
+        /// <param name="remoteEndPoint">
+        /// The remote end point which to which to connect the client.
+        /// </param>
         public void Connect(in EndPoint remoteEndPoint)
         {
             Connection.Connect(remoteEndPoint);
@@ -40,12 +50,17 @@ namespace NetSharp.Sockets
 
         /// <summary>
         /// Asynchronously connects the client to the specified end point. If called on a <see cref="SocketType.Dgram" />-based client, this method
-        /// configures the default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref
-        /// name="remoteEndPoint" />).
+        /// configures the default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
         /// </summary>
-        /// <param name="remoteEndPoint">The remote end point which to which to connect the client.</param>
-        /// <param name="cancellationToken">The <see cref="CancellationToken" /> upon whose cancellation the connection attempt should be aborted.</param>
-        /// <returns>A <see cref="ValueTask" /> representing the connection attempt.</returns>
+        /// <param name="remoteEndPoint">
+        /// The remote end point which to which to connect the client.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The <see cref="CancellationToken" /> upon whose cancellation the connection attempt should be aborted.
+        /// </param>
+        /// <returns>
+        /// A <see cref="ValueTask" /> representing the connection attempt.
+        /// </returns>
         public ValueTask ConnectAsync(in EndPoint remoteEndPoint, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
@@ -101,10 +116,18 @@ namespace NetSharp.Sockets
             /// <summary>
             /// Constructs a new instance of the <see cref="AsyncOperationCancellationToken" /> struct.
             /// </summary>
-            /// <param name="socket">The socket on which the operation was started.</param>
-            /// <param name="args">The socket event args associated with the operation.</param>
-            /// <param name="argsPool">The pool to which the <paramref name="args" /> instance will be returned upon cancellation.</param>
-            /// <param name="completionSource">The completion source associated with the operation.</param>
+            /// <param name="socket">
+            /// The socket on which the operation was started.
+            /// </param>
+            /// <param name="args">
+            /// The socket event args associated with the operation.
+            /// </param>
+            /// <param name="argsPool">
+            /// The pool to which the <paramref name="args" /> instance will be returned upon cancellation.
+            /// </param>
+            /// <param name="completionSource">
+            /// The completion source associated with the operation.
+            /// </param>
             public AsyncOperationCancellationToken(in Socket socket, in SocketAsyncEventArgs args,
                 in SlimObjectPool<SocketAsyncEventArgs> argsPool, in TaskCompletionSource<bool> completionSource)
             {
@@ -136,8 +159,12 @@ namespace NetSharp.Sockets
             /// <summary>
             /// Constructs a new instance of the <see cref="AsyncOperationToken" /> struct.
             /// </summary>
-            /// <param name="completionSource">The completion source to trigger when the socket operation completes.</param>
-            /// <param name="cancellationToken">The cancellation token to observe during the operation.</param>
+            /// <param name="completionSource">
+            /// The completion source to trigger when the socket operation completes.
+            /// </param>
+            /// <param name="cancellationToken">
+            /// The cancellation token to observe during the operation.
+            /// </param>
             public AsyncOperationToken(in TaskCompletionSource<bool> completionSource, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
@@ -174,10 +201,18 @@ namespace NetSharp.Sockets
             /// <summary>
             /// Constructs a new instance of the <see cref="AsyncTransmissionCancellationToken" /> struct.
             /// </summary>
-            /// <param name="socket">The socket on which the operation was started.</param>
-            /// <param name="args">The socket event args associated with the operation.</param>
-            /// <param name="argsPool">The pool to which the <paramref name="args" /> instance will be returned upon cancellation.</param>
-            /// <param name="completionSource">The completion source associated with the operation.</param>
+            /// <param name="socket">
+            /// The socket on which the operation was started.
+            /// </param>
+            /// <param name="args">
+            /// The socket event args associated with the operation.
+            /// </param>
+            /// <param name="argsPool">
+            /// The pool to which the <paramref name="args" /> instance will be returned upon cancellation.
+            /// </param>
+            /// <param name="completionSource">
+            /// The completion source associated with the operation.
+            /// </param>
             public AsyncTransmissionCancellationToken(in Socket socket, in SocketAsyncEventArgs args,
                 in SlimObjectPool<SocketAsyncEventArgs> argsPool, in TaskCompletionSource<TransmissionResult> completionSource)
             {
@@ -209,8 +244,12 @@ namespace NetSharp.Sockets
             /// <summary>
             /// Constructs a new instance of the <see cref="AsyncTransmissionToken" /> struct.
             /// </summary>
-            /// <param name="completionSource">The completion source to trigger when the IO operation completes.</param>
-            /// <param name="cancellationToken">The cancellation token to observe during the operation.</param>
+            /// <param name="completionSource">
+            /// The completion source to trigger when the IO operation completes.
+            /// </param>
+            /// <param name="cancellationToken">
+            /// The cancellation token to observe during the operation.
+            /// </param>
             public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;

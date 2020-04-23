@@ -20,46 +20,6 @@ namespace NetSharpExamples.Benchmarks
 
         private double[] ClientBandwidths;
 
-        /// <inheritdoc />
-        public async Task RunAsync()
-        {
-            CancellationTokenSource serverCts = new CancellationTokenSource();
-
-            int clientCount = Environment.ProcessorCount / 2;
-
-            Console.WriteLine($"UDP Server Benchmark started!");
-
-            DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(NetworkPacket.TotalSize,
-                clientCount, (ushort)clientCount);
-
-            DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp,
-                SocketServer.DefaultPacketHandler, serverOptions);
-
-            server.Bind(ServerEndPoint);
-
-            Task serverTask = Task.Factory.StartNew(() =>
-            {
-                server.RunAsync(serverCts.Token).GetAwaiter().GetResult();
-            }, TaskCreationOptions.LongRunning);
-
-            ClientBandwidths = new double[clientCount];
-            Task[] clientTasks = new Task[clientCount];
-            for (int i = 0; i < clientTasks.Length; i++)
-            {
-                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
-            }
-
-            await Task.WhenAll(clientTasks);
-
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
-
-            serverCts.Cancel();
-
-            await serverTask;
-
-            Console.WriteLine($"UDP Server Benchmark finished!");
-        }
-
         private Task BenchmarkClientTask(object idObj)
         {
             int id = (int)idObj;
@@ -89,34 +49,11 @@ namespace NetSharpExamples.Benchmarks
                 benchmarkHelper.StartRttStopwatch();
                 int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
 
-#if DEBUG
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}, Packet {i}] Sent {sentBytes} bytes to {remoteEndPoint}");
-                    Console.WriteLine($"[Client {id}, Packet {i}] >>>> {Encoding.UTF8.GetString(sendBuffer)}");
-                }
-#endif
-
                 int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
                 benchmarkHelper.StopRttStopwatch();
                 benchmarkHelper.StopBandwidthStopwatch();
 
-#if DEBUG
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}, Packet {i}] Received {receivedBytes} bytes from {remoteEndPoint}");
-                    Console.WriteLine($"[Client {id}, Packet {i}] <<<< {Encoding.UTF8.GetString(receiveBuffer)}");
-                }
-#endif
-
                 benchmarkHelper.UpdateRttStats(id);
-
-                /*
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"[Client {id}] Current RTT: {benchmarkHelper.RttTicks} ticks, {benchmarkHelper.RttMs} ms");
-                }
-                */
 
                 benchmarkHelper.ResetRttStopwatch();
             }
@@ -127,6 +64,45 @@ namespace NetSharpExamples.Benchmarks
             ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(PacketCount, NetworkPacket.TotalSize);
 
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        public async Task RunAsync()
+        {
+            CancellationTokenSource serverCts = new CancellationTokenSource();
+
+            int clientCount = Environment.ProcessorCount / 2;
+
+            Console.WriteLine($"UDP Server Benchmark started!");
+
+            DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(clientCount, (ushort)clientCount);
+
+            DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp,
+                SocketServer.DefaultPacketHandler, serverOptions);
+
+            server.Bind(ServerEndPoint);
+
+            Task serverTask = Task.Factory.StartNew(() =>
+            {
+                server.RunAsync(serverCts.Token).GetAwaiter().GetResult();
+            }, TaskCreationOptions.LongRunning);
+
+            ClientBandwidths = new double[clientCount];
+            Task[] clientTasks = new Task[clientCount];
+            for (int i = 0; i < clientTasks.Length; i++)
+            {
+                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
+            }
+
+            await Task.WhenAll(clientTasks);
+
+            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
+
+            serverCts.Cancel();
+
+            await serverTask;
+
+            Console.WriteLine($"UDP Server Benchmark finished!");
         }
     }
 }
