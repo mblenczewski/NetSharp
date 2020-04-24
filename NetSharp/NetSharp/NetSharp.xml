@@ -192,6 +192,9 @@
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetSocketOnAsyncCancellationEx">
+            <inheritdoc />
+        </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
@@ -444,7 +447,7 @@
             <summary>
             Abstract base class for clients and servers.
             </summary>
-            TODO implement better protections for accessing socket options
+            TODO implement access for socket options in conjunction to cancellable Socket.XXXAsync calls
         </member>
         <member name="F:NetSharp.Sockets.SocketConnection.BufferPool">
             <summary>
@@ -547,18 +550,6 @@
             The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance that should be reset.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Boolean)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Boolean)" />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Byte[])">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Byte[])" />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Int32)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Int32)" />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Object)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.SetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Object)" />
-        </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Bind(System.Net.EndPoint@)">
             <summary>
             Binds the underlying socket.
@@ -569,15 +560,6 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Dispose">
             <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName)" />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Int32)">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Int32)" />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Byte[])">
-            <inheritdoc cref="M:System.Net.Sockets.Socket.GetSocketOption(System.Net.Sockets.SocketOptionLevel,System.Net.Sockets.SocketOptionName,System.Byte[])" />
         </member>
         <member name="M:NetSharp.Sockets.SocketConnection.Shutdown(System.Net.Sockets.SocketShutdown)">
             <summary>
@@ -693,6 +675,9 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetSocketOnAsyncCancellationEx">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
