@@ -1,6 +1,12 @@
 # NetSharp
 A (somewhat) performant network library for TCP and UDP written over raw sockets and SocketAsyncEventArgs in C#, geared towards asynchronous and concurrent applications.
 
+For help with the library, feel free to visit our Discord and ask your questions [here](https://discord.gg/DKQhxuY) (raw link: https://discord.gg/DKQhxuY).
+
+| Service | Status Badge |
+| ------- | ------------ |
+| Discord | ![Discord Server](https://img.shields.io/discord/703255900600795196?style=flat-square&logo=discord&color=blue) |
+
 ## License
 This library is under the GNU General Public License v3.0. What does this mean for you?
 
@@ -14,13 +20,11 @@ No warranty is provided, and contributors are not liable to you (the user of the
 The library comes with a .NET Core 3.1 console project containing examples and benchmarks for the components of the library. The example project and a few benchmarks can be seen below:
 
 ## Example Project
-
 ![Example Project 'Main Menu'][example-project]
 
 ## Benchmarks
 
 ### Preface
-
 All the benchmarks were performed on a Ryzen 7 1700 CPU @ 3.20GHz. This library is built to be concurrent and to scale well with the number of execution threads available. The per-core clocks are also important though (when are they not?).
 
 During a benchmark 1,000,000 packets are sent per client by default, with a data segment size of 8192 bytes (8 kibibytes). This means that, by default, 8.192 gigabytes of user data are sent one way, and 8.192 are received (in the form of a response packet). The server is set up to simply echo any received packets, so packet processing overhead is virtually non-existent. Your mileage may vary.
@@ -28,7 +32,6 @@ During a benchmark 1,000,000 packets are sent per client by default, with a data
 The RTT values measured are the very extremes of what you would get. When printing the RTT-per-packet, the maximum value is attained at the start of the connection and the minimum value seems to be sustained for the remainder of the connection. Again, your mileage may vary depending on the speed of your network, your packet loss (if using TCP), and the amount of packet processing you do on the server.
 
 ### UDP Socket Server & Socket Client
-
 The following is the UDP socket server benchmark:
 ![UDP Socket Server Benchmark][udp-server-benchmark]
 
