@@ -5,7 +5,7 @@ For help with the library, feel free to visit our Discord and ask your questions
 
 | Service | Status Badge |
 | ------- | ------------ |
-| Discord | [![Discord Server](https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue)](https://discord.gg/DKQhxuY) |
+| Discord | [![Discord Server][discord-server-badge]](https://discord.gg/DKQhxuY) |
 
 ## License
 This library is under the GNU General Public License v3.0. What does this mean for you?
@@ -49,6 +49,8 @@ The following is the synchronous TCP socket client benchmark:
 
 The following is the asynchronous TCP socket client benchmark. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
 ![Asynchronous TCP Socket Client Benchmark][tcp-client-async-benchmark]
+
+[discord-server-badge]: https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue
 
 [example-project]: ./docs/netsharp-example-selector.png
 
