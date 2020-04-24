@@ -8,15 +8,38 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Sockets.Datagram
 {
-    //TODO document
+    /// <summary>
+    /// Provides additional configuration options for a <see cref="DatagramSocketServer" /> instance.
+    /// </summary>
     public readonly struct DatagramSocketServerOptions
     {
+        /// <summary>
+        /// The default configuration.
+        /// </summary>
         public static readonly DatagramSocketServerOptions Defaults =
             new DatagramSocketServerOptions(Environment.ProcessorCount, 0);
 
+        /// <summary>
+        /// The number of <see cref="Socket.ReceiveFromAsync" /> calls that will be 'in-flight' at any one time, and ready to service incoming client
+        /// packets. This should be set to the number of client which will be connected at once.
+        /// </summary>
         public readonly int ConcurrentReceiveFromCalls;
+
+        /// <summary>
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances that should be preallocated for use in the <see cref="Socket.SendToAsync" />
+        /// and <see cref="Socket.ReceiveFromAsync" /> methods.
+        /// </summary>
         public readonly ushort PreallocatedTransmissionArgs;
 
+        /// <summary>
+        /// Constructs a new instance of the <see cref="DatagramSocketServerOptions" /> struct.
+        /// </summary>
+        /// <param name="concurrentReceiveFromCalls">
+        /// The number of <see cref="Socket.ReceiveFromAsync" /> calls which should be 'in-flight' at any one time.
+        /// </param>
+        /// <param name="preallocatedTransmissionArgs">
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances to preallocate.
+        /// </param>
         public DatagramSocketServerOptions(int concurrentReceiveFromCalls, ushort preallocatedTransmissionArgs)
         {
             ConcurrentReceiveFromCalls = concurrentReceiveFromCalls;
@@ -204,7 +227,7 @@ namespace NetSharp.Sockets.Datagram
         {
             serverShutdownToken = cancellationToken;
 
-            for (int i = 0; i < ServerOptions.ConcurrentReceiveFromCalls; i++)
+            for (int i = 0; i < serverOptions.ConcurrentReceiveFromCalls; i++)
             {
                 SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
                 newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;

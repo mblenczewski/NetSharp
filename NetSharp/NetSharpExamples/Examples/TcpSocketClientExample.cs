@@ -33,7 +33,10 @@ namespace NetSharpExamples.Examples
             /* a cancellable asynchronous version also exists.
             client.ConnectAsync(in remoteEndPoint, CancellationToken.None);
             */
-            while (true)
+
+            Console.WriteLine("Starting TCP Socket Client!");
+
+            for (int i = 0; i < 10; i++)
             {
                 string data = $"Hello World from {client.LocalEndPoint}!";
                 dataEncoding.GetBytes(data).CopyTo(sendBuffer, 0);
@@ -63,7 +66,7 @@ namespace NetSharpExamples.Examples
                 // lock is not necessary, but means that console output is clean and not interleaved
                 lock (typeof(Console))
                 {
-                    Console.WriteLine($"[Client] Received response with contents \'{dataEncoding.GetString(receiveBuffer)}\' from {remoteEndPoint}");
+                    Console.WriteLine($"[Client] Received response with contents \'{dataEncoding.GetString(receiveBuffer).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
                 }
             }
         }

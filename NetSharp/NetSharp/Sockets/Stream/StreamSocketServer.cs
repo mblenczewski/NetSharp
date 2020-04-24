@@ -7,15 +7,38 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Sockets.Stream
 {
-    //TODO document
+    /// <summary>
+    /// Provides additional configuration options for a <see cref="StreamSocketServer" /> instance.
+    /// </summary>
     public readonly struct StreamSocketServerOptions
     {
+        /// <summary>
+        /// The default configuration.
+        /// </summary>
         public static readonly StreamSocketServerOptions Defaults =
             new StreamSocketServerOptions(Environment.ProcessorCount, 0);
 
+        /// <summary>
+        /// The number of <see cref="Socket.AcceptAsync" /> calls that will be 'in-flight' at any one time, and ready to service incoming client
+        /// connection requests. This should be set according to the number of client which will be attempting to connect at once.
+        /// </summary>
         public readonly int ConcurrentAcceptCalls;
+
+        /// <summary>
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances that should be preallocated for use in the <see cref="Socket.SendAsync" /> and
+        /// <see cref="Socket.ReceiveAsync" /> methods.
+        /// </summary>
         public readonly ushort PreallocatedTransmissionArgs;
 
+        /// <summary>
+        /// Constructs a new instance of the <see cref="StreamSocketServerOptions" /> struct.
+        /// </summary>
+        /// <param name="concurrentAcceptCalls">
+        /// The number of <see cref="Socket.AcceptAsync" /> calls which should be 'in-flight' at any one time.
+        /// </param>
+        /// <param name="preallocatedTransmissionArgs">
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances to preallocate.
+        /// </param>
         public StreamSocketServerOptions(int concurrentAcceptCalls, ushort preallocatedTransmissionArgs)
         {
             ConcurrentAcceptCalls = concurrentAcceptCalls;

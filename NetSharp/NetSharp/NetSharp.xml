@@ -156,6 +156,30 @@
             The memory buffer to write the serialised packet header instance to.
             </param>
         </member>
+        <member name="T:NetSharp.Sockets.Datagram.DatagramSocketClientOptions">
+            <summary>
+            Provides additional configuration options for a <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketClient" /> instance.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.Defaults">
+            <summary>
+            The default configuration.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.PreallocatedTransmissionArgs">
+            <summary>
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
+            <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendToAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveFromAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.#ctor(System.UInt16)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketClientOptions" /> struct.
+            </summary>
+            <param name="preallocatedTransmissionArgs">
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
+            </param>
+        </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.CanTransmissionArgsBeReused(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
@@ -170,6 +194,39 @@
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Sockets.Datagram.DatagramSocketServerOptions">
+            <summary>
+            Provides additional configuration options for a <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketServer" /> instance.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Datagram.DatagramSocketServerOptions.Defaults">
+            <summary>
+            The default configuration.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Datagram.DatagramSocketServerOptions.ConcurrentReceiveFromCalls">
+            <summary>
+            The number of <see cref="M:System.Net.Sockets.Socket.ReceiveFromAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> calls that will be 'in-flight' at any one time, and ready to service incoming client
+            packets. This should be set to the number of client which will be connected at once.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Datagram.DatagramSocketServerOptions.PreallocatedTransmissionArgs">
+            <summary>
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the <see cref="M:System.Net.Sockets.Socket.SendToAsync(System.Net.Sockets.SocketAsyncEventArgs)" />
+            and <see cref="M:System.Net.Sockets.Socket.ReceiveFromAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> methods.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServerOptions.#ctor(System.Int32,System.UInt16)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketServerOptions" /> struct.
+            </summary>
+            <param name="concurrentReceiveFromCalls">
+            The number of <see cref="M:System.Net.Sockets.Socket.ReceiveFromAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> calls which should be 'in-flight' at any one time.
+            </param>
+            <param name="preallocatedTransmissionArgs">
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
+            </param>
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Datagram.DatagramSocketServerOptions}@)">
             <summary>
@@ -602,6 +659,30 @@
             A <see cref="T:System.Threading.Tasks.Task" /> representing the server's execution.
             </returns>
         </member>
+        <member name="T:NetSharp.Sockets.Stream.StreamSocketClientOptions">
+            <summary>
+            Provides additional configuration options for a <see cref="T:NetSharp.Sockets.Stream.StreamSocketClient" /> instance.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.Defaults">
+            <summary>
+            The default configuration.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
+            <summary>
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Stream.StreamSocketClientOptions" /> struct.
+            </summary>
+            <param name="preallocatedTransmissionArgs">
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
+            </param>
+        </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.CanTransmissionArgsBeReused(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
@@ -616,6 +697,39 @@
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Sockets.Stream.StreamSocketServerOptions">
+            <summary>
+            Provides additional configuration options for a <see cref="T:NetSharp.Sockets.Stream.StreamSocketServer" /> instance.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Stream.StreamSocketServerOptions.Defaults">
+            <summary>
+            The default configuration.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Stream.StreamSocketServerOptions.ConcurrentAcceptCalls">
+            <summary>
+            The number of <see cref="M:System.Net.Sockets.Socket.AcceptAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> calls that will be 'in-flight' at any one time, and ready to service incoming client
+            connection requests. This should be set according to the number of client which will be attempting to connect at once.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.Stream.StreamSocketServerOptions.PreallocatedTransmissionArgs">
+            <summary>
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the <see cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> and
+            <see cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> methods.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketServerOptions.#ctor(System.Int32,System.UInt16)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.Stream.StreamSocketServerOptions" /> struct.
+            </summary>
+            <param name="concurrentAcceptCalls">
+            The number of <see cref="M:System.Net.Sockets.Socket.AcceptAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> calls which should be 'in-flight' at any one time.
+            </param>
+            <param name="preallocatedTransmissionArgs">
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
+            </param>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Stream.StreamSocketServerOptions}@)">
             <summary>
@@ -1003,6 +1117,11 @@
             Represents the result of a socket transmission.
             </summary>
         </member>
+        <member name="F:NetSharp.Utils.TransmissionResult.Timeout">
+            <summary>
+            Represents an asynchronous transmission which timed out.
+            </summary>
+        </member>
         <member name="F:NetSharp.Utils.TransmissionResult.Buffer">
             <summary>
             The byte buffer that was transmitted across the network.
@@ -1039,6 +1158,14 @@
             <param name="remoteEndPoint">
             The remote end point associated with the transmission.
             </param>
+        </member>
+        <member name="M:NetSharp.Utils.TransmissionResult.TimedOut">
+            <summary>
+            Checks whether this instance represents a timed out transmission.
+            </summary>
+            <returns>
+            Whether this instance has timed out.
+            </returns>
         </member>
     </members>
 </doc>

@@ -16,6 +16,7 @@ namespace NetSharpExamples
             new UdpSocketClientSyncBenchmark(),
             new UdpSocketClientAsyncBenchmark(),
             new UdpSocketClientExample(),
+            new UdpSocketClientCancellationExample(),
 
             // TCP socket server and client examples
             new TcpSocketServerBenchmark(),
@@ -31,6 +32,8 @@ namespace NetSharpExamples
 
             while (true)
             {
+                GC.Collect();
+
                 PickExample();
             }
         }

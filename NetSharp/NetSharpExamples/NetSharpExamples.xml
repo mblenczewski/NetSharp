@@ -82,6 +82,17 @@
         <member name="M:NetSharpExamples.Examples.TcpSocketServerExample.RunAsync">
             <inheritdoc />
         </member>
+        <member name="P:NetSharpExamples.Examples.UdpSocketClientCancellationExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.UdpSocketClientCancellationExample.ServerTask(System.Threading.CancellationToken)">
+            <summary>
+            A read only server. Never sends out data!
+            </summary>
+        </member>
+        <member name="M:NetSharpExamples.Examples.UdpSocketClientCancellationExample.RunAsync">
+            <inheritdoc />
+        </member>
         <member name="P:NetSharpExamples.Examples.UdpSocketClientExample.Name">
             <inheritdoc />
         </member>

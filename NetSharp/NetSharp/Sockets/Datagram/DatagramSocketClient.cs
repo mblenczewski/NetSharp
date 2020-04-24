@@ -2,6 +2,7 @@
 using NetSharp.Utils;
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -9,14 +10,29 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Sockets.Datagram
 {
-    //TODO document
+    /// <summary>
+    /// Provides additional configuration options for a <see cref="DatagramSocketClient" /> instance.
+    /// </summary>
     public readonly struct DatagramSocketClientOptions
     {
+        /// <summary>
+        /// The default configuration.
+        /// </summary>
         public static readonly DatagramSocketClientOptions Defaults =
             new DatagramSocketClientOptions(0);
 
+        /// <summary>
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances that should be preallocated for use in the
+        /// <see cref="DatagramSocketClient.SendToAsync" /> and <see cref="DatagramSocketClient.ReceiveFromAsync" /> methods.
+        /// </summary>
         public readonly ushort PreallocatedTransmissionArgs;
 
+        /// <summary>
+        /// Constructs a new instance of the <see cref="DatagramSocketClientOptions" /> struct.
+        /// </summary>
+        /// <param name="preallocatedTransmissionArgs">
+        /// The number of <see cref="SocketAsyncEventArgs" /> instances to preallocate.
+        /// </param>
         public DatagramSocketClientOptions(ushort preallocatedTransmissionArgs)
         {
             PreallocatedTransmissionArgs = preallocatedTransmissionArgs;
@@ -49,13 +65,27 @@ namespace NetSharp.Sockets.Datagram
             {
                 connectToken.CompletionSource.SetCanceled();
             }
-            else if (args.SocketError == SocketError.Success)
-            {
-                connectToken.CompletionSource.SetResult(true);
-            }
             else
             {
-                connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        connectToken.CompletionSource.SetResult(true);
+
+                        break;
+
+                    case SocketError.OperationAborted:
+                        Debug.WriteLine("CompleteConnect experienced SocketError.OperationAborted!");
+
+                        connectToken.CompletionSource.SetResult(false);
+
+                        break;
+
+                    default:
+                        connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+
+                        break;
+                }
             }
 
             TransmissionArgsPool.Return(args);
@@ -65,19 +95,26 @@ namespace NetSharp.Sockets.Datagram
         {
             AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
 
-            if (receiveToken.CancellationToken.IsCancellationRequested)
+            switch (args.SocketError)
             {
-                receiveToken.CompletionSource.SetCanceled();
-            }
-            else if (args.SocketError == SocketError.Success)
-            {
-                TransmissionResult result = new TransmissionResult(in args);
+                case SocketError.Success:
+                    TransmissionResult result = new TransmissionResult(in args);
 
-                receiveToken.CompletionSource.SetResult(result);
-            }
-            else
-            {
-                receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+                    receiveToken.CompletionSource.SetResult(result);
+
+                    break;
+
+                case SocketError.OperationAborted:
+                    Debug.WriteLine("CompleteReceiveFrom experienced SocketError.OperationAborted!");
+
+                    receiveToken.CompletionSource.SetResult(TransmissionResult.Timeout);
+
+                    break;
+
+                default:
+                    receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+
+                    break;
             }
 
             TransmissionArgsPool.Return(args);
@@ -91,15 +128,29 @@ namespace NetSharp.Sockets.Datagram
             {
                 sendToken.CompletionSource.SetCanceled();
             }
-            else if (args.SocketError == SocketError.Success)
-            {
-                TransmissionResult result = new TransmissionResult(in args);
-
-                sendToken.CompletionSource.SetResult(result);
-            }
             else
             {
-                sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        TransmissionResult result = new TransmissionResult(in args);
+
+                        sendToken.CompletionSource.SetResult(result);
+
+                        break;
+
+                    case SocketError.OperationAborted:
+                        Debug.WriteLine("CompleteSendTo experienced SocketError.OperationAborted!");
+
+                        sendToken.CompletionSource.SetResult(TransmissionResult.Timeout);
+
+                        break;
+
+                    default:
+                        sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
+
+                        break;
+                }
             }
 
             TransmissionArgsPool.Return(args);
@@ -155,6 +206,12 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
+        protected override void ResetSocketOnAsyncCancellationEx()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
         }
@@ -179,12 +236,9 @@ namespace NetSharp.Sockets.Datagram
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
-            // TODO implement cancellation for client sockets
-            cancellationToken.Register(token =>
-            {
-                AsyncTransmissionCancellationToken transmissionCancellationToken =
-                    (AsyncTransmissionCancellationToken)token;
-            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            // TODO implement cancellation for client socket receiveFromAsync
+            cancellationToken.Register(CancelAsyncTransmission,
+                new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
@@ -215,12 +269,9 @@ namespace NetSharp.Sockets.Datagram
             args.SocketFlags = flags;
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
-            // TODO implement cancellation for client sockets
-            cancellationToken.Register(token =>
-            {
-                AsyncTransmissionCancellationToken transmissionCancellationToken =
-                    (AsyncTransmissionCancellationToken)token;
-            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            // TODO implement cancellation for client socket sendToAsync
+            cancellationToken.Register(CancelAsyncTransmission,
+                new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
 
             if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 

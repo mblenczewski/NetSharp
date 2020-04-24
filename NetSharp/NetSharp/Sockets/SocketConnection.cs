@@ -10,7 +10,7 @@ namespace NetSharp.Sockets
     /// <summary>
     /// Abstract base class for clients and servers.
     /// </summary>
-    /// TODO implement better protections for accessing socket options
+    /// TODO implement access for socket options in conjunction to cancellable Socket.XXXAsync calls
     public abstract class SocketConnection : IDisposable
     {
         /// <summary>
@@ -140,30 +140,6 @@ namespace NetSharp.Sockets
         /// </param>
         protected abstract void ResetTransmissionArgs(SocketAsyncEventArgs args);
 
-        /// <inheritdoc cref="Socket.SetSocketOption(SocketOptionLevel,SocketOptionName,bool)" />
-        protected void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, bool optionValue)
-        {
-            Connection.SetSocketOption(optionLevel, optionName, optionValue);
-        }
-
-        /// <inheritdoc cref="Socket.SetSocketOption(SocketOptionLevel,SocketOptionName,byte[])" />
-        protected void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, byte[] optionValue)
-        {
-            Connection.SetSocketOption(optionLevel, optionName, optionValue);
-        }
-
-        /// <inheritdoc cref="Socket.SetSocketOption(SocketOptionLevel,SocketOptionName,int)" />
-        protected void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, int optionValue)
-        {
-            Connection.SetSocketOption(optionLevel, optionName, optionValue);
-        }
-
-        /// <inheritdoc cref="Socket.SetSocketOption(SocketOptionLevel,SocketOptionName,object)" />
-        protected void SetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, object optionValue)
-        {
-            Connection.SetSocketOption(optionLevel, optionName, optionValue);
-        }
-
         /// <summary>
         /// Binds the underlying socket.
         /// </summary>
@@ -180,24 +156,6 @@ namespace NetSharp.Sockets
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        /// <inheritdoc cref="Socket.GetSocketOption(SocketOptionLevel,SocketOptionName)" />
-        public object GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName)
-        {
-            return Connection.GetSocketOption(optionLevel, optionName);
-        }
-
-        /// <inheritdoc cref="Socket.GetSocketOption(SocketOptionLevel,SocketOptionName,int)" />
-        public byte[] GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, int optionLength)
-        {
-            return Connection.GetSocketOption(optionLevel, optionName, optionLength);
-        }
-
-        /// <inheritdoc cref="Socket.GetSocketOption(SocketOptionLevel,SocketOptionName,byte[])" />
-        public void GetSocketOption(SocketOptionLevel optionLevel, SocketOptionName optionName, byte[] optionValue)
-        {
-            Connection.GetSocketOption(optionLevel, optionName, optionValue);
         }
 
         /// <summary>

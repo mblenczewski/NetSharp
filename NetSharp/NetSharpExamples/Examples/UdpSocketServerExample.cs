@@ -23,7 +23,7 @@ namespace NetSharpExamples.Examples
             // lock is not necessary, but means that console output is clean and not interleaved
             lock (typeof(Console))
             {
-                Console.WriteLine($"[Server] Received request with contents \'{ServerEncoding.GetString(request.Data.Span)}\' from {remoteEndPoint}");
+                Console.WriteLine($"[Server] Received request with contents \'{ServerEncoding.GetString(request.Data.Span).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
                 Console.WriteLine($"[Server] Echoing back request to {remoteEndPoint}");
             }
 
@@ -42,6 +42,8 @@ namespace NetSharpExamples.Examples
                 new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp, ServerPacketHandler, serverOptions);
 
             server.Bind(in ServerEndPoint);
+
+            Console.WriteLine("Starting UDP Socket Server!");
 
             return server.RunAsync(CancellationToken.None);  // we run forever. alternatively, pass in a cancellation token to ensure that the server terminates
         }

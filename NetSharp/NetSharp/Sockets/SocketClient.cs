@@ -1,4 +1,6 @@
-﻿using NetSharp.Utils;
+﻿using System;
+using System.Diagnostics;
+using NetSharp.Utils;
 
 using System.Net;
 using System.Net.Sockets;
@@ -36,6 +38,41 @@ namespace NetSharp.Sockets
         {
         }
 
+        private void ResetSocketOnAsyncCancellation()
+        {
+            // TODO actually implement cancellation of Socket.XXXAsync methods
+
+            // backup socket options
+        }
+
+        protected void CancelAsyncOperation(object tokenObj)
+        {
+            AsyncOperationCancellationToken token = (AsyncOperationCancellationToken)tokenObj;
+
+            Debug.WriteLine("Cancelling asynchronous operation!");
+
+            DestroyTransmissionArgs(token.TransmissionArgs);
+
+            // TODO consider replacing the destroyed args
+
+            token.CompletionSource.SetResult(false);
+        }
+
+        protected void CancelAsyncTransmission(object tokenObj)
+        {
+            AsyncTransmissionCancellationToken token = (AsyncTransmissionCancellationToken)tokenObj;
+
+            Debug.WriteLine("Cancelling asynchronous transmission!");
+
+            DestroyTransmissionArgs(token.TransmissionArgs);
+
+            // TODO consider replacing the destroyed args
+
+            token.CompletionSource.SetResult(TransmissionResult.Timeout);
+        }
+
+        protected abstract void ResetSocketOnAsyncCancellationEx();
+
         /// <summary>
         /// Connects the client to the specified end point. If called on a <see cref="SocketType.Dgram" />-based client, this method configures the
         /// default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
@@ -70,13 +107,14 @@ namespace NetSharp.Sockets
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
 
+            //TODO implement cancellation for client socket connectAsync
             cancellationToken.Register(token =>
             {
                 AsyncOperationCancellationToken operationCancellationToken = (AsyncOperationCancellationToken)token;
 
                 Socket.CancelConnectAsync(operationCancellationToken.TransmissionArgs);
 
-                operationCancellationToken.CompletionSource.SetCanceled();
+                operationCancellationToken.CompletionSource.SetResult(false);
 
                 operationCancellationToken.TransmissionArgsPool.Return(operationCancellationToken.TransmissionArgs);
             }, new AsyncOperationCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
