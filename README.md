@@ -5,7 +5,7 @@ For help with the library, feel free to visit our Discord and ask your questions
 
 | Service | Status Badge |
 | ------- | ------------ |
-| Discord | [![Discord Server](https://img.shields.io/discord/703255900600795196?style=flat-square&logo=discord&color=blue)](https://discord.gg/DKQhxuY) |
+| Discord | [![Discord Server](https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue)](https://discord.gg/DKQhxuY) |
 
 ## License
 This library is under the GNU General Public License v3.0. What does this mean for you?
