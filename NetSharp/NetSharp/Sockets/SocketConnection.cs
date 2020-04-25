@@ -10,7 +10,6 @@ namespace NetSharp.Sockets
     /// <summary>
     /// Abstract base class for clients and servers.
     /// </summary>
-    /// TODO implement access for socket options in conjunction to cancellable Socket.XXXAsync calls
     public abstract class SocketConnection : IDisposable
     {
         /// <summary>
@@ -119,6 +118,8 @@ namespace NetSharp.Sockets
 
             Connection.Close();
             Connection.Dispose();
+
+            TransmissionArgsPool.Dispose();
         }
 
         /// <summary>

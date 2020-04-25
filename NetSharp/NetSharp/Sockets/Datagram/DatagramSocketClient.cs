@@ -77,8 +77,6 @@ namespace NetSharp.Sockets.Datagram
                     case SocketError.OperationAborted:
                         Debug.WriteLine("CompleteConnect experienced SocketError.OperationAborted!");
 
-                        connectToken.CompletionSource.SetResult(false);
-
                         break;
 
                     default:
@@ -106,8 +104,6 @@ namespace NetSharp.Sockets.Datagram
 
                 case SocketError.OperationAborted:
                     Debug.WriteLine("CompleteReceiveFrom experienced SocketError.OperationAborted!");
-
-                    receiveToken.CompletionSource.SetResult(TransmissionResult.Timeout);
 
                     break;
 
@@ -141,8 +137,6 @@ namespace NetSharp.Sockets.Datagram
 
                     case SocketError.OperationAborted:
                         Debug.WriteLine("CompleteSendTo experienced SocketError.OperationAborted!");
-
-                        sendToken.CompletionSource.SetResult(TransmissionResult.Timeout);
 
                         break;
 
@@ -206,12 +200,6 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        protected override void ResetSocketOnAsyncCancellationEx()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
         }
@@ -237,8 +225,7 @@ namespace NetSharp.Sockets.Datagram
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
             // TODO implement cancellation for client socket receiveFromAsync
-            cancellationToken.Register(CancelAsyncTransmission,
-                new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
@@ -270,8 +257,7 @@ namespace NetSharp.Sockets.Datagram
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
             // TODO implement cancellation for client socket sendToAsync
-            cancellationToken.Register(CancelAsyncTransmission,
-                new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
 
             if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 

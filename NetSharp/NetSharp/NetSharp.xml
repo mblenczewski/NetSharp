@@ -192,9 +192,6 @@
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetSocketOnAsyncCancellationEx">
-            <inheritdoc />
-        </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
@@ -262,6 +259,7 @@
             <summary>
             Abstract base class for clients.
             </summary>
+            TODO implement cancellation of ReceiveAsync and ReceiveFromAsync methods.
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
             <summary>
@@ -301,53 +299,11 @@
             The remote end point which to which to connect the client.
             </param>
             <param name="cancellationToken">
-            The <see cref="T:System.Threading.CancellationToken" /> upon whose cancellation the connection attempt should be aborted.
+            The <see cref="T:System.Threading.CancellationToken" /> upon whose cancellation the connection attempt should be aborted. TODO make functional
             </param>
             <returns>
             A <see cref="T:System.Threading.Tasks.ValueTask" /> representing the connection attempt.
             </returns>
-        </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken">
-            <summary>
-            A state token for cancelling asynchronous socket operations.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.CompletionSource">
-            <summary>
-            The completion source associated with the network IO operation.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.Socket">
-            <summary>
-            The socket on which the operation was started.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgs">
-            <summary>
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the socket operation.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgsPool">
-            <summary>
-            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.TransmissionArgs" /> should be returned upon operation cancellation.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken.#ctor(System.Net.Sockets.Socket@,System.Net.Sockets.SocketAsyncEventArgs@,NetSharp.Utils.SlimObjectPool{System.Net.Sockets.SocketAsyncEventArgs}@,System.Threading.Tasks.TaskCompletionSource{System.Boolean}@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationCancellationToken" /> struct.
-            </summary>
-            <param name="socket">
-            The socket on which the operation was started.
-            </param>
-            <param name="args">
-            The socket event args associated with the operation.
-            </param>
-            <param name="argsPool">
-            The pool to which the <paramref name="args" /> instance will be returned upon cancellation.
-            </param>
-            <param name="completionSource">
-            The completion source associated with the operation.
-            </param>
         </member>
         <member name="T:NetSharp.Sockets.SocketClient.AsyncOperationToken">
             <summary>
@@ -373,48 +329,6 @@
             </param>
             <param name="cancellationToken">
             The cancellation token to observe during the operation.
-            </param>
-        </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken">
-            <summary>
-            A state token for cancelling asynchronous network IO operations.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.CompletionSource">
-            <summary>
-            The completion source associated with the network IO operation.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.Socket">
-            <summary>
-            The socket on which the operation was started.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgs">
-            <summary>
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the network IO operation.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgsPool">
-            <summary>
-            The pool to which the <see cref="F:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.TransmissionArgs" /> should be returned upon operation cancellation.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken.#ctor(System.Net.Sockets.Socket@,System.Net.Sockets.SocketAsyncEventArgs@,NetSharp.Utils.SlimObjectPool{System.Net.Sockets.SocketAsyncEventArgs}@,System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionCancellationToken" /> struct.
-            </summary>
-            <param name="socket">
-            The socket on which the operation was started.
-            </param>
-            <param name="args">
-            The socket event args associated with the operation.
-            </param>
-            <param name="argsPool">
-            The pool to which the <paramref name="args" /> instance will be returned upon cancellation.
-            </param>
-            <param name="completionSource">
-            The completion source associated with the operation.
             </param>
         </member>
         <member name="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken">
@@ -447,7 +361,6 @@
             <summary>
             Abstract base class for clients and servers.
             </summary>
-            TODO implement access for socket options in conjunction to cancellable Socket.XXXAsync calls
         </member>
         <member name="F:NetSharp.Sockets.SocketConnection.BufferPool">
             <summary>
@@ -675,9 +588,6 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetSocketOnAsyncCancellationEx">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
@@ -1080,6 +990,9 @@
             <param name="instance">
             The instance which should be reset.
             </param>
+        </member>
+        <member name="M:NetSharp.Utils.SlimObjectPool`1.Dispose">
+            <inheritdoc />
         </member>
         <member name="M:NetSharp.Utils.SlimObjectPool`1.Rent">
             <summary>

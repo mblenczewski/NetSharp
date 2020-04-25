@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 
 namespace NetSharp.Utils
 {
@@ -8,7 +9,7 @@ namespace NetSharp.Utils
     /// <typeparam name="T">
     /// The type of item stored in the pool.
     /// </typeparam>
-    public class SlimObjectPool<T> where T : class
+    public class SlimObjectPool<T> : IDisposable where T : class
     {
         private readonly CanRebufferObjectPredicate canObjectBeRebufferedPredicate;
 
@@ -109,6 +110,15 @@ namespace NetSharp.Utils
         /// The instance which should be reset.
         /// </param>
         public delegate void ResetObjectDelegate(T instance);
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            foreach (T pooledObject in objectBuffer)
+            {
+                destroyObjectDelegate(pooledObject);
+            }
+        }
 
         /// <summary>
         /// Leases a new <typeparamref name="T" /> instance from the pool, and returns it.

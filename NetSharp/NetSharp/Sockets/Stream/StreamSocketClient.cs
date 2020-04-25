@@ -283,12 +283,6 @@ namespace NetSharp.Sockets.Stream
         }
 
         /// <inheritdoc />
-        protected override void ResetSocketOnAsyncCancellationEx()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
         protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
         {
         }
@@ -308,16 +302,7 @@ namespace NetSharp.Sockets.Stream
             args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
 
             //TODO implement cancellation for client socket disconnectAsync
-            cancellationToken.Register(token =>
-            {
-                AsyncOperationCancellationToken operationCancellationToken = (AsyncOperationCancellationToken)token;
-
-                Socket.CancelConnectAsync(operationCancellationToken.TransmissionArgs);
-
-                operationCancellationToken.CompletionSource.SetCanceled();
-
-                operationCancellationToken.TransmissionArgsPool.Return(operationCancellationToken.TransmissionArgs);
-            }, new AsyncOperationCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            //cancellationToken.Register();
 
             if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
 
@@ -352,11 +337,7 @@ namespace NetSharp.Sockets.Stream
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
             // TODO implement cancellation for client socket receiveAsync
-            cancellationToken.Register(token =>
-            {
-                AsyncTransmissionCancellationToken transmissionCancellationToken =
-                    (AsyncTransmissionCancellationToken)token;
-            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
 
             if (Connection.ReceiveAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
@@ -393,11 +374,7 @@ namespace NetSharp.Sockets.Stream
             args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
 
             // TODO implement cancellation for client socket sendAsync
-            cancellationToken.Register(token =>
-            {
-                AsyncTransmissionCancellationToken transmissionCancellationToken =
-                    (AsyncTransmissionCancellationToken)token;
-            }, new AsyncTransmissionCancellationToken(in Connection, in args, in TransmissionArgsPool, in tcs));
+            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
 
             if (Connection.SendAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
