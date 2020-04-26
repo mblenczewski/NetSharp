@@ -2,7 +2,6 @@
 using NetSharp.Utils;
 
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -84,13 +83,9 @@ namespace NetSharp.Sockets.Datagram
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
-            AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
+            AsyncReceiveToken receiveToken = (AsyncReceiveToken)args.UserToken;
 
-            if (receiveToken.CancellationToken.IsCancellationRequested)
-            {
-                Debug.WriteLine("ReceiveFrom completed after being cancelled!");
-                return;
-            }
+            if (receiveToken.CancellationToken.IsCancellationRequested) return;
 
             switch (args.SocketError)
             {
@@ -102,7 +97,6 @@ namespace NetSharp.Sockets.Datagram
                     break;
 
                 case SocketError.OperationAborted:
-                    Debug.WriteLine("ReceiveFrom received operation aborted!");
                     break;
 
                 default:
@@ -116,7 +110,7 @@ namespace NetSharp.Sockets.Datagram
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
         {
-            AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
+            AsyncSendToken sendToken = (AsyncSendToken)args.UserToken;
 
             if (sendToken.CancellationToken.IsCancellationRequested) return;
 
@@ -138,6 +132,7 @@ namespace NetSharp.Sockets.Datagram
                     break;
             }
 
+            BufferPool.Return(sendToken.RentedBuffer, true);
             TransmissionArgsPool.Return(args);
         }
 
@@ -213,14 +208,20 @@ namespace NetSharp.Sockets.Datagram
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in args, cancellationToken);
+            args.UserToken = new AsyncReceiveToken(in tcs, in cancellationToken);
 
-            // TODO find out why the fricc we leak memory
-            CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
+            if (cancellationToken == default)
+            {
+                if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            }
+            else
+            {
+                // TODO find out why the fricc we leak memory
+                CancellationTokenRegistration cancellationRegistration =
+                    cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
-            if (Connection.ReceiveFromAsync(args))
-                return new ValueTask<TransmissionResult>(
+                if (Connection.ReceiveFromAsync(args))
+                    return new ValueTask<TransmissionResult>(
                         tcs.Task.ContinueWith((task, state) =>
                         {
                             ((CancellationTokenRegistration)state).Dispose();
@@ -229,7 +230,8 @@ namespace NetSharp.Sockets.Datagram
                         }, cancellationRegistration, CancellationToken.None)
                     );
 
-            cancellationRegistration.Dispose();
+                cancellationRegistration.Dispose();
+            }
 
             TransmissionResult result = new TransmissionResult(in args);
 
@@ -245,37 +247,48 @@ namespace NetSharp.Sockets.Datagram
             return new TransmissionResult(in sendBuffer, in sentBytes, in remoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> SendToAsync(EndPoint remoteEndPoint, Memory<byte> sendBuffer,
+        public ValueTask<TransmissionResult> SendToAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer,
             SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
             SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
+            byte[] transmissionBuffer = BufferPool.Rent(sendBuffer.Length);
 
-            args.SetBuffer(sendBuffer);
+            sendBuffer.CopyTo(transmissionBuffer);
+
+            args.SetBuffer(transmissionBuffer);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in args, cancellationToken);
+            args.UserToken = new AsyncSendToken(in tcs, in transmissionBuffer, in cancellationToken);
 
-            // TODO find out why the fricc we leak memory
-            CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
+            if (cancellationToken == default)
+            {
+                if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            }
+            else
+            {
+                // TODO find out why the fricc we leak memory
+                CancellationTokenRegistration cancellationRegistration =
+                    cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
-            if (Connection.SendToAsync(args))
-                return new ValueTask<TransmissionResult>(
-                    tcs.Task.ContinueWith((task, state) =>
-                    {
-                        ((CancellationTokenRegistration)state).Dispose();
+                if (Connection.SendToAsync(args))
+                    return new ValueTask<TransmissionResult>(
+                        tcs.Task.ContinueWith((task, state) =>
+                        {
+                            ((CancellationTokenRegistration)state).Dispose();
 
-                        return task.Result;
-                    }, cancellationRegistration, CancellationToken.None)
-                );
+                            return task.Result;
+                        }, cancellationRegistration, CancellationToken.None)
+                    );
 
-            cancellationRegistration.Dispose();
+                cancellationRegistration.Dispose();
+            }
 
             TransmissionResult result = new TransmissionResult(in args);
 
+            BufferPool.Return(transmissionBuffer, true);
             TransmissionArgsPool.Return(args);
 
             return new ValueTask<TransmissionResult>(result);

@@ -169,7 +169,7 @@
         <member name="F:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendToAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveFromAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendToAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveFromAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.#ctor(System.UInt16)">
@@ -328,24 +328,50 @@
             The cancellation token to observe during the operation.
             </param>
         </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken">
+        <member name="T:NetSharp.Sockets.SocketClient.AsyncReceiveToken">
             <summary>
-            A state token for asynchronous network IO operations.
+            A state token for asynchronous incoming network IO operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.CancellationToken">
+        <member name="F:NetSharp.Sockets.SocketClient.AsyncReceiveToken.CancellationToken">
             <summary>
             The <see cref="T:System.Threading.CancellationToken" /> associated with the network IO operation.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.CompletionSource">
+        <member name="F:NetSharp.Sockets.SocketClient.AsyncReceiveToken.CompletionSource">
             <summary>
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Net.Sockets.SocketAsyncEventArgs@,System.Threading.CancellationToken@)">
+        <member name="M:NetSharp.Sockets.SocketClient.AsyncReceiveToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken" /> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncReceiveToken" /> struct.
+            </summary>
+            <param name="completionSource">
+            The completion source to trigger when the IO operation completes.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to observe during the operation.
+            </param>
+        </member>
+        <member name="T:NetSharp.Sockets.SocketClient.AsyncSendToken">
+            <summary>
+            A state token for asynchronous outgoing network IO operations.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.CancellationToken">
+            <summary>
+            The <see cref="T:System.Threading.CancellationToken" /> associated with the network IO operation.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.CompletionSource">
+            <summary>
+            The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.AsyncSendToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Byte[]@,System.Threading.CancellationToken@)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncSendToken" /> struct.
             </summary>
             <param name="completionSource">
             The completion source to trigger when the IO operation completes.
@@ -564,7 +590,7 @@
         <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">

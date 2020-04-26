@@ -35,9 +35,9 @@ namespace NetSharpExamples.Benchmarks
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
+                int received = server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
 
-                server.SendTo(transmissionBuffer, remoteEndPoint);
+                int sent = server.SendTo(transmissionBuffer, remoteEndPoint);
             }
 
             server.Close();
@@ -55,7 +55,7 @@ namespace NetSharpExamples.Benchmarks
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
-            using CancellationTokenSource serverCts = new CancellationTokenSource(); serverCts.Cancel();
+            using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();

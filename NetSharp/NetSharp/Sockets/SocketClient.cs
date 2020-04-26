@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using NetSharp.Utils;
+﻿using NetSharp.Utils;
 
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +10,7 @@ namespace NetSharp.Sockets
     /// <summary>
     /// Abstract base class for clients.
     /// </summary>
-    /// TODO implement cancellation of ReceiveAsync and ReceiveFromAsync methods.
+    /// TODO implement proper memory leak-free cancellation of network IO operations
     public abstract class SocketClient : SocketConnection
     {
         /// <summary>
@@ -54,10 +52,11 @@ namespace NetSharp.Sockets
         {
             SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
 
-            AsyncTransmissionToken token = (AsyncTransmissionToken)args.UserToken;
+            AsyncSendToken token = (AsyncSendToken)args.UserToken;
 
             token.CompletionSource.SetResult(TransmissionResult.Timeout);
 
+            BufferPool.Return(token.RentedBuffer, true);
             DestroyTransmissionArgs(args);
         }
 
@@ -90,7 +89,7 @@ namespace NetSharp.Sockets
             SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
 
             args.RemoteEndPoint = remoteEndPoint;
-            args.UserToken = new AsyncOperationToken(in tcs, CancellationToken.None);
+            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
@@ -146,9 +145,9 @@ namespace NetSharp.Sockets
         }
 
         /// <summary>
-        /// A state token for asynchronous network IO operations.
+        /// A state token for asynchronous incoming network IO operations.
         /// </summary>
-        protected readonly struct AsyncTransmissionToken
+        protected readonly struct AsyncReceiveToken
         {
             /// <summary>
             /// The <see cref="System.Threading.CancellationToken" /> associated with the network IO operation.
@@ -160,10 +159,8 @@ namespace NetSharp.Sockets
             /// </summary>
             public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
 
-            public readonly SocketAsyncEventArgs TransmissionArgs;
-
             /// <summary>
-            /// Constructs a new instance of the <see cref="AsyncTransmissionToken" /> struct.
+            /// Constructs a new instance of the <see cref="AsyncReceiveToken" /> struct.
             /// </summary>
             /// <param name="completionSource">
             /// The completion source to trigger when the IO operation completes.
@@ -171,11 +168,45 @@ namespace NetSharp.Sockets
             /// <param name="cancellationToken">
             /// The cancellation token to observe during the operation.
             /// </param>
-            public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in SocketAsyncEventArgs transmissionArgs, in CancellationToken cancellationToken)
+            public AsyncReceiveToken(in TaskCompletionSource<TransmissionResult> completionSource, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
 
-                TransmissionArgs = transmissionArgs;
+                CancellationToken = cancellationToken;
+            }
+        }
+
+        /// <summary>
+        /// A state token for asynchronous outgoing network IO operations.
+        /// </summary>
+        protected readonly struct AsyncSendToken
+        {
+            /// <summary>
+            /// The <see cref="System.Threading.CancellationToken" /> associated with the network IO operation.
+            /// </summary>
+            public readonly CancellationToken CancellationToken;
+
+            /// <summary>
+            /// The completion source which wraps the event-based APM, and provides an awaitable <see cref="Task" />.
+            /// </summary>
+            public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
+
+            public readonly byte[] RentedBuffer;
+
+            /// <summary>
+            /// Constructs a new instance of the <see cref="AsyncSendToken" /> struct.
+            /// </summary>
+            /// <param name="completionSource">
+            /// The completion source to trigger when the IO operation completes.
+            /// </param>
+            /// <param name="cancellationToken">
+            /// The cancellation token to observe during the operation.
+            /// </param>
+            public AsyncSendToken(in TaskCompletionSource<TransmissionResult> completionSource, in byte[] rentedBuffer, in CancellationToken cancellationToken)
+            {
+                CompletionSource = completionSource;
+
+                RentedBuffer = rentedBuffer;
 
                 CancellationToken = cancellationToken;
             }
