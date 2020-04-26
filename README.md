@@ -12,7 +12,7 @@ This library is under the GNU General Public License v3.0. What does this mean f
 
 You can use this library for: 'Commercial Use', 'Private Use', and 'Patent Use'. You can make any modifications you want and you can distribute it as-is or with your modifications.
 
-When using this library in your project you must: 'Disclose the source' (a link to this GitHub is fine), 'Include a copy of the GNU GPL v3.0 with your project' (copy LICENSE to your projects root dir, named NetSharp-LICENSE), and 'State changes made' (documented somewhere accessible by users of your project. Should you modify this library in any way, the modified library must be released under the GNU GPL v3.0 license as well. Note that your own project doesn't have to be released under the GNU GPL v3.0, only your edited version of this library does.
+When using this library in your project you must: 'Disclose the source' (a link to this GitHub is fine), 'Include a copy of the GNU GPL v3.0 with your project' (copy LICENSE to your projects root dir, named NetSharp-LICENSE), and 'State changes made' (documented somewhere accessible by users of your project). Should you modify this library in any way, the modified library must be released under the GNU GPL v3.0 license as well. Note that your own project doesn't have to be released under the GNU GPL v3.0, only your edited version of this library does.
 
 No warranty is provided, and contributors are not liable to you (the user of the library) for damages incurred through the use of this library. See LICENSE; 'Terms and Conditions' points 15 and 16 ('Disclaimer of Warranty' and 'Limitation of Liability respectively') for more information.
 
