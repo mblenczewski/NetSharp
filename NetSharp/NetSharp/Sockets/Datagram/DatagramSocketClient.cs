@@ -22,7 +22,7 @@ namespace NetSharp.Sockets.Datagram
 
         /// <summary>
         /// The number of <see cref="SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-        /// <see cref="DatagramSocketClient.SendToAsync" /> and <see cref="DatagramSocketClient.ReceiveFromAsync" /> methods.
+        /// <see cref="DatagramSocketClient.SendToAsyncInternal" /> and <see cref="DatagramSocketClient.ReceiveFromAsyncInternal" /> methods.
         /// </summary>
         public readonly ushort PreallocatedTransmissionArgs;
 
@@ -190,15 +190,18 @@ namespace NetSharp.Sockets.Datagram
         {
         }
 
-        public TransmissionResult ReceiveFrom(ref EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)
+        /// <inheritdoc />
+        public override TransmissionResult Receive(in EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)
         {
-            int receivedBytes = Connection.ReceiveFrom(receiveBuffer, flags, ref remoteEndPoint);
+            EndPoint actualEndPoint = remoteEndPoint;
+            int receivedBytes = Connection.ReceiveFrom(receiveBuffer, flags, ref actualEndPoint);
 
-            return new TransmissionResult(in receiveBuffer, in receivedBytes, in remoteEndPoint);
+            return new TransmissionResult(in receiveBuffer, in receivedBytes, in actualEndPoint);
         }
 
-        public ValueTask<TransmissionResult> ReceiveFromAsync(EndPoint remoteEndPoint, Memory<byte> receiveBuffer,
-            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public override ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None,
+            CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -240,15 +243,17 @@ namespace NetSharp.Sockets.Datagram
             return new ValueTask<TransmissionResult>(result);
         }
 
-        public TransmissionResult SendTo(EndPoint remoteEndPoint, byte[] sendBuffer, SocketFlags flags = SocketFlags.None)
+        /// <inheritdoc />
+        public override TransmissionResult Send(in EndPoint remoteEndPoint, byte[] sendBuffer, SocketFlags flags = SocketFlags.None)
         {
             int sentBytes = Connection.SendTo(sendBuffer, flags, remoteEndPoint);
 
             return new TransmissionResult(in sendBuffer, in sentBytes, in remoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> SendToAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer,
-            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public override ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer, SocketFlags flags = SocketFlags.None,
+            CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 

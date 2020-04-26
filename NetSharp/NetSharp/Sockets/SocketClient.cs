@@ -1,5 +1,6 @@
 ﻿using NetSharp.Utils;
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -37,6 +38,12 @@ namespace NetSharp.Sockets
         {
         }
 
+        /// <summary>
+        /// Callback for the cancellation of an asynchronous network operation.
+        /// </summary>
+        /// <param name="state">
+        /// The <see cref="SocketAsyncEventArgs" /> state object for the operation.
+        /// </param>
         protected void CancelAsyncOperationCallback(object state)
         {
             SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
@@ -48,6 +55,12 @@ namespace NetSharp.Sockets
             DestroyTransmissionArgs(args);
         }
 
+        /// <summary>
+        /// Callback for the cancellation of an asynchronous network receive operation.
+        /// </summary>
+        /// <param name="state">
+        /// The <see cref="SocketAsyncEventArgs" /> state object for the operation.
+        /// </param>
         protected void CancelAsyncReceiveCallback(object state)
         {
             SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
@@ -59,6 +72,12 @@ namespace NetSharp.Sockets
             DestroyTransmissionArgs(args);
         }
 
+        /// <summary>
+        /// Callback for the cancellation of an asynchronous network send operation.
+        /// </summary>
+        /// <param name="state">
+        /// The <see cref="SocketAsyncEventArgs" /> state object for the operation.
+        /// </param>
         protected void CancelAsyncSendCallback(object state)
         {
             SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
@@ -90,6 +109,9 @@ namespace NetSharp.Sockets
         /// <param name="remoteEndPoint">
         /// The remote end point which to which to connect the client.
         /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to observe during the asynchronous operation.
+        /// </param>
         /// <returns>
         /// A <see cref="ValueTask" /> representing the connection attempt.
         /// </returns>
@@ -102,26 +124,116 @@ namespace NetSharp.Sockets
             args.RemoteEndPoint = remoteEndPoint;
             args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
 
-            // TODO find out why the fricc we leak memory
-            CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncOperationCallback, args);
+            if (cancellationToken == default)
+            {
+                if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+            }
+            else
+            {
+                // TODO find out why the fricc we leak memory
+                CancellationTokenRegistration cancellationRegistration =
+                    cancellationToken.Register(CancelAsyncOperationCallback, args);
 
-            if (Connection.ConnectAsync(args))
-                return new ValueTask(
-                    tcs.Task.ContinueWith((task, state) =>
-                    {
-                        ((CancellationTokenRegistration)state).Dispose();
+                if (Connection.ConnectAsync(args))
+                    return new ValueTask(
+                        tcs.Task.ContinueWith((task, state) =>
+                        {
+                            ((CancellationTokenRegistration)state).Dispose();
 
-                        return task.Result;
-                    }, cancellationRegistration, CancellationToken.None)
-                );
+                            return task.Result;
+                        }, cancellationRegistration, CancellationToken.None)
+                    );
 
-            cancellationRegistration.Dispose();
+                cancellationRegistration.Dispose();
+            }
 
             TransmissionArgsPool.Return(args);
 
             return new ValueTask();
         }
+
+        /// <summary>
+        /// Listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the given endpoint
+        /// is ignored in favour of the default remote host set up by a call to <see cref="Connect" /> or <see cref="ConnectAsync" />.
+        /// </summary>
+        /// <param name="remoteEndPoint">
+        /// The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
+        /// </param>
+        /// <param name="receiveBuffer">
+        /// The buffer into which data is to be received.
+        /// </param>
+        /// <param name="flags">
+        /// The socket flags associated with the send operation.
+        /// </param>
+        /// <returns>
+        /// The result of the receive operation.
+        /// </returns>
+        public abstract TransmissionResult Receive(in EndPoint remoteEndPoint, byte[] receiveBuffer,
+            SocketFlags flags = SocketFlags.None);
+
+        /// <summary>
+        /// Asynchronously listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the
+        /// given endpoint is ignored in favour of the default remote host set up by a call to <see cref="Connect" /> or <see cref="ConnectAsync" />.
+        /// </summary>
+        /// <param name="remoteEndPoint">
+        /// The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
+        /// </param>
+        /// <param name="receiveBuffer">
+        /// The buffer into which data is to be received.
+        /// </param>
+        /// <param name="flags">
+        /// The socket flags associated with the send operation.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to observe during the asynchronous operation.
+        /// </param>
+        /// <returns>
+        /// The result of the asynchronous receive operation.
+        /// </returns>
+        public abstract ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer,
+            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is ignored in favour of
+        /// the default remote host set up by a call to <see cref="Connect" /> or <see cref="ConnectAsync" />.
+        /// </summary>
+        /// <param name="remoteEndPoint">
+        /// The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
+        /// </param>
+        /// <param name="sendBuffer">
+        /// The buffer containing the outgoing data to be sent.
+        /// </param>
+        /// <param name="flags">
+        /// The socket flags associated with the send operation.
+        /// </param>
+        /// <returns>
+        /// The result of the send operation.
+        /// </returns>
+        public abstract TransmissionResult Send(in EndPoint remoteEndPoint, byte[] sendBuffer,
+            SocketFlags flags = SocketFlags.None);
+
+        /// <summary>
+        /// Asynchronously sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is
+        /// ignored in favour of the default remote host set up by a call to <see cref="Connect" /> or <see cref="ConnectAsync" />.
+        /// </summary>
+        /// <param name="remoteEndPoint">
+        /// The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
+        /// </param>
+        /// <param name="sendBuffer">
+        /// The buffer containing the outgoing data to be sent. The contents of the buffer are copied to an internally maintained buffer when the call
+        /// is made.
+        /// </param>
+        /// <param name="flags">
+        /// The socket flags associated with the send operation.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token to observe during the asynchronous operation.
+        /// </param>
+        /// <returns>
+        /// The result of the asynchronous send operation.
+        /// </returns>
+        public abstract ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer,
+            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// A state token for asynchronous socket operations.
@@ -202,6 +314,9 @@ namespace NetSharp.Sockets
             /// </summary>
             public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
 
+            /// <summary>
+            /// The rented buffer which holds the user's data.
+            /// </summary>
             public readonly byte[] RentedBuffer;
 
             /// <summary>
@@ -209,6 +324,9 @@ namespace NetSharp.Sockets
             /// </summary>
             /// <param name="completionSource">
             /// The completion source to trigger when the IO operation completes.
+            /// </param>
+            /// <param name="rentedBuffer">
+            /// The buffer holding the user's data.
             /// </param>
             /// <param name="cancellationToken">
             /// The cancellation token to observe during the operation.

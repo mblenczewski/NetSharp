@@ -2,6 +2,7 @@
 using NetSharp.Utils;
 
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -278,44 +279,54 @@ namespace NetSharp.Sockets.Stream
 
             SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
 
-            args.DisconnectReuseSocket = allowSocketReuse;
-            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+            if (cancellationToken == default)
+            {
+                if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
+            }
+            else
+            {
+                args.DisconnectReuseSocket = allowSocketReuse;
+                args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
 
-            // TODO find out why the fricc we leak memory
-            CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncOperationCallback, args);
+                // TODO find out why the fricc we leak memory
+                CancellationTokenRegistration cancellationRegistration =
+                    cancellationToken.Register(CancelAsyncOperationCallback, args);
 
-            if (Connection.DisconnectAsync(args))
-                return new ValueTask(
-                    tcs.Task.ContinueWith((task, state) =>
-                    {
-                        ((CancellationTokenRegistration)state).Dispose();
+                if (Connection.DisconnectAsync(args))
+                    return new ValueTask(
+                        tcs.Task.ContinueWith((task, state) =>
+                        {
+                            ((CancellationTokenRegistration)state).Dispose();
 
-                        return task.Result;
-                    }, cancellationRegistration, CancellationToken.None)
-                );
+                            return task.Result;
+                        }, cancellationRegistration, CancellationToken.None)
+                    );
 
-            cancellationRegistration.Dispose();
+                cancellationRegistration.Dispose();
+            }
 
             TransmissionArgsPool.Return(args);
 
             return new ValueTask();
         }
 
-        public TransmissionResult Receive(byte[] buffer, SocketFlags flags = SocketFlags.None)
+        /// <inheritdoc />
+        public override TransmissionResult Receive(in EndPoint remoteEndPoint, byte[] receiveBuffer, SocketFlags flags = SocketFlags.None)
         {
-            int expectedBytes = buffer.Length;
+            int expectedBytes = receiveBuffer.Length;
             int receivedBytes = 0;
 
             do
             {
-                receivedBytes += Connection.Receive(buffer, receivedBytes, expectedBytes - receivedBytes, flags);
+                receivedBytes += Connection.Receive(receiveBuffer, receivedBytes, expectedBytes - receivedBytes, flags);
             } while (receivedBytes != 0 && receivedBytes < expectedBytes);
 
-            return new TransmissionResult(in buffer, in receivedBytes, Connection.RemoteEndPoint);
+            return new TransmissionResult(in receiveBuffer, in receivedBytes, Connection.RemoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> ReceiveAsync(Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public override ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None,
+            CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -356,20 +367,23 @@ namespace NetSharp.Sockets.Stream
             return new ValueTask<TransmissionResult>(result);
         }
 
-        public TransmissionResult Send(byte[] buffer, SocketFlags flags = SocketFlags.None)
+        /// <inheritdoc />
+        public override TransmissionResult Send(in EndPoint remoteEndPoint, byte[] sendBuffer, SocketFlags flags = SocketFlags.None)
         {
-            int expectedBytes = buffer.Length;
+            int expectedBytes = sendBuffer.Length;
             int sentBytes = 0;
 
             do
             {
-                sentBytes += Connection.Send(buffer, sentBytes, expectedBytes - sentBytes, flags);
+                sentBytes += Connection.Send(sendBuffer, sentBytes, expectedBytes - sentBytes, flags);
             } while (sentBytes != 0 && sentBytes < expectedBytes);
 
-            return new TransmissionResult(in buffer, in sentBytes, Connection.RemoteEndPoint);
+            return new TransmissionResult(in sendBuffer, in sentBytes, Connection.RemoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> SendAsync(ReadOnlyMemory<byte> sendBuffer, SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        public override ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer, SocketFlags flags = SocketFlags.None,
+            CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 

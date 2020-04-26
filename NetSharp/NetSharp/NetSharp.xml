@@ -169,7 +169,7 @@
         <member name="F:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendToAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveFromAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="!:DatagramSocketClient.SendToAsyncInternal" /> and <see cref="!:DatagramSocketClient.ReceiveFromAsyncInternal" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClientOptions.#ctor(System.UInt16)">
@@ -193,6 +193,18 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Sockets.Datagram.DatagramSocketServerOptions">
@@ -281,6 +293,30 @@
             The number of transmission args to preallocate.
             </param>
         </member>
+        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncOperationCallback(System.Object)">
+            <summary>
+            Callback for the cancellation of an asynchronous network operation.
+            </summary>
+            <param name="state">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncReceiveCallback(System.Object)">
+            <summary>
+            Callback for the cancellation of an asynchronous network receive operation.
+            </summary>
+            <param name="state">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncSendCallback(System.Object)">
+            <summary>
+            Callback for the cancellation of an asynchronous network send operation.
+            </summary>
+            <param name="state">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
+            </param>
+        </member>
         <member name="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)">
             <summary>
             Connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method configures the
@@ -298,8 +334,90 @@
             <param name="remoteEndPoint">
             The remote end point which to which to connect the client.
             </param>
+            <param name="cancellationToken">
+            The cancellation token to observe during the asynchronous operation.
+            </param>
             <returns>
             A <see cref="T:System.Threading.Tasks.ValueTask" /> representing the connection attempt.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <summary>
+            Listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the given endpoint
+            is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
+            </param>
+            <param name="receiveBuffer">
+            The buffer into which data is to be received.
+            </param>
+            <param name="flags">
+            The socket flags associated with the send operation.
+            </param>
+            <returns>
+            The result of the receive operation.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the
+            given endpoint is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
+            </param>
+            <param name="receiveBuffer">
+            The buffer into which data is to be received.
+            </param>
+            <param name="flags">
+            The socket flags associated with the send operation.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to observe during the asynchronous operation.
+            </param>
+            <returns>
+            The result of the asynchronous receive operation.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <summary>
+            Sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is ignored in favour of
+            the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
+            </param>
+            <param name="sendBuffer">
+            The buffer containing the outgoing data to be sent.
+            </param>
+            <param name="flags">
+            The socket flags associated with the send operation.
+            </param>
+            <returns>
+            The result of the send operation.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+            <summary>
+            Asynchronously sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is
+            ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
+            </param>
+            <param name="sendBuffer">
+            The buffer containing the outgoing data to be sent. The contents of the buffer are copied to an internally maintained buffer when the call
+            is made.
+            </param>
+            <param name="flags">
+            The socket flags associated with the send operation.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to observe during the asynchronous operation.
+            </param>
+            <returns>
+            The result of the asynchronous send operation.
             </returns>
         </member>
         <member name="T:NetSharp.Sockets.SocketClient.AsyncOperationToken">
@@ -369,12 +487,20 @@
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
+        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.RentedBuffer">
+            <summary>
+            The rented buffer which holds the user's data.
+            </summary>
+        </member>
         <member name="M:NetSharp.Sockets.SocketClient.AsyncSendToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Byte[]@,System.Threading.CancellationToken@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncSendToken" /> struct.
             </summary>
             <param name="completionSource">
             The completion source to trigger when the IO operation completes.
+            </param>
+            <param name="rentedBuffer">
+            The buffer holding the user's data.
             </param>
             <param name="cancellationToken">
             The cancellation token to observe during the operation.
@@ -590,7 +716,7 @@
         <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">
@@ -614,6 +740,18 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Sockets.Stream.StreamSocketServerOptions">

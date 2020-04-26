@@ -35,12 +35,11 @@ namespace NetSharpExamples.Examples
                 string data = $"Hello World from {client.LocalEndPoint}!";
                 dataEncoding.GetBytes(data).CopyTo(sendBuffer, 0);
 
-                TransmissionResult sendResult =
-                    client.SendTo(remoteEndPoint, sendBuffer, SocketFlags.None);
+                TransmissionResult sendResult = client.Send(in remoteEndPoint, sendBuffer, SocketFlags.None);
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult sendResult =
-                    await client.SendToAsync(remoteEndPoint, sendBuffer, SocketFlags.None, CancellationToken.None);
+                    await client.SendAsync(in remoteEndPoint, sendBuffer, SocketFlags.None, CancellationToken.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved
@@ -49,12 +48,12 @@ namespace NetSharpExamples.Examples
                     Console.WriteLine($"[Client] Sent request with contents \'{data}\' to {remoteEndPoint}");
                 }
 
-                TransmissionResult receiveResult =
-                    client.ReceiveFrom(ref remoteEndPoint, receiveBuffer, SocketFlags.None);
+                TransmissionResult receiveResult = client.Receive(in remoteEndPoint, receiveBuffer, SocketFlags.None);
+                remoteEndPoint = receiveResult.RemoteEndPoint;
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult receiveResult =
-                    await client.ReceiveFromAsync(remoteEndPoint, receiveBuffer, SocketFlags.None, CancellationToken.None);
+                    await client.ReceiveAsync(in remoteEndPoint, receiveBuffer, SocketFlags.None, CancellationToken.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved

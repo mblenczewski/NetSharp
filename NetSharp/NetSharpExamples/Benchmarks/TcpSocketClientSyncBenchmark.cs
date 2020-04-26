@@ -97,9 +97,9 @@ namespace NetSharpExamples.Benchmarks
 
                 benchmarkHelper.StartBandwidthStopwatch();
                 benchmarkHelper.StartRttStopwatch();
-                TransmissionResult sendResult = client.Send(sendBuffer);
+                TransmissionResult sendResult = client.Send(in ServerEndPoint, sendBuffer);
 
-                TransmissionResult receiveResult = client.Receive(receiveBuffer);
+                TransmissionResult receiveResult = client.Receive(in ServerEndPoint, receiveBuffer);
                 benchmarkHelper.StopRttStopwatch();
                 benchmarkHelper.StopBandwidthStopwatch();
 

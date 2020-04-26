@@ -69,7 +69,7 @@ namespace NetSharpExamples.Examples
                 using CancellationTokenSource receiveCts = new CancellationTokenSource();
 
                 sendCts.CancelAfter(timeout);
-                TransmissionResult sendResult = await client.SendToAsync(remoteEndPoint, sendBuffer, SocketFlags.None, sendCts.Token);
+                TransmissionResult sendResult = await client.SendAsync(remoteEndPoint, sendBuffer, SocketFlags.None, sendCts.Token);
 
                 if (sendResult.TimedOut())
                 {
@@ -80,7 +80,7 @@ namespace NetSharpExamples.Examples
                     Console.WriteLine($"Sent {sendResult.Count} bytes of data!");
 
                     receiveCts.CancelAfter(timeout);
-                    TransmissionResult receiveResult = await client.ReceiveFromAsync(remoteEndPoint, receiveBuffer, SocketFlags.None, receiveCts.Token);
+                    TransmissionResult receiveResult = await client.ReceiveAsync(remoteEndPoint, receiveBuffer, SocketFlags.None, receiveCts.Token);
 
                     if (receiveResult.TimedOut())
                     {

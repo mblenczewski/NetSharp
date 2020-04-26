@@ -42,7 +42,7 @@ namespace NetSharpExamples.Examples
                 dataEncoding.GetBytes(data).CopyTo(sendBuffer, 0);
 
                 TransmissionResult sendResult =
-                    client.Send(sendBuffer, SocketFlags.None);
+                    client.Send(in remoteEndPoint, sendBuffer, SocketFlags.None);
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult sendResult =
@@ -56,7 +56,7 @@ namespace NetSharpExamples.Examples
                 }
 
                 TransmissionResult receiveResult =
-                    client.Receive(receiveBuffer, SocketFlags.None);
+                    client.Receive(in remoteEndPoint, receiveBuffer, SocketFlags.None);
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult receiveResult =
