@@ -217,7 +217,7 @@ namespace NetSharp.Sockets.Datagram
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
             if (Connection.ReceiveFromAsync(args))
                 return new ValueTask<TransmissionResult>(
@@ -260,7 +260,7 @@ namespace NetSharp.Sockets.Datagram
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
             if (Connection.SendToAsync(args))
                 return new ValueTask<TransmissionResult>(

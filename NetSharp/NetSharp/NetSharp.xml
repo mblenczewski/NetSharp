@@ -290,7 +290,7 @@
             The remote end point which to which to connect the client.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@)">
+        <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)">
             <summary>
             Asynchronously connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method
             configures the default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
@@ -564,7 +564,7 @@
         <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags)" /> methods.
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">

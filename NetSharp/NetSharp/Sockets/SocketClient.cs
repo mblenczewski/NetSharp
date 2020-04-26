@@ -39,13 +39,26 @@ namespace NetSharp.Sockets
         {
         }
 
+        protected void CancelAsyncOperationCallback(object state)
+        {
+            SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
+
+            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+
+            token.CompletionSource.SetResult(false);
+
+            DestroyTransmissionArgs(args);
+        }
+
         protected void CancelAsyncTransmissionCallback(object state)
         {
-            AsyncTransmissionToken token = (AsyncTransmissionToken)state;
+            SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
+
+            AsyncTransmissionToken token = (AsyncTransmissionToken)args.UserToken;
 
             token.CompletionSource.SetResult(TransmissionResult.Timeout);
 
-            DestroyTransmissionArgs(token.TransmissionArgs);
+            DestroyTransmissionArgs(args);
         }
 
         /// <summary>
@@ -81,7 +94,7 @@ namespace NetSharp.Sockets
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncOperationCallback, args);
 
             if (Connection.ConnectAsync(args))
                 return new ValueTask(

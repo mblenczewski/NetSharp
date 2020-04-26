@@ -299,7 +299,7 @@ namespace NetSharp.Sockets.Stream
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncOperationCallback, args);
 
             if (Connection.DisconnectAsync(args))
                 return new ValueTask(
@@ -344,7 +344,7 @@ namespace NetSharp.Sockets.Stream
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
             if (Connection.ReceiveAsync(args))
                 return new ValueTask<TransmissionResult>(
@@ -391,7 +391,7 @@ namespace NetSharp.Sockets.Stream
 
             // TODO find out why the fricc we leak memory
             CancellationTokenRegistration cancellationRegistration =
-                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args);
 
             if (Connection.SendToAsync(args))
                 return new ValueTask<TransmissionResult>(
