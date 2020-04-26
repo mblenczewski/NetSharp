@@ -290,16 +290,13 @@
             The remote end point which to which to connect the client.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@)">
             <summary>
             Asynchronously connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method
             configures the default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
             </summary>
             <param name="remoteEndPoint">
             The remote end point which to which to connect the client.
-            </param>
-            <param name="cancellationToken">
-            The <see cref="T:System.Threading.CancellationToken" /> upon whose cancellation the connection attempt should be aborted. TODO make functional
             </param>
             <returns>
             A <see cref="T:System.Threading.Tasks.ValueTask" /> representing the connection attempt.
@@ -346,7 +343,7 @@
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Threading.CancellationToken@)">
+        <member name="M:NetSharp.Sockets.SocketClient.AsyncTransmissionToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Net.Sockets.SocketAsyncEventArgs@,System.Threading.CancellationToken@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncTransmissionToken" /> struct.
             </summary>
@@ -567,7 +564,7 @@
         <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Memory{System.Byte},System.Net.Sockets.SocketFlags)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">

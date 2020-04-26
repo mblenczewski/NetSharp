@@ -61,29 +61,22 @@ namespace NetSharp.Sockets.Datagram
         {
             AsyncOperationToken connectToken = (AsyncOperationToken)args.UserToken;
 
-            if (connectToken.CancellationToken.IsCancellationRequested)
+            if (connectToken.CancellationToken.IsCancellationRequested) return;
+
+            switch (args.SocketError)
             {
-                connectToken.CompletionSource.SetCanceled();
-            }
-            else
-            {
-                switch (args.SocketError)
-                {
-                    case SocketError.Success:
-                        connectToken.CompletionSource.SetResult(true);
+                case SocketError.Success:
+                    connectToken.CompletionSource.SetResult(true);
 
-                        break;
+                    break;
 
-                    case SocketError.OperationAborted:
-                        Debug.WriteLine("CompleteConnect experienced SocketError.OperationAborted!");
+                case SocketError.OperationAborted:
+                    break;
 
-                        break;
+                default:
+                    connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
-                    default:
-                        connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                        break;
-                }
+                    break;
             }
 
             TransmissionArgsPool.Return(args);
@@ -92,6 +85,12 @@ namespace NetSharp.Sockets.Datagram
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
             AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
+
+            if (receiveToken.CancellationToken.IsCancellationRequested)
+            {
+                Debug.WriteLine("ReceiveFrom completed after being cancelled!");
+                return;
+            }
 
             switch (args.SocketError)
             {
@@ -103,8 +102,7 @@ namespace NetSharp.Sockets.Datagram
                     break;
 
                 case SocketError.OperationAborted:
-                    Debug.WriteLine("CompleteReceiveFrom experienced SocketError.OperationAborted!");
-
+                    Debug.WriteLine("ReceiveFrom received operation aborted!");
                     break;
 
                 default:
@@ -120,31 +118,24 @@ namespace NetSharp.Sockets.Datagram
         {
             AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
 
-            if (sendToken.CancellationToken.IsCancellationRequested)
+            if (sendToken.CancellationToken.IsCancellationRequested) return;
+
+            switch (args.SocketError)
             {
-                sendToken.CompletionSource.SetCanceled();
-            }
-            else
-            {
-                switch (args.SocketError)
-                {
-                    case SocketError.Success:
-                        TransmissionResult result = new TransmissionResult(in args);
+                case SocketError.Success:
+                    TransmissionResult result = new TransmissionResult(in args);
 
-                        sendToken.CompletionSource.SetResult(result);
+                    sendToken.CompletionSource.SetResult(result);
 
-                        break;
+                    break;
 
-                    case SocketError.OperationAborted:
-                        Debug.WriteLine("CompleteSendTo experienced SocketError.OperationAborted!");
+                case SocketError.OperationAborted:
+                    break;
 
-                        break;
+                default:
+                    sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
-                    default:
-                        sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                        break;
-                }
+                    break;
             }
 
             TransmissionArgsPool.Return(args);
@@ -222,12 +213,23 @@ namespace NetSharp.Sockets.Datagram
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncTransmissionToken(in tcs, in args, cancellationToken);
 
-            // TODO implement cancellation for client socket receiveFromAsync
-            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
 
-            if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.ReceiveFromAsync(args))
+                return new ValueTask<TransmissionResult>(
+                        tcs.Task.ContinueWith((task, state) =>
+                        {
+                            ((CancellationTokenRegistration)state).Dispose();
+
+                            return task.Result;
+                        }, cancellationRegistration, CancellationToken.None)
+                    );
+
+            cancellationRegistration.Dispose();
 
             TransmissionResult result = new TransmissionResult(in args);
 
@@ -254,12 +256,23 @@ namespace NetSharp.Sockets.Datagram
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncTransmissionToken(in tcs, in args, cancellationToken);
 
-            // TODO implement cancellation for client socket sendToAsync
-            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
 
-            if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.SendToAsync(args))
+                return new ValueTask<TransmissionResult>(
+                    tcs.Task.ContinueWith((task, state) =>
+                    {
+                        ((CancellationTokenRegistration)state).Dispose();
+
+                        return task.Result;
+                    }, cancellationRegistration, CancellationToken.None)
+                );
+
+            cancellationRegistration.Dispose();
 
             TransmissionResult result = new TransmissionResult(in args);
 

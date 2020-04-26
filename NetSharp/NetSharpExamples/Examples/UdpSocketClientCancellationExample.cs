@@ -20,7 +20,7 @@ namespace NetSharpExamples.Examples
         /// <summary>
         /// A read only server. Never sends out data!
         /// </summary>
-        private Task ServerTask(CancellationToken cancellationToken)
+        private Task ServerTask()
         {
             Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
@@ -30,12 +30,18 @@ namespace NetSharpExamples.Examples
 
             EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-            while (!cancellationToken.IsCancellationRequested)
+            for (int i = 0; i < 10; i++)
             {
                 server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
             }
 
+            for (int i = 0; i < 9; i++)
+            {
+                server.SendTo(transmissionBuffer, remoteEndPoint);
+            }
+
             server.Close();
+            server.Dispose();
 
             return Task.CompletedTask;
         }
@@ -43,11 +49,10 @@ namespace NetSharpExamples.Examples
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            using CancellationTokenSource serverCts = new CancellationTokenSource();
-            Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
+            Task serverTask = Task.Factory.StartNew(ServerTask, TaskCreationOptions.LongRunning);
 
             DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions((ushort)2);
-            using DatagramSocketClient client = new DatagramSocketClient(AddressFamily.InterNetwork, ProtocolType.Udp, clientOptions);
+            DatagramSocketClient client = new DatagramSocketClient(AddressFamily.InterNetwork, ProtocolType.Udp, clientOptions);
 
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
             byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
@@ -60,7 +65,8 @@ namespace NetSharpExamples.Examples
 
             for (int i = 0; i < 10; i++)
             {
-                CancellationTokenSource sendCts = new CancellationTokenSource();
+                using CancellationTokenSource sendCts = new CancellationTokenSource();
+                using CancellationTokenSource receiveCts = new CancellationTokenSource();
 
                 sendCts.CancelAfter(timeout);
                 TransmissionResult sendResult = await client.SendToAsync(remoteEndPoint, sendBuffer, SocketFlags.None, sendCts.Token);
@@ -68,26 +74,28 @@ namespace NetSharpExamples.Examples
                 if (sendResult.TimedOut())
                 {
                     Console.WriteLine("Send timed out!");
-
-                    continue;
                 }
-
-                Console.WriteLine($"Sent {sendResult.Count} bytes of data!");
-
-                CancellationTokenSource receiveCts = new CancellationTokenSource();
-
-                receiveCts.CancelAfter(timeout);
-                TransmissionResult receiveResult = await client.ReceiveFromAsync(remoteEndPoint, receiveBuffer, SocketFlags.None, receiveCts.Token);
-
-                if (receiveResult.TimedOut())
+                else
                 {
-                    Console.WriteLine("Receive timed out!");
+                    Console.WriteLine($"Sent {sendResult.Count} bytes of data!");
 
-                    continue;
+                    receiveCts.CancelAfter(timeout);
+                    TransmissionResult receiveResult = await client.ReceiveFromAsync(remoteEndPoint, receiveBuffer, SocketFlags.None, receiveCts.Token);
+
+                    if (receiveResult.TimedOut())
+                    {
+                        Console.WriteLine("Receive timed out!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Received {receiveResult.Count} bytes of data!");
+                    }
                 }
-
-                Console.WriteLine($"Received {receiveResult.Count} bytes of data!");
             }
+
+            client.Dispose();
+
+            Console.WriteLine($"UDP Socket Client finished!");
         }
     }
 }

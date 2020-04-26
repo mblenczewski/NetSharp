@@ -16,7 +16,7 @@ namespace NetSharpExamples
             new UdpSocketClientSyncBenchmark(),
             new UdpSocketClientAsyncBenchmark(),
             new UdpSocketClientExample(),
-            //new UdpSocketClientCancellationExample(), // TODO make functional
+            new UdpSocketClientCancellationExample(), // TODO make functional
 
             // TCP socket server and client examples
             new TcpSocketServerBenchmark(),

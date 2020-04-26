@@ -55,7 +55,7 @@ namespace NetSharpExamples.Benchmarks
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
-            using CancellationTokenSource serverCts = new CancellationTokenSource();
+            using CancellationTokenSource serverCts = new CancellationTokenSource(); serverCts.Cancel();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
@@ -85,15 +85,6 @@ namespace NetSharpExamples.Benchmarks
 
             benchmarkHelper.PrintBandwidthStats(0, PacketCount, NetworkPacket.TotalSize);
             benchmarkHelper.PrintRttStats(0);
-
-            serverCts.Cancel();
-            try
-            {
-                serverTask.Dispose();
-            }
-            catch (Exception) { }
-
-            Console.WriteLine($"UDP Client Benchmark finished!");
         }
     }
 }

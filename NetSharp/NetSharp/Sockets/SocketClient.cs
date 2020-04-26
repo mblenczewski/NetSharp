@@ -39,9 +39,13 @@ namespace NetSharp.Sockets
         {
         }
 
-        protected void CancelAsyncTransmissionCallback(object tokenObj)
+        protected void CancelAsyncTransmissionCallback(object state)
         {
-            Debug.WriteLine("Cancelling asynchronous transmission!");
+            AsyncTransmissionToken token = (AsyncTransmissionToken)state;
+
+            token.CompletionSource.SetResult(TransmissionResult.Timeout);
+
+            DestroyTransmissionArgs(token.TransmissionArgs);
         }
 
         /// <summary>
@@ -63,9 +67,6 @@ namespace NetSharp.Sockets
         /// <param name="remoteEndPoint">
         /// The remote end point which to which to connect the client.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The <see cref="CancellationToken" /> upon whose cancellation the connection attempt should be aborted. TODO make functional
-        /// </param>
         /// <returns>
         /// A <see cref="ValueTask" /> representing the connection attempt.
         /// </returns>
@@ -76,9 +77,23 @@ namespace NetSharp.Sockets
             SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
 
             args.RemoteEndPoint = remoteEndPoint;
-            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncOperationToken(in tcs, CancellationToken.None);
 
-            if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
+
+            if (Connection.ConnectAsync(args))
+                return new ValueTask(
+                    tcs.Task.ContinueWith((task, state) =>
+                    {
+                        ((CancellationTokenRegistration)state).Dispose();
+
+                        return task.Result;
+                    }, cancellationRegistration, CancellationToken.None)
+                );
+
+            cancellationRegistration.Dispose();
 
             TransmissionArgsPool.Return(args);
 
@@ -132,6 +147,8 @@ namespace NetSharp.Sockets
             /// </summary>
             public readonly TaskCompletionSource<TransmissionResult> CompletionSource;
 
+            public readonly SocketAsyncEventArgs TransmissionArgs;
+
             /// <summary>
             /// Constructs a new instance of the <see cref="AsyncTransmissionToken" /> struct.
             /// </summary>
@@ -141,9 +158,11 @@ namespace NetSharp.Sockets
             /// <param name="cancellationToken">
             /// The cancellation token to observe during the operation.
             /// </param>
-            public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in CancellationToken cancellationToken)
+            public AsyncTransmissionToken(in TaskCompletionSource<TransmissionResult> completionSource, in SocketAsyncEventArgs transmissionArgs, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
+
+                TransmissionArgs = transmissionArgs;
 
                 CancellationToken = cancellationToken;
             }

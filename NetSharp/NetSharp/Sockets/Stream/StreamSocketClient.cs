@@ -60,24 +60,23 @@ namespace NetSharp.Sockets.Stream
         {
             AsyncOperationToken connectToken = (AsyncOperationToken)args.UserToken;
 
-            switch (args.SocketError)
+            if (!connectToken.CancellationToken.IsCancellationRequested)
             {
-                case SocketError.Success:
-                    connectToken.CompletionSource.SetResult(true);
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        connectToken.CompletionSource.SetResult(true);
 
-                    break;
+                        break;
 
-                case SocketError.OperationAborted:
-                    Debug.WriteLine("CompleteConnect experienced SocketError.OperationAborted!");
+                    case SocketError.OperationAborted:
+                        break;
 
-                    connectToken.CompletionSource.SetResult(false);
+                    default:
+                        connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
-                    break;
-
-                default:
-                    connectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                    break;
+                        break;
+                }
             }
 
             TransmissionArgsPool.Return(args);
@@ -87,24 +86,23 @@ namespace NetSharp.Sockets.Stream
         {
             AsyncOperationToken disconnectToken = (AsyncOperationToken)args.UserToken;
 
-            switch (args.SocketError)
+            if (!disconnectToken.CancellationToken.IsCancellationRequested)
             {
-                case SocketError.Success:
-                    disconnectToken.CompletionSource.SetResult(true);
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        disconnectToken.CompletionSource.SetResult(true);
 
-                    break;
+                        break;
 
-                case SocketError.OperationAborted:
-                    Debug.WriteLine("CompleteDisconnect experienced SocketError.OperationAborted!");
+                    case SocketError.OperationAborted:
+                        break;
 
-                    disconnectToken.CompletionSource.SetResult(false);
+                    default:
+                        disconnectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
-                    break;
-
-                default:
-                    disconnectToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                    break;
+                        break;
+                }
             }
 
             TransmissionArgsPool.Return(args);
@@ -114,58 +112,57 @@ namespace NetSharp.Sockets.Stream
         {
             AsyncTransmissionToken receiveToken = (AsyncTransmissionToken)args.UserToken;
 
-            switch (args.SocketError)
+            if (!receiveToken.CancellationToken.IsCancellationRequested)
             {
-                case SocketError.Success:
-                    Memory<byte> transmissionBuffer = args.MemoryBuffer;
-                    int expectedBytes = transmissionBuffer.Length;
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        Memory<byte> transmissionBuffer = args.MemoryBuffer;
+                        int expectedBytes = transmissionBuffer.Length;
 
-                    if (args.BytesTransferred == expectedBytes)
-                    {
-                        // buffer was fully received
+                        if (args.BytesTransferred == expectedBytes)
+                        {
+                            // buffer was fully received
 
-                        TransmissionResult result = new TransmissionResult(in args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
-                        receiveToken.CompletionSource.SetResult(result);
+                            receiveToken.CompletionSource.SetResult(result);
+
+                            TransmissionArgsPool.Return(args);
+                        }
+                        else if (expectedBytes > args.BytesTransferred && args.BytesTransferred > 0)
+                        {
+                            // receive the remaining parts of the buffer
+
+                            int receivedBytes = args.BytesTransferred;
+
+                            args.SetBuffer(receivedBytes, expectedBytes - receivedBytes);
+
+                            Connection.ReceiveAsync(args);
+                        }
+                        else
+                        {
+                            // no bytes were received, remote socket is dead
+
+                            receiveToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+
+                            TransmissionArgsPool.Return(args);
+                        }
+
+                        break;
+
+                    case SocketError.OperationAborted:
+                        TransmissionArgsPool.Return(args);
+
+                        break;
+
+                    default:
+                        receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
                         TransmissionArgsPool.Return(args);
-                    }
-                    else if (expectedBytes > args.BytesTransferred && args.BytesTransferred > 0)
-                    {
-                        // receive the remaining parts of the buffer
 
-                        int receivedBytes = args.BytesTransferred;
-
-                        args.SetBuffer(receivedBytes, expectedBytes - receivedBytes);
-
-                        Connection.ReceiveAsync(args);
-                    }
-                    else
-                    {
-                        // no bytes were received, remote socket is dead
-
-                        receiveToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
-
-                        TransmissionArgsPool.Return(args);
-                    }
-
-                    break;
-
-                case SocketError.OperationAborted:
-                    Debug.WriteLine("CompleteReceive experienced SocketError.OperationAborted!");
-
-                    receiveToken.CompletionSource.SetResult(TransmissionResult.Timeout);
-
-                    TransmissionArgsPool.Return(args);
-
-                    break;
-
-                default:
-                    receiveToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                    TransmissionArgsPool.Return(args);
-
-                    break;
+                        break;
+                }
             }
         }
 
@@ -173,58 +170,57 @@ namespace NetSharp.Sockets.Stream
         {
             AsyncTransmissionToken sendToken = (AsyncTransmissionToken)args.UserToken;
 
-            switch (args.SocketError)
+            if (!sendToken.CancellationToken.IsCancellationRequested)
             {
-                case SocketError.Success:
-                    Memory<byte> transmissionBuffer = args.MemoryBuffer;
-                    int remainingBytes = transmissionBuffer.Length;
+                switch (args.SocketError)
+                {
+                    case SocketError.Success:
+                        Memory<byte> transmissionBuffer = args.MemoryBuffer;
+                        int remainingBytes = transmissionBuffer.Length;
 
-                    if (args.BytesTransferred == remainingBytes)
-                    {
-                        // buffer was fully sent
+                        if (args.BytesTransferred == remainingBytes)
+                        {
+                            // buffer was fully sent
 
-                        TransmissionResult result = new TransmissionResult(in args);
+                            TransmissionResult result = new TransmissionResult(in args);
 
-                        sendToken.CompletionSource.SetResult(result);
+                            sendToken.CompletionSource.SetResult(result);
+
+                            TransmissionArgsPool.Return(args);
+                        }
+                        else if (remainingBytes > args.BytesTransferred && args.BytesTransferred > 0)
+                        {
+                            // send the remaining parts of the buffer
+
+                            int sentBytes = args.BytesTransferred;
+
+                            args.SetBuffer(sentBytes, remainingBytes - sentBytes);
+
+                            Connection.SendAsync(args);
+                        }
+                        else
+                        {
+                            // no bytes were sent, remote socket is dead
+
+                            sendToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+
+                            TransmissionArgsPool.Return(args);
+                        }
+
+                        break;
+
+                    case SocketError.OperationAborted:
+                        TransmissionArgsPool.Return(args);
+
+                        break;
+
+                    default:
+                        sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
                         TransmissionArgsPool.Return(args);
-                    }
-                    else if (remainingBytes > args.BytesTransferred && args.BytesTransferred > 0)
-                    {
-                        // send the remaining parts of the buffer
 
-                        int sentBytes = args.BytesTransferred;
-
-                        args.SetBuffer(sentBytes, remainingBytes - sentBytes);
-
-                        Connection.SendAsync(args);
-                    }
-                    else
-                    {
-                        // no bytes were sent, remote socket is dead
-
-                        sendToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
-
-                        TransmissionArgsPool.Return(args);
-                    }
-
-                    break;
-
-                case SocketError.OperationAborted:
-                    Debug.WriteLine("CompleteSend experienced SocketError.OperationAborted!");
-
-                    sendToken.CompletionSource.SetResult(TransmissionResult.Timeout);
-
-                    TransmissionArgsPool.Return(args);
-
-                    break;
-
-                default:
-                    sendToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
-
-                    TransmissionArgsPool.Return(args);
-
-                    break;
+                        break;
+                }
             }
         }
 
@@ -299,12 +295,23 @@ namespace NetSharp.Sockets.Stream
             SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
 
             args.DisconnectReuseSocket = allowSocketReuse;
-            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncOperationToken(in tcs, CancellationToken.None);
 
-            //TODO implement cancellation for client socket disconnectAsync
-            //cancellationToken.Register();
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
 
-            if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
+            if (Connection.DisconnectAsync(args))
+                return new ValueTask(
+                    tcs.Task.ContinueWith((task, state) =>
+                    {
+                        ((CancellationTokenRegistration)state).Dispose();
+
+                        return task.Result;
+                    }, cancellationRegistration, CancellationToken.None)
+                );
+
+            cancellationRegistration.Dispose();
 
             TransmissionArgsPool.Return(args);
 
@@ -324,8 +331,7 @@ namespace NetSharp.Sockets.Stream
             return new TransmissionResult(in buffer, in receivedBytes, Connection.RemoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> ReceiveAsync(Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None,
-            CancellationToken cancellationToken = default)
+        public ValueTask<TransmissionResult> ReceiveAsync(Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -334,12 +340,23 @@ namespace NetSharp.Sockets.Stream
             args.SetBuffer(receiveBuffer);
 
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncTransmissionToken(in tcs, in args, CancellationToken.None);
 
-            // TODO implement cancellation for client socket receiveAsync
-            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
 
-            if (Connection.ReceiveAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.ReceiveAsync(args))
+                return new ValueTask<TransmissionResult>(
+                    tcs.Task.ContinueWith((task, state) =>
+                    {
+                        ((CancellationTokenRegistration)state).Dispose();
+
+                        return task.Result;
+                    }, cancellationRegistration, CancellationToken.None)
+                );
+
+            cancellationRegistration.Dispose();
 
             TransmissionResult result = new TransmissionResult(in args);
 
@@ -361,8 +378,7 @@ namespace NetSharp.Sockets.Stream
             return new TransmissionResult(in buffer, in sentBytes, Connection.RemoteEndPoint);
         }
 
-        public ValueTask<TransmissionResult> SendAsync(Memory<byte> sendBuffer, SocketFlags flags = SocketFlags.None,
-            CancellationToken cancellationToken = default)
+        public ValueTask<TransmissionResult> SendAsync(Memory<byte> sendBuffer, SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
@@ -371,12 +387,23 @@ namespace NetSharp.Sockets.Stream
             args.SetBuffer(sendBuffer);
 
             args.SocketFlags = flags;
-            args.UserToken = new AsyncTransmissionToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncTransmissionToken(in tcs, in args, CancellationToken.None);
 
-            // TODO implement cancellation for client socket sendAsync
-            cancellationToken.Register(CancelAsyncTransmissionCallback, new object());
+            // TODO find out why the fricc we leak memory
+            CancellationTokenRegistration cancellationRegistration =
+                cancellationToken.Register(CancelAsyncTransmissionCallback, args.UserToken);
 
-            if (Connection.SendAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
+            if (Connection.SendToAsync(args))
+                return new ValueTask<TransmissionResult>(
+                    tcs.Task.ContinueWith((task, state) =>
+                    {
+                        ((CancellationTokenRegistration)state).Dispose();
+
+                        return task.Result;
+                    }, cancellationRegistration, CancellationToken.None)
+                );
+
+            cancellationRegistration.Dispose();
 
             TransmissionResult result = new TransmissionResult(in args);
 
