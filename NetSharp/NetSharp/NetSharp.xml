@@ -259,7 +259,7 @@
             <summary>
             Abstract base class for clients.
             </summary>
-            TODO implement cancellation of ReceiveAsync and ReceiveFromAsync methods.
+            TODO implement proper memory leak-free cancellation of network IO operations
         </member>
         <member name="M:NetSharp.Sockets.SocketClient.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
             <summary>

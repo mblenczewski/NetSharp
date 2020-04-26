@@ -48,7 +48,18 @@ namespace NetSharp.Sockets
             DestroyTransmissionArgs(args);
         }
 
-        protected void CancelAsyncTransmissionCallback(object state)
+        protected void CancelAsyncReceiveCallback(object state)
+        {
+            SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
+
+            AsyncReceiveToken token = (AsyncReceiveToken)args.UserToken;
+
+            token.CompletionSource.SetResult(TransmissionResult.Timeout);
+
+            DestroyTransmissionArgs(args);
+        }
+
+        protected void CancelAsyncSendCallback(object state)
         {
             SocketAsyncEventArgs args = (SocketAsyncEventArgs)state;
 
