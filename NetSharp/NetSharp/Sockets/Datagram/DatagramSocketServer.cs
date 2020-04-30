@@ -50,7 +50,7 @@ namespace NetSharp.Sockets.Datagram
 
     //TODO address the need to handle series of network packets, not just single packets
     //TODO document class
-    public sealed class DatagramSocketServer : SocketServer
+    public sealed class DatagramSocketServer : RawSocketServer
     {
         private static readonly EndPoint AnyRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
@@ -65,11 +65,17 @@ namespace NetSharp.Sockets.Datagram
         /// Additional options to configure the server.
         /// </param>
         /// <inheritdoc />
-        public DatagramSocketServer(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in SocketServerPacketHandler packetHandler, in DatagramSocketServerOptions? serverOptions = null)
-            : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType, in packetHandler,
-            NetworkPacket.TotalSize, serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs)
+        public DatagramSocketServer(ref Socket rawConnection, in RawRequestPacketHandler packetHandler, in DatagramSocketServerOptions? serverOptions = null)
+            : base(ref rawConnection, 
+                NetworkPacket.TotalSize,
+                serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs,
+                packetHandler)
         {
+            if (rawConnection.SocketType != SocketType.Dgram)
+            {
+                throw new ArgumentException($"Only {SocketType.Dgram} is supported!", nameof(rawConnection));
+            }
+
             this.serverOptions = serverOptions ?? DatagramSocketServerOptions.Defaults;
         }
 
@@ -84,30 +90,35 @@ namespace NetSharp.Sockets.Datagram
 
             if (receiveArgs.SocketError == SocketError.Success)
             {
-                NetworkPacket.Deserialise(receiveArgs.MemoryBuffer, out NetworkPacket request);
+                byte[] responseBuffer = BufferPool.Rent(MaxBufferSize);
 
-                NetworkPacket response = PacketHandler(in request, receiveArgs.RemoteEndPoint);
+                bool responseExists = PacketHandler(receiveArgs.RemoteEndPoint, receiveToken.RentedBuffer, responseBuffer);
+                BufferPool.Return(receiveToken.RentedBuffer, true);
 
-                if (!response.Equals(NetworkPacket.NullPacket))
+                //NetworkPacket.Deserialise(receiveArgs.MemoryBuffer, out NetworkPacket request);
+                //NetworkPacket response = PacketHandler(in request, receiveArgs.RemoteEndPoint);
+
+                if (responseExists)
                 {
-                    byte[] sendBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
-                    Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
+                    //byte[] sendBuffer = BufferPool.Rent(NetworkPacket.TotalSize);
+                    //Memory<byte> sendBufferMemory = new Memory<byte>(sendBuffer);
+                    //NetworkPacket.Serialise(response, sendBufferMemory);
 
-                    NetworkPacket.Serialise(response, sendBufferMemory);
-
-                    receiveArgs.SetBuffer(sendBufferMemory);
-                    receiveArgs.UserToken = new SocketOperationToken(in sendBuffer);
+                    receiveArgs.SetBuffer(responseBuffer);
+                    receiveArgs.UserToken = new SocketOperationToken(ref responseBuffer);
 
                     SendTo(receiveArgs);
                 }
-
-                BufferPool.Return(receiveToken.RentedBuffer, true);
+                else
+                {
+                    BufferPool.Return(responseBuffer, true);
+                }
             }
             else
             {
                 BufferPool.Return(receiveToken.RentedBuffer, true);
 
-                TransmissionArgsPool.Return(receiveArgs);
+                ArgsPool.Return(receiveArgs);
             }
         }
 
@@ -117,14 +128,14 @@ namespace NetSharp.Sockets.Datagram
 
             BufferPool.Return(sendToken.RentedBuffer, true);
 
-            TransmissionArgsPool.Return(sendArgs);
+            ArgsPool.Return(sendArgs);
         }
 
         private void ReceiveFrom(SocketAsyncEventArgs receiveArgs)
         {
             if (serverShutdownToken.IsCancellationRequested)
             {
-                TransmissionArgsPool.Return(receiveArgs);
+                ArgsPool.Return(receiveArgs);
 
                 return;
             }
@@ -133,13 +144,13 @@ namespace NetSharp.Sockets.Datagram
             Memory<byte> receiveBufferMemory = new Memory<byte>(receiveBuffer);
 
             receiveArgs.SetBuffer(receiveBufferMemory);
-            receiveArgs.UserToken = new SocketOperationToken(in receiveBuffer);
+            receiveArgs.UserToken = new SocketOperationToken(ref receiveBuffer);
 
             bool operationPending = Connection.ReceiveFromAsync(receiveArgs);
 
             if (operationPending) return;
 
-            SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+            SocketAsyncEventArgs newReceiveArgs = ArgsPool.Rent();
             newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
 
             ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
@@ -155,7 +166,7 @@ namespace NetSharp.Sockets.Datagram
 
                 BufferPool.Return(sendToken.RentedBuffer, true);
 
-                TransmissionArgsPool.Return(sendArgs);
+                ArgsPool.Return(sendArgs);
 
                 return;
             }
@@ -198,7 +209,7 @@ namespace NetSharp.Sockets.Datagram
             switch (args.LastOperation)
             {
                 case SocketAsyncOperation.ReceiveFrom:
-                    SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+                    SocketAsyncEventArgs newReceiveArgs = ArgsPool.Rent();
                     newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
 
                     ReceiveFrom(newReceiveArgs); // start a new receive from operation immediately, to not drop any packets
@@ -218,7 +229,7 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
+        protected override void ResetTransmissionArgs(ref SocketAsyncEventArgs args)
         {
         }
 
@@ -229,7 +240,7 @@ namespace NetSharp.Sockets.Datagram
 
             for (int i = 0; i < serverOptions.ConcurrentReceiveFromCalls; i++)
             {
-                SocketAsyncEventArgs newReceiveArgs = TransmissionArgsPool.Rent();
+                SocketAsyncEventArgs newReceiveArgs = ArgsPool.Rent();
                 newReceiveArgs.RemoteEndPoint = AnyRemoteEndPoint;
 
                 ReceiveFrom(newReceiveArgs);
@@ -244,7 +255,7 @@ namespace NetSharp.Sockets.Datagram
         {
             public readonly byte[] RentedBuffer;
 
-            public SocketOperationToken(in byte[] rentedBuffer)
+            public SocketOperationToken(ref byte[] rentedBuffer)
             {
                 RentedBuffer = rentedBuffer;
             }

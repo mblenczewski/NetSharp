@@ -16,7 +16,6 @@ namespace NetSharpExamples
             new UdpSocketClientSyncBenchmark(),
             new UdpSocketClientAsyncBenchmark(),
             new UdpSocketClientExample(),
-            new UdpSocketClientCancellationExample(), // TODO make functional
 
             // TCP socket server and client examples
             new TcpSocketServerBenchmark(),
@@ -24,6 +23,9 @@ namespace NetSharpExamples
             new TcpSocketClientSyncBenchmark(),
             new TcpSocketClientAsyncBenchmark(),
             new TcpSocketClientExample(),
+
+            // Restructured UDP server and client benchmarks
+            new DatagramNetworkReaderBenchmark(),
         };
 
         private static async Task Main()

@@ -5,24 +5,24 @@ namespace NetSharpExamples
 {
     public class BenchmarkHelper
     {
-        private readonly Stopwatch bandwidthStopwatch = new Stopwatch();
-        private readonly Stopwatch rttStopwatch = new Stopwatch();
+        private readonly Stopwatch stopwatch = new Stopwatch();
+        private long lastTicksSnapshot = 0, lastMsSnapshot = 0;
         private long minRttMs = int.MaxValue, maxRttMs = int.MinValue;
         private long minRttTicks = int.MaxValue, maxRttTicks = int.MinValue;
 
         public long RttMs
         {
-            get { return rttStopwatch.ElapsedMilliseconds; }
+            get { return stopwatch.ElapsedMilliseconds; }
         }
 
         public long RttTicks
         {
-            get { return rttStopwatch.ElapsedTicks; }
+            get { return stopwatch.ElapsedTicks; }
         }
 
         public double CalcBandwidth(long sentPacketCount, long packetSize)
         {
-            long millis = bandwidthStopwatch.ElapsedMilliseconds;
+            long millis = stopwatch.ElapsedMilliseconds;
             double megabytes = sentPacketCount * packetSize / 1_000_000.0;
             double bandwidth = megabytes / (millis / 1000.0);
 
@@ -31,7 +31,7 @@ namespace NetSharpExamples
 
         public void PrintBandwidthStats(int clientId, long sentPacketCount, long packetSize)
         {
-            long millis = bandwidthStopwatch.ElapsedMilliseconds;
+            long millis = stopwatch.ElapsedMilliseconds;
             double megabytes = sentPacketCount * packetSize / 1_000_000.0;
             double bandwidth = megabytes / (millis / 1000.0);
 
@@ -51,53 +51,46 @@ namespace NetSharpExamples
             }
         }
 
-        public void ResetBandwidthStopwatch()
+        public void ResetStopwatch()
         {
-            bandwidthStopwatch.Reset();
+            lastTicksSnapshot = 0;
+            lastMsSnapshot = 0;
+
+            stopwatch.Reset();
         }
 
-        public void ResetRttStopwatch()
+        public void SnapshotRttStats()
         {
-            rttStopwatch.Reset();
-        }
+            long elapsedTicksSnapshot = stopwatch.ElapsedTicks, elapsedMsSnapshot = stopwatch.ElapsedMilliseconds;
 
-        public void StartBandwidthStopwatch()
-        {
-            bandwidthStopwatch.Start();
-        }
-
-        public void StartRttStopwatch()
-        {
-            rttStopwatch.Start();
-        }
-
-        public void StopBandwidthStopwatch()
-        {
-            bandwidthStopwatch.Stop();
-        }
-
-        public void StopRttStopwatch()
-        {
-            rttStopwatch.Stop();
-        }
-
-        public void UpdateRttStats(int clientId)
-        {
-            minRttTicks = rttStopwatch.ElapsedTicks < minRttTicks
-                ? rttStopwatch.ElapsedTicks
+            minRttTicks = elapsedTicksSnapshot - lastTicksSnapshot < minRttTicks
+                ? elapsedTicksSnapshot - lastTicksSnapshot
                 : minRttTicks;
 
-            minRttMs = rttStopwatch.ElapsedMilliseconds < minRttMs
-                ? rttStopwatch.ElapsedMilliseconds
+            minRttMs = elapsedMsSnapshot - lastMsSnapshot < minRttMs
+                ? elapsedMsSnapshot - lastMsSnapshot
                 : minRttMs;
 
-            maxRttTicks = rttStopwatch.ElapsedTicks > maxRttTicks
-                ? rttStopwatch.ElapsedTicks
+            maxRttTicks = elapsedTicksSnapshot - lastTicksSnapshot > maxRttTicks
+                ? elapsedTicksSnapshot - lastTicksSnapshot
                 : maxRttTicks;
 
-            maxRttMs = rttStopwatch.ElapsedMilliseconds > maxRttMs
-                ? rttStopwatch.ElapsedMilliseconds
+            maxRttMs = elapsedMsSnapshot - lastMsSnapshot > maxRttMs
+                ? elapsedMsSnapshot - lastMsSnapshot
                 : maxRttMs;
+
+            lastTicksSnapshot = elapsedTicksSnapshot;
+            lastMsSnapshot = elapsedMsSnapshot;
+        }
+
+        public void StartStopwatch()
+        {
+            stopwatch.Start();
+        }
+
+        public void StopStopwatch()
+        {
+            stopwatch.Stop();
         }
     }
 }

@@ -61,7 +61,8 @@ namespace NetSharpExamples.Benchmarks
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
             DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions((ushort)2);
-            using DatagramSocketClient client = new DatagramSocketClient(AddressFamily.InterNetwork, ProtocolType.Udp, clientOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            using DatagramSocketClient client = new DatagramSocketClient(ref rawSocket, clientOptions);
 
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
             byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
@@ -71,16 +72,13 @@ namespace NetSharpExamples.Benchmarks
                 byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
-                benchmarkHelper.StartBandwidthStopwatch();
-                benchmarkHelper.StartRttStopwatch();
+                benchmarkHelper.StartStopwatch();
                 TransmissionResult sendResult = await client.SendAsync(in ServerEndPoint, sendBuffer);
 
                 TransmissionResult receiveResult = await client.ReceiveAsync(in ServerEndPoint, receiveBuffer);
-                benchmarkHelper.StopRttStopwatch();
-                benchmarkHelper.StopBandwidthStopwatch();
+                benchmarkHelper.StopStopwatch();
 
-                benchmarkHelper.UpdateRttStats(0);
-                benchmarkHelper.ResetRttStopwatch();
+                benchmarkHelper.SnapshotRttStats();
             }
 
             benchmarkHelper.PrintBandwidthStats(0, PacketCount, NetworkPacket.TotalSize);

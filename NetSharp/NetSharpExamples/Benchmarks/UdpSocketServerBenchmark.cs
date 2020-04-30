@@ -51,16 +51,13 @@ namespace NetSharpExamples.Benchmarks
                 byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client {id}] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
-                benchmarkHelper.StartBandwidthStopwatch();
-                benchmarkHelper.StartRttStopwatch();
+                benchmarkHelper.StartStopwatch();
                 int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
 
                 int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
-                benchmarkHelper.StopRttStopwatch();
-                benchmarkHelper.StopBandwidthStopwatch();
+                benchmarkHelper.StopStopwatch();
 
-                benchmarkHelper.UpdateRttStats(id);
-                benchmarkHelper.ResetRttStopwatch();
+                benchmarkHelper.SnapshotRttStats();
             }
 
             benchmarkHelper.PrintBandwidthStats(id, PacketCount, NetworkPacket.TotalSize);
@@ -87,8 +84,8 @@ namespace NetSharpExamples.Benchmarks
 
             DatagramSocketServerOptions serverOptions = new DatagramSocketServerOptions(clientCount, (ushort)clientCount);
 
-            DatagramSocketServer server = new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp,
-                SocketServer.DefaultPacketHandler, serverOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            DatagramSocketServer server = new DatagramSocketServer(ref rawSocket, RawSocketServer.DefaultRawPacketHandler, serverOptions);
 
             server.Bind(ServerEndPoint);
 
@@ -111,6 +108,9 @@ namespace NetSharpExamples.Benchmarks
             serverCts.Cancel();
 
             await serverTask;
+
+            rawSocket.Close();
+            rawSocket.Dispose();
 
             Console.WriteLine($"UDP Server Benchmark finished!");
         }

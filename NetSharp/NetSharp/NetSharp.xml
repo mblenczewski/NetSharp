@@ -4,6 +4,62 @@
         <name>NetSharp</name>
     </assembly>
     <members>
+        <member name="M:NetSharp.DatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkReader.CreateStateObject">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkReader.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.CreateStateObject">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.NetworkConnectionBase`1.Dispose(System.Boolean)">
+            <summary>
+            Allows for inheritors to dispose of their own resources.
+            </summary>
+        </member>
+        <member name="M:NetSharp.NetworkConnectionBase`1.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.NetworkReaderBase`1.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.NetworkReaderBase`1.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.NetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
         <member name="T:NetSharp.Packets.NetworkPacket">
             <summary>
             Represents a raw packet sent across the network.
@@ -192,19 +248,19 @@
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Sockets.Datagram.DatagramSocketServerOptions">
@@ -240,7 +296,7 @@
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Datagram.DatagramSocketServerOptions}@)">
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.#ctor(System.Net.Sockets.Socket@,NetSharp.Sockets.RawRequestPacketHandler@,System.Nullable{NetSharp.Sockets.Datagram.DatagramSocketServerOptions}@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.Datagram.DatagramSocketServer" /> class.
             </summary>
@@ -261,30 +317,24 @@
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Datagram.DatagramSocketServer.RunAsync(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
-        <member name="T:NetSharp.Sockets.SocketClient">
+        <member name="T:NetSharp.Sockets.RawSocketClient">
             <summary>
             Abstract base class for clients.
             </summary>
             TODO implement proper memory leak-free cancellation of network IO operations
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.#ctor(System.Net.Sockets.Socket@,System.Int32,System.UInt16)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient" /> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketClient" /> class.
             </summary>
-            <param name="connectionAddressFamily">
-            The address family that the underlying connection should use.
-            </param>
-            <param name="connectionSocketType">
-            The socket type that the underlying connection should use.
-            </param>
-            <param name="connectionProtocolType">
-            The protocol type that the underlying connection should use.
+            <param name="rawConnection">
+            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
             </param>
             <param name="pooledBufferMaxSize">
             The maximum size in bytes of buffers held in the buffer pool.
@@ -293,7 +343,7 @@
             The number of transmission args to preallocate.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncOperationCallback(System.Object)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.CancelAsyncOperationCallback(System.Object)">
             <summary>
             Callback for the cancellation of an asynchronous network operation.
             </summary>
@@ -301,7 +351,7 @@
             The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncReceiveCallback(System.Object)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.CancelAsyncReceiveCallback(System.Object)">
             <summary>
             Callback for the cancellation of an asynchronous network receive operation.
             </summary>
@@ -309,7 +359,7 @@
             The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.CancelAsyncSendCallback(System.Object)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.CancelAsyncSendCallback(System.Object)">
             <summary>
             Callback for the cancellation of an asynchronous network send operation.
             </summary>
@@ -317,7 +367,7 @@
             The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> state object for the operation.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.Connect(System.Net.EndPoint@)">
             <summary>
             Connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method configures the
             default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
@@ -326,7 +376,7 @@
             The remote end point which to which to connect the client.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.ConnectAsync(System.Net.EndPoint@)">
             <summary>
             Asynchronously connects the client to the specified end point. If called on a <see cref="F:System.Net.Sockets.SocketType.Dgram" />-based client, this method
             configures the default remote host, and the client will ignore any packets not coming from this default host (i.e the given <paramref name="remoteEndPoint" />).
@@ -334,17 +384,14 @@
             <param name="remoteEndPoint">
             The remote end point which to which to connect the client.
             </param>
-            <param name="cancellationToken">
-            The cancellation token to observe during the asynchronous operation.
-            </param>
             <returns>
             A <see cref="T:System.Threading.Tasks.ValueTask" /> representing the connection attempt.
             </returns>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <summary>
             Listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the given endpoint
-            is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.RawSocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.RawSocketClient.ConnectAsync(System.Net.EndPoint@)" />.
             </summary>
             <param name="remoteEndPoint">
             The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
@@ -359,10 +406,10 @@
             The result of the receive operation.
             </returns>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <summary>
             Asynchronously listens for data from the specified endpoint, placing the data in the given buffer. On connection-oriented protocols, the
-            given endpoint is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            given endpoint is ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.RawSocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.RawSocketClient.ConnectAsync(System.Net.EndPoint@)" />.
             </summary>
             <param name="remoteEndPoint">
             The remote endpoint from which data should be received. Ignored on connection-oriented protocols.
@@ -373,17 +420,14 @@
             <param name="flags">
             The socket flags associated with the send operation.
             </param>
-            <param name="cancellationToken">
-            The cancellation token to observe during the asynchronous operation.
-            </param>
             <returns>
             The result of the asynchronous receive operation.
             </returns>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <summary>
             Sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is ignored in favour of
-            the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            the default remote host set up by a call to <see cref="M:NetSharp.Sockets.RawSocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.RawSocketClient.ConnectAsync(System.Net.EndPoint@)" />.
             </summary>
             <param name="remoteEndPoint">
             The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
@@ -398,10 +442,10 @@
             The result of the send operation.
             </returns>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <summary>
             Asynchronously sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is
-            ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.SocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.SocketClient.ConnectAsync(System.Net.EndPoint@,System.Threading.CancellationToken)" />.
+            ignored in favour of the default remote host set up by a call to <see cref="M:NetSharp.Sockets.RawSocketClient.Connect(System.Net.EndPoint@)" /> or <see cref="M:NetSharp.Sockets.RawSocketClient.ConnectAsync(System.Net.EndPoint@)" />.
             </summary>
             <param name="remoteEndPoint">
             The remote endpoint to which data should be sent. Ignored on connection-oriented protocols.
@@ -413,31 +457,28 @@
             <param name="flags">
             The socket flags associated with the send operation.
             </param>
-            <param name="cancellationToken">
-            The cancellation token to observe during the asynchronous operation.
-            </param>
             <returns>
             The result of the asynchronous send operation.
             </returns>
         </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncOperationToken">
+        <member name="T:NetSharp.Sockets.RawSocketClient.AsyncOperationToken">
             <summary>
             A state token for asynchronous socket operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationToken.CancellationToken">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncOperationToken.CancellationToken">
             <summary>
             The <see cref="T:System.Threading.CancellationToken" /> associated with the socket operation.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncOperationToken.CompletionSource">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncOperationToken.CompletionSource">
             <summary>
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncOperationToken.#ctor(System.Threading.Tasks.TaskCompletionSource{System.Boolean}@,System.Threading.CancellationToken@)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.AsyncOperationToken.#ctor(System.Threading.Tasks.TaskCompletionSource{System.Boolean}@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncOperationToken" /> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketClient.AsyncOperationToken" /> struct.
             </summary>
             <param name="completionSource">
             The completion source to trigger when the socket operation completes.
@@ -446,24 +487,24 @@
             The cancellation token to observe during the operation.
             </param>
         </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncReceiveToken">
+        <member name="T:NetSharp.Sockets.RawSocketClient.AsyncReceiveToken">
             <summary>
             A state token for asynchronous incoming network IO operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncReceiveToken.CancellationToken">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncReceiveToken.CancellationToken">
             <summary>
             The <see cref="T:System.Threading.CancellationToken" /> associated with the network IO operation.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncReceiveToken.CompletionSource">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncReceiveToken.CompletionSource">
             <summary>
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncReceiveToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Threading.CancellationToken@)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.AsyncReceiveToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncReceiveToken" /> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketClient.AsyncReceiveToken" /> struct.
             </summary>
             <param name="completionSource">
             The completion source to trigger when the IO operation completes.
@@ -472,201 +513,73 @@
             The cancellation token to observe during the operation.
             </param>
         </member>
-        <member name="T:NetSharp.Sockets.SocketClient.AsyncSendToken">
+        <member name="T:NetSharp.Sockets.RawSocketClient.AsyncSendToken">
             <summary>
             A state token for asynchronous outgoing network IO operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.CancellationToken">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncSendToken.CancellationToken">
             <summary>
             The <see cref="T:System.Threading.CancellationToken" /> associated with the network IO operation.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.CompletionSource">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncSendToken.CompletionSource">
             <summary>
             The completion source which wraps the event-based APM, and provides an awaitable <see cref="T:System.Threading.Tasks.Task" />.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketClient.AsyncSendToken.RentedBuffer">
+        <member name="F:NetSharp.Sockets.RawSocketClient.AsyncSendToken.RentedBuffer">
             <summary>
             The rented buffer which holds the user's data.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketClient.AsyncSendToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Byte[]@,System.Threading.CancellationToken@)">
+        <member name="M:NetSharp.Sockets.RawSocketClient.AsyncSendToken.#ctor(System.Threading.Tasks.TaskCompletionSource{NetSharp.Utils.TransmissionResult}@,System.Byte[]@,System.Threading.CancellationToken@)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketClient.AsyncSendToken" /> struct.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketClient.AsyncSendToken" /> struct.
             </summary>
             <param name="completionSource">
             The completion source to trigger when the IO operation completes.
             </param>
-            <param name="rentedBuffer">
+            <param name="bufferHandle">
             The buffer holding the user's data.
             </param>
             <param name="cancellationToken">
             The cancellation token to observe during the operation.
             </param>
         </member>
-        <member name="T:NetSharp.Sockets.SocketConnection">
-            <summary>
-            Abstract base class for clients and servers.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketConnection.BufferPool">
-            <summary>
-            Pools arrays to function as temporary buffers during network read/write operations.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool">
-            <summary>
-            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
-            <see cref="T:System.Net.Sockets.Socket" />.XXXAsync( <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" />) methods.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Sockets.SocketConnection.Connection">
-            <summary>
-            The underlying <see cref="T:System.Net.Sockets.Socket" /> which provides access to network operations.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,System.Int32@,System.UInt16@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketConnection" /> class.
-            </summary>
-            <param name="connectionAddressFamily">
-            The address family for the underlying socket.
-            </param>
-            <param name="connectionSocketType">
-            The socket type for the underlying socket.
-            </param>
-            <param name="connectionProtocolType">
-            The protocol type for the underlying socket.
-            </param>
-            <param name="pooledBufferMaxSize">
-            The maximum size in bytes of buffers held in the buffer pool.
-            </param>
-            <param name="preallocatedTransmissionArgs">
-            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects to initially preallocate.
-            </param>
-        </member>
-        <member name="P:NetSharp.Sockets.SocketConnection.LocalEndPoint">
-            <summary>
-            The local endpoint to which the underlying <see cref="T:System.Net.Sockets.Socket" /> is bound.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.CanTransmissionArgsBeReused(System.Net.Sockets.SocketAsyncEventArgs@)">
-            <summary>
-            Delegate method used to check whether the given used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance can be reused by the
-            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />. If this method returns <c>true</c>, <see cref="M:NetSharp.Sockets.SocketConnection.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)" /> is called on the given
-            <paramref name="args" />. Otherwise, <see cref="M:NetSharp.Sockets.SocketConnection.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)" /> is called.
-            </summary>
-            <param name="args">
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance to check.
-            </param>
-            <returns>
-            Whether the given <paramref name="args" /> should be reset and reused, or should be destroyed.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.CreateTransmissionArgs">
-            <summary>
-            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for use in the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />.
-            The resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
-            <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
-            </summary>
-            <returns>
-            The configured <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that cannot be reused by the
-            <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />. This method should deregister <see cref="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
-            <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
-            </summary>
-            <param name="remoteConnectionArgs">
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> which should be destroyed.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.Dispose(System.Boolean)">
-            <summary>
-            Disposes of managed and unmanaged resources used by the <see cref="T:NetSharp.Sockets.SocketConnection" /> class.
-            </summary>
-            <param name="disposing">
-            Whether this call was made by a call to <see cref="M:NetSharp.Sockets.SocketConnection.Dispose" />.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Delegate method to handle asynchronous network IO completion via the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
-            </summary>
-            <param name="sender">
-            The object which raised the event.
-            </param>
-            <param name="args">
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the asynchronous network IO.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Delegate method used to reset used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for later reuse by the <see cref="F:NetSharp.Sockets.SocketConnection.TransmissionArgsPool" />.
-            </summary>
-            <param name="args">
-            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance that should be reset.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.Bind(System.Net.EndPoint@)">
-            <summary>
-            Binds the underlying socket.
-            </summary>
-            <param name="localEndPoint">
-            The end point to which the socket should be bound.
-            </param>
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.Dispose">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Sockets.SocketConnection.Shutdown(System.Net.Sockets.SocketShutdown)">
-            <summary>
-            Shuts down the underlying socket.
-            </summary>
-            <param name="how">
-            Which socket transmission functions should be shut down on the socket.
-            </param>
-        </member>
-        <member name="T:NetSharp.Sockets.SocketServerPacketHandler">
+        <member name="T:NetSharp.Sockets.RawRequestPacketHandler">
             <summary>
             Represents a method for serving request packets. This method should not throw any errors.
             </summary>
-            <param name="requestPacket">
-            The request packet received by the server.
-            </param>
             <param name="clientEndPoint">
             The client from which the packet was received.
             </param>
+            <param name="requestBuffer">
+            The buffer holding the data received from the client.
+            </param>
+            <param name="responseBuffer">
+            The buffer into which the optional response should be written.
+            </param>
             <returns>
-            The response packet which should be sent out to the client. If no packet should be sent out, this method must return <see cref="F:NetSharp.Packets.NetworkPacket.NullPacket" />.
+            Whether a response was generated which should be sent back to the client.
             </returns>
         </member>
-        <member name="T:NetSharp.Sockets.SocketServer">
+        <member name="T:NetSharp.Sockets.RawSocketServer">
             <summary>
             Abstract base class for servers.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketServer.PacketHandler">
+        <member name="F:NetSharp.Sockets.RawSocketServer.PacketHandler">
             <summary>
             The packet handler delegate to use to respond to incoming requests.
             </summary>
         </member>
-        <member name="M:NetSharp.Sockets.SocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.SocketType@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Int32@,System.UInt16@)">
+        <member name="M:NetSharp.Sockets.RawSocketServer.#ctor(System.Net.Sockets.Socket@,System.Int32,System.UInt16,NetSharp.Sockets.RawRequestPacketHandler)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketServer" /> class.
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketServer" /> class.
             </summary>
-            <param name="connectionAddressFamily">
-            The address family that the underlying connection should use.
-            </param>
-            <param name="connectionSocketType">
-            The socket type that the underlying connection should use.
-            </param>
-            <param name="connectionProtocolType">
-            The protocol type that the underlying connection should use.
+            <param name="rawConnection">
+            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
             </param>
             <param name="packetHandler">
             The packet handler delegate to use to respond to incoming requests.
@@ -678,21 +591,20 @@
             The number of transmission args to preallocate.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.SocketServer.DefaultPacketHandler(NetSharp.Packets.NetworkPacket@,System.Net.EndPoint@)">
+        <member name="M:NetSharp.Sockets.RawSocketServer.DefaultRawPacketHandler(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Memory{System.Byte})">
             <summary>
-            The default request packet handler for servers. Simply echoes back any received packets.
+            The default request handler for servers. Simply echoes back any received data.
             </summary>
-            <param name="request">
-            The request packet that was received.
-            </param>
             <param name="remoteEndPoint">
             The client from which the packet was received.
             </param>
+            <param name="requestBuffer">The data that was received.</param>
+            <param name="responseBuffer">The data that should be sent back.</param>
             <returns>
-            The received packet.
+            Whether to send back a response.
             </returns>
         </member>
-        <member name="M:NetSharp.Sockets.SocketServer.RunAsync(System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.RawSocketServer.RunAsync(System.Threading.CancellationToken)">
             <summary>
             Runs the server, handling requests from clients, until the <paramref name="cancellationToken" /> has its cancellation requested.
             </summary>
@@ -702,6 +614,130 @@
             <returns>
             A <see cref="T:System.Threading.Tasks.Task" /> representing the server's execution.
             </returns>
+        </member>
+        <member name="T:NetSharp.Sockets.SocketConnectionBase">
+            <summary>
+            Abstract base class for client and server wrappers around existing <see cref="T:System.Net.Sockets.Socket"/> objects.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.MaxBufferSize">
+            <summary>
+            The maximum size of buffer that can be rented from the pool.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.BufferPool">
+            <summary>
+            Pools arrays to function as temporary buffers during network read/write operations.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool">
+            <summary>
+            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
+            <see cref="T:System.Net.Sockets.Socket" />.XXXAsync( <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" />) methods.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.Connection">
+            <summary>
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> which provides access to network operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Int32,System.UInt16)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketConnectionBase" /> class.
+            </summary>
+            <param name="rawConnection">
+            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
+            </param>
+            <param name="pooledBufferMaxSize">
+            The maximum size in bytes of buffers held in the buffer pool.
+            </param>
+            <param name="preallocatedTransmissionArgs">
+            The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects to initially preallocate.
+            </param>
+        </member>
+        <member name="P:NetSharp.Sockets.SocketConnectionBase.LocalEndPoint">
+            <summary>
+            The local endpoint to which the underlying <see cref="T:System.Net.Sockets.Socket" /> is bound.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.CanTransmissionArgsBeReused(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <summary>
+            Delegate method used to check whether the given used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance can be reused by the
+            <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />. If this method returns <c>true</c>, <see cref="M:NetSharp.Sockets.SocketConnectionBase.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)" /> is called on the given
+            <paramref name="args" />. Otherwise, <see cref="M:NetSharp.Sockets.SocketConnectionBase.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)" /> is called.
+            </summary>
+            <param name="args">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance to check.
+            </param>
+            <returns>
+            Whether the given <paramref name="args" /> should be reset and reused, or should be destroyed.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.CreateTransmissionArgs">
+            <summary>
+            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for use in the <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />.
+            The resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
+            <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
+            </summary>
+            <returns>
+            The configured <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that cannot be reused by the
+            <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />. This method should deregister <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
+            <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
+            </summary>
+            <param name="remoteConnectionArgs">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> which should be destroyed.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.Dispose(System.Boolean)">
+            <summary>
+            Disposes of managed and unmanaged resources used by the <see cref="T:NetSharp.Sockets.SocketConnectionBase" /> class.
+            </summary>
+            <param name="disposing">
+            Whether this call was made by a call to <see cref="M:NetSharp.Sockets.SocketConnectionBase.Dispose" />.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Delegate method to handle asynchronous network IO completion via the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
+            </summary>
+            <param name="sender">
+            The object which raised the event.
+            </param>
+            <param name="args">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance associated with the asynchronous network IO.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <summary>
+            Delegate method used to reset used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for later reuse by the <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />.
+            </summary>
+            <param name="args">
+            The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instance that should be reset.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.Bind(System.Net.EndPoint@)">
+            <summary>
+            Binds the underlying socket.
+            </summary>
+            <param name="localEndPoint">
+            The end point to which the socket should be bound.
+            </param>
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Sockets.SocketConnectionBase.Shutdown(System.Net.Sockets.SocketShutdown)">
+            <summary>
+            Shuts down the underlying socket.
+            </summary>
+            <param name="how">
+            Which socket transmission functions should be shut down on the socket.
+            </param>
         </member>
         <member name="T:NetSharp.Sockets.Stream.StreamSocketClientOptions">
             <summary>
@@ -716,7 +752,7 @@
         <member name="F:NetSharp.Sockets.Stream.StreamSocketClientOptions.PreallocatedTransmissionArgs">
             <summary>
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that should be preallocated for use in the
-            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)" /> methods.
+            <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)" /> and <see cref="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)" /> methods.
             </summary>
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClientOptions.#ctor(System.UInt16)">
@@ -739,19 +775,19 @@
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.Receive(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.ReceiveAsync(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.Send(System.Net.EndPoint@,System.Byte[],System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags,System.Threading.CancellationToken)">
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketClient.SendAsync(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Sockets.Stream.StreamSocketServerOptions">
@@ -787,7 +823,7 @@
             The number of <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances to preallocate.
             </param>
         </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.#ctor(System.Net.Sockets.AddressFamily@,System.Net.Sockets.ProtocolType@,NetSharp.Sockets.SocketServerPacketHandler@,System.Nullable{NetSharp.Sockets.Stream.StreamSocketServerOptions}@)">
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.#ctor(System.Net.Sockets.Socket@,NetSharp.Sockets.RawRequestPacketHandler@,System.Nullable{NetSharp.Sockets.Stream.StreamSocketServerOptions}@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.Stream.StreamSocketServer" /> class.
             </summary>
@@ -808,7 +844,7 @@
         <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.ResetTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.RunAsync(System.Threading.CancellationToken)">

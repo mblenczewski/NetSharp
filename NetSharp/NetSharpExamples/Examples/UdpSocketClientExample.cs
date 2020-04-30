@@ -20,7 +20,8 @@ namespace NetSharpExamples.Examples
         {
             DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions(2);
 
-            using DatagramSocketClient client = new DatagramSocketClient(AddressFamily.InterNetwork, ProtocolType.Udp, clientOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            using DatagramSocketClient client = new DatagramSocketClient(ref rawSocket, clientOptions);
 
             Encoding dataEncoding = UdpSocketServerExample.ServerEncoding;
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
@@ -39,7 +40,7 @@ namespace NetSharpExamples.Examples
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult sendResult =
-                    await client.SendAsync(in remoteEndPoint, sendBuffer, SocketFlags.None, CancellationToken.None);
+                    await client.SendAsync(in remoteEndPoint, sendBuffer, SocketFlags.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved
@@ -53,7 +54,7 @@ namespace NetSharpExamples.Examples
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult receiveResult =
-                    await client.ReceiveAsync(in remoteEndPoint, receiveBuffer, SocketFlags.None, CancellationToken.None);
+                    await client.ReceiveAsync(in remoteEndPoint, receiveBuffer, SocketFlags.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved
@@ -62,6 +63,9 @@ namespace NetSharpExamples.Examples
                     Console.WriteLine($"[Client] Received response with contents \'{dataEncoding.GetString(receiveBuffer).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
                 }
             }
+
+            rawSocket.Close();
+            rawSocket.Dispose();
         }
     }
 }

@@ -20,7 +20,8 @@ namespace NetSharpExamples.Examples
         {
             StreamSocketClientOptions clientOptions = new StreamSocketClientOptions(2);
 
-            using StreamSocketClient client = new StreamSocketClient(AddressFamily.InterNetwork, ProtocolType.Tcp, clientOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using StreamSocketClient client = new StreamSocketClient(ref rawSocket, clientOptions);
 
             Encoding dataEncoding = UdpSocketServerExample.ServerEncoding;
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
@@ -69,6 +70,10 @@ namespace NetSharpExamples.Examples
                     Console.WriteLine($"[Client] Received response with contents \'{dataEncoding.GetString(receiveBuffer).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
                 }
             }
+
+            rawSocket.Shutdown(SocketShutdown.Both);
+            rawSocket.Close();
+            rawSocket.Dispose();
         }
     }
 }

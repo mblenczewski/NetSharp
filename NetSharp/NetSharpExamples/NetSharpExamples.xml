@@ -4,6 +4,12 @@
         <name>NetSharpExamples</name>
     </assembly>
     <members>
+        <member name="P:NetSharpExamples.Benchmarks.DatagramNetworkReaderBenchmark.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Benchmarks.DatagramNetworkReaderBenchmark.RunAsync">
+            <inheritdoc />
+        </member>
         <member name="F:NetSharpExamples.Benchmarks.TcpSocketClientAsyncBenchmark.PacketCount">
             <summary>
             Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
@@ -80,17 +86,6 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharpExamples.Examples.TcpSocketServerExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.UdpSocketClientCancellationExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.UdpSocketClientCancellationExample.ServerTask">
-            <summary>
-            A read only server. Never sends out data!
-            </summary>
-        </member>
-        <member name="M:NetSharpExamples.Examples.UdpSocketClientCancellationExample.RunAsync">
             <inheritdoc />
         </member>
         <member name="P:NetSharpExamples.Examples.UdpSocketClientExample.Name">

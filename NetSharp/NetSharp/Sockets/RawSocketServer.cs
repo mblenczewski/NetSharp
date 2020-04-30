@@ -1,4 +1,5 @@
-﻿using NetSharp.Packets;
+﻿using System;
+using NetSharp.Packets;
 
 using System.Net;
 using System.Net.Sockets;
@@ -10,38 +11,35 @@ namespace NetSharp.Sockets
     /// <summary>
     /// Represents a method for serving request packets. This method should not throw any errors.
     /// </summary>
-    /// <param name="requestPacket">
-    /// The request packet received by the server.
-    /// </param>
     /// <param name="clientEndPoint">
     /// The client from which the packet was received.
     /// </param>
+    /// <param name="requestBuffer">
+    /// The buffer holding the data received from the client.
+    /// </param>
+    /// <param name="responseBuffer">
+    /// The buffer into which the optional response should be written.
+    /// </param>
     /// <returns>
-    /// The response packet which should be sent out to the client. If no packet should be sent out, this method must return <see cref="NetworkPacket.NullPacket" />.
+    /// Whether a response was generated which should be sent back to the client.
     /// </returns>
-    public delegate NetworkPacket SocketServerPacketHandler(in NetworkPacket requestPacket, in EndPoint clientEndPoint);
+    public delegate bool RawRequestPacketHandler(in EndPoint clientEndPoint, ReadOnlyMemory<byte> requestBuffer, Memory<byte> responseBuffer);
 
     /// <summary>
     /// Abstract base class for servers.
     /// </summary>
-    public abstract class SocketServer : SocketConnection
+    public abstract class RawSocketServer : SocketConnectionBase
     {
         /// <summary>
         /// The packet handler delegate to use to respond to incoming requests.
         /// </summary>
-        protected readonly SocketServerPacketHandler PacketHandler;
+        protected readonly RawRequestPacketHandler PacketHandler;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="SocketServer" /> class.
+        /// Constructs a new instance of the <see cref="RawSocketServer" /> class.
         /// </summary>
-        /// <param name="connectionAddressFamily">
-        /// The address family that the underlying connection should use.
-        /// </param>
-        /// <param name="connectionSocketType">
-        /// The socket type that the underlying connection should use.
-        /// </param>
-        /// <param name="connectionProtocolType">
-        /// The protocol type that the underlying connection should use.
+        /// <param name="rawConnection">
+        /// The underlying <see cref="Socket"/> object which should be wrapped by this instance.
         /// </param>
         /// <param name="packetHandler">
         /// The packet handler delegate to use to respond to incoming requests.
@@ -52,29 +50,25 @@ namespace NetSharp.Sockets
         /// <param name="preallocatedTransmissionArgs">
         /// The number of transmission args to preallocate.
         /// </param>
-        protected SocketServer(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType,
-            in SocketServerPacketHandler packetHandler, in int pooledBufferMaxSize, in ushort preallocatedTransmissionArgs)
-            : base(in connectionAddressFamily, in connectionSocketType, in connectionProtocolType, pooledBufferMaxSize, preallocatedTransmissionArgs)
+        protected RawSocketServer(ref Socket rawConnection, int pooledBufferMaxSize, ushort preallocatedTransmissionArgs, RawRequestPacketHandler? packetHandler)
+            : base(ref rawConnection, pooledBufferMaxSize, preallocatedTransmissionArgs)
         {
-            PacketHandler = packetHandler;
+            PacketHandler = packetHandler ?? DefaultRawPacketHandler;
         }
 
         /// <summary>
-        /// The default request packet handler for servers. Simply echoes back any received packets.
+        /// The default request handler for servers. Simply echoes back any received data.
         /// </summary>
-        /// <param name="request">
-        /// The request packet that was received.
-        /// </param>
         /// <param name="remoteEndPoint">
         /// The client from which the packet was received.
         /// </param>
+        /// <param name="requestBuffer">The data that was received.</param>
+        /// <param name="responseBuffer">The data that should be sent back.</param>
         /// <returns>
-        /// The received packet.
+        /// Whether to send back a response.
         /// </returns>
-        public static NetworkPacket DefaultPacketHandler(in NetworkPacket request, in EndPoint remoteEndPoint)
-        {
-            return request;
-        }
+        public static bool DefaultRawPacketHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer,
+            Memory<byte> responseBuffer) => requestBuffer.TryCopyTo(responseBuffer);
 
         /// <summary>
         /// Runs the server, handling requests from clients, until the <paramref name="cancellationToken" /> has its cancellation requested.

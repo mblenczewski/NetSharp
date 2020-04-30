@@ -83,7 +83,8 @@ namespace NetSharpExamples.Benchmarks
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
             StreamSocketClientOptions clientOptions = new StreamSocketClientOptions((ushort)2);
-            using StreamSocketClient client = new StreamSocketClient(AddressFamily.InterNetwork, ProtocolType.Tcp, clientOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using StreamSocketClient client = new StreamSocketClient(ref rawSocket, clientOptions);
 
             client.Connect(in ServerEndPoint);
 
@@ -95,16 +96,13 @@ namespace NetSharpExamples.Benchmarks
                 byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
-                benchmarkHelper.StartBandwidthStopwatch();
-                benchmarkHelper.StartRttStopwatch();
+                benchmarkHelper.StartStopwatch();
                 TransmissionResult sendResult = client.Send(in ServerEndPoint, sendBuffer);
 
                 TransmissionResult receiveResult = client.Receive(in ServerEndPoint, receiveBuffer);
-                benchmarkHelper.StopRttStopwatch();
-                benchmarkHelper.StopBandwidthStopwatch();
-
-                benchmarkHelper.UpdateRttStats(0);
-                benchmarkHelper.ResetRttStopwatch();
+                benchmarkHelper.StopStopwatch();
+                
+                benchmarkHelper.SnapshotRttStats();
             }
 
             benchmarkHelper.PrintBandwidthStats(0, PacketCount, NetworkPacket.TotalSize);

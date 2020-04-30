@@ -12,19 +12,13 @@ namespace NetSharp.Sockets
     /// Abstract base class for clients.
     /// </summary>
     /// TODO implement proper memory leak-free cancellation of network IO operations
-    public abstract class SocketClient : SocketConnection
+    public abstract class RawSocketClient : SocketConnectionBase
     {
         /// <summary>
-        /// Constructs a new instance of the <see cref="SocketClient" /> class.
+        /// Constructs a new instance of the <see cref="RawSocketClient" /> class.
         /// </summary>
-        /// <param name="connectionAddressFamily">
-        /// The address family that the underlying connection should use.
-        /// </param>
-        /// <param name="connectionSocketType">
-        /// The socket type that the underlying connection should use.
-        /// </param>
-        /// <param name="connectionProtocolType">
-        /// The protocol type that the underlying connection should use.
+        /// <param name="rawConnection">
+        /// The underlying <see cref="Socket"/> object which should be wrapped by this instance.
         /// </param>
         /// <param name="pooledBufferMaxSize">
         /// The maximum size in bytes of buffers held in the buffer pool.
@@ -32,9 +26,8 @@ namespace NetSharp.Sockets
         /// <param name="preallocatedTransmissionArgs">
         /// The number of transmission args to preallocate.
         /// </param>
-        protected SocketClient(in AddressFamily connectionAddressFamily, in SocketType connectionSocketType, in ProtocolType connectionProtocolType,
-            in int pooledBufferMaxSize, in ushort preallocatedTransmissionArgs) : base(in connectionAddressFamily, in connectionSocketType,
-            in connectionProtocolType, pooledBufferMaxSize, preallocatedTransmissionArgs)
+        protected RawSocketClient(ref Socket rawConnection, int pooledBufferMaxSize, ushort preallocatedTransmissionArgs)
+            : base(ref rawConnection, pooledBufferMaxSize, preallocatedTransmissionArgs)
         {
         }
 
@@ -109,45 +102,21 @@ namespace NetSharp.Sockets
         /// <param name="remoteEndPoint">
         /// The remote end point which to which to connect the client.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The cancellation token to observe during the asynchronous operation.
-        /// </param>
         /// <returns>
         /// A <see cref="ValueTask" /> representing the connection attempt.
         /// </returns>
-        public ValueTask ConnectAsync(in EndPoint remoteEndPoint, CancellationToken cancellationToken = default)
+        public ValueTask ConnectAsync(in EndPoint remoteEndPoint)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
 
-            SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             args.RemoteEndPoint = remoteEndPoint;
-            args.UserToken = new AsyncOperationToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncOperationToken(in tcs, CancellationToken.None);
 
-            if (cancellationToken == default)
-            {
-                if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
-            }
-            else
-            {
-                // TODO find out why the fricc we leak memory
-                CancellationTokenRegistration cancellationRegistration =
-                    cancellationToken.Register(CancelAsyncOperationCallback, args);
+            if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
 
-                if (Connection.ConnectAsync(args))
-                    return new ValueTask(
-                        tcs.Task.ContinueWith((task, state) =>
-                        {
-                            ((CancellationTokenRegistration)state).Dispose();
-
-                            return task.Result;
-                        }, cancellationRegistration, CancellationToken.None)
-                    );
-
-                cancellationRegistration.Dispose();
-            }
-
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask();
         }
@@ -184,14 +153,11 @@ namespace NetSharp.Sockets
         /// <param name="flags">
         /// The socket flags associated with the send operation.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The cancellation token to observe during the asynchronous operation.
-        /// </param>
         /// <returns>
         /// The result of the asynchronous receive operation.
         /// </returns>
         public abstract ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer,
-            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default);
+            SocketFlags flags = SocketFlags.None);
 
         /// <summary>
         /// Sends the data in the given buffer to the specified endpoint. On connection-oriented protocols, the given endpoint is ignored in favour of
@@ -226,14 +192,11 @@ namespace NetSharp.Sockets
         /// <param name="flags">
         /// The socket flags associated with the send operation.
         /// </param>
-        /// <param name="cancellationToken">
-        /// The cancellation token to observe during the asynchronous operation.
-        /// </param>
         /// <returns>
         /// The result of the asynchronous send operation.
         /// </returns>
         public abstract ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer,
-            SocketFlags flags = SocketFlags.None, CancellationToken cancellationToken = default);
+            SocketFlags flags = SocketFlags.None);
 
         /// <summary>
         /// A state token for asynchronous socket operations.
@@ -325,17 +288,17 @@ namespace NetSharp.Sockets
             /// <param name="completionSource">
             /// The completion source to trigger when the IO operation completes.
             /// </param>
-            /// <param name="rentedBuffer">
+            /// <param name="bufferHandle">
             /// The buffer holding the user's data.
             /// </param>
             /// <param name="cancellationToken">
             /// The cancellation token to observe during the operation.
             /// </param>
-            public AsyncSendToken(in TaskCompletionSource<TransmissionResult> completionSource, in byte[] rentedBuffer, in CancellationToken cancellationToken)
+            public AsyncSendToken(in TaskCompletionSource<TransmissionResult> completionSource, ref byte[] bufferHandle, in CancellationToken cancellationToken)
             {
                 CompletionSource = completionSource;
 
-                RentedBuffer = rentedBuffer;
+                RentedBuffer = bufferHandle;
 
                 CancellationToken = cancellationToken;
             }

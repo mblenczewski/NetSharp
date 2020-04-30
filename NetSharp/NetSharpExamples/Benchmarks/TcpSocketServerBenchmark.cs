@@ -52,8 +52,7 @@ namespace NetSharpExamples.Benchmarks
                 byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client {id}] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
-                benchmarkHelper.StartBandwidthStopwatch();
-                benchmarkHelper.StartRttStopwatch();
+                benchmarkHelper.StartStopwatch();
 
                 int totalSent = 0;
                 do
@@ -79,11 +78,9 @@ namespace NetSharpExamples.Benchmarks
                     break;
                 }
 
-                benchmarkHelper.StopRttStopwatch();
-                benchmarkHelper.StopBandwidthStopwatch();
+                benchmarkHelper.StopStopwatch();
 
-                benchmarkHelper.UpdateRttStats(id);
-                benchmarkHelper.ResetRttStopwatch();
+                benchmarkHelper.SnapshotRttStats();
             }
 
             clientSocket.Disconnect(true);
@@ -112,9 +109,8 @@ namespace NetSharpExamples.Benchmarks
             }
 
             StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(clientCount, (ushort)clientCount);
-
-            StreamSocketServer server = new StreamSocketServer(AddressFamily.InterNetwork, ProtocolType.Tcp,
-                SocketServer.DefaultPacketHandler, serverOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            StreamSocketServer server = new StreamSocketServer(ref rawSocket, RawSocketServer.DefaultRawPacketHandler, serverOptions);
 
             server.Bind(ServerEndPoint);
 

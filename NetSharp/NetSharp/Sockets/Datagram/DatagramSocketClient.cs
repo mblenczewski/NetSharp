@@ -40,14 +40,20 @@ namespace NetSharp.Sockets.Datagram
 
     //TODO address the need to handle series of network packets, not just single packets
     //TODO document class
-    public sealed class DatagramSocketClient : SocketClient
+    public sealed class DatagramSocketClient : RawSocketClient
     {
         private readonly DatagramSocketClientOptions clientOptions;
 
-        public DatagramSocketClient(in AddressFamily connectionAddressFamily, in ProtocolType connectionProtocolType,
-            in DatagramSocketClientOptions? clientOptions = null) : base(in connectionAddressFamily, SocketType.Dgram, in connectionProtocolType,
-            NetworkPacket.TotalSize, clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
+        public DatagramSocketClient(ref Socket rawConnection, in DatagramSocketClientOptions? clientOptions = null)
+            : base(ref rawConnection,
+                NetworkPacket.TotalSize,
+                clientOptions?.PreallocatedTransmissionArgs ?? DatagramSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
+            if (rawConnection.SocketType != SocketType.Dgram)
+            {
+                throw new ArgumentException($"Only {SocketType.Dgram} is supported!", nameof(rawConnection));
+            }
+
             this.clientOptions = clientOptions ?? DatagramSocketClientOptions.Defaults;
         }
 
@@ -78,7 +84,7 @@ namespace NetSharp.Sockets.Datagram
                     break;
             }
 
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
@@ -105,7 +111,7 @@ namespace NetSharp.Sockets.Datagram
                     break;
             }
 
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
@@ -133,7 +139,7 @@ namespace NetSharp.Sockets.Datagram
             }
 
             BufferPool.Return(sendToken.RentedBuffer, true);
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         /// <inheritdoc />
@@ -186,7 +192,7 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        protected override void ResetTransmissionArgs(SocketAsyncEventArgs args)
+        protected override void ResetTransmissionArgs(ref SocketAsyncEventArgs args)
         {
         }
 
@@ -200,45 +206,23 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        public override ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None,
-            CancellationToken cancellationToken = default)
+        public override ValueTask<TransmissionResult> ReceiveAsync(in EndPoint remoteEndPoint, Memory<byte> receiveBuffer, SocketFlags flags = SocketFlags.None)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
-            SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             args.SetBuffer(receiveBuffer);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncReceiveToken(in tcs, in cancellationToken);
+            args.UserToken = new AsyncReceiveToken(in tcs, CancellationToken.None);
 
-            if (cancellationToken == default)
-            {
-                if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
-            }
-            else
-            {
-                // TODO find out why the fricc we leak memory
-                CancellationTokenRegistration cancellationRegistration =
-                    cancellationToken.Register(CancelAsyncReceiveCallback, args);
-
-                if (Connection.ReceiveFromAsync(args))
-                    return new ValueTask<TransmissionResult>(
-                        tcs.Task.ContinueWith((task, state) =>
-                        {
-                            ((CancellationTokenRegistration)state).Dispose();
-
-                            return task.Result;
-                        }, cancellationRegistration, CancellationToken.None)
-                    );
-
-                cancellationRegistration.Dispose();
-            }
+            if (Connection.ReceiveFromAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
 
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask<TransmissionResult>(result);
         }
@@ -252,12 +236,11 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        public override ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer, SocketFlags flags = SocketFlags.None,
-            CancellationToken cancellationToken = default)
+        public override ValueTask<TransmissionResult> SendAsync(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> sendBuffer, SocketFlags flags = SocketFlags.None)
         {
             TaskCompletionSource<TransmissionResult> tcs = new TaskCompletionSource<TransmissionResult>();
 
-            SocketAsyncEventArgs args = TransmissionArgsPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
             byte[] transmissionBuffer = BufferPool.Rent(sendBuffer.Length);
 
             sendBuffer.CopyTo(transmissionBuffer);
@@ -266,35 +249,14 @@ namespace NetSharp.Sockets.Datagram
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
-            args.UserToken = new AsyncSendToken(in tcs, in transmissionBuffer, in cancellationToken);
+            args.UserToken = new AsyncSendToken(in tcs, ref transmissionBuffer, CancellationToken.None);
 
-            if (cancellationToken == default)
-            {
-                if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
-            }
-            else
-            {
-                // TODO find out why the fricc we leak memory
-                CancellationTokenRegistration cancellationRegistration =
-                    cancellationToken.Register(CancelAsyncSendCallback, args);
-
-                if (Connection.SendToAsync(args))
-                    return new ValueTask<TransmissionResult>(
-                        tcs.Task.ContinueWith((task, state) =>
-                        {
-                            ((CancellationTokenRegistration)state).Dispose();
-
-                            return task.Result;
-                        }, cancellationRegistration, CancellationToken.None)
-                    );
-
-                cancellationRegistration.Dispose();
-            }
+            if (Connection.SendToAsync(args)) return new ValueTask<TransmissionResult>(tcs.Task);
 
             TransmissionResult result = new TransmissionResult(in args);
 
             BufferPool.Return(transmissionBuffer, true);
-            TransmissionArgsPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask<TransmissionResult>(result);
         }

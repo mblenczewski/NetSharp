@@ -109,7 +109,7 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The instance which should be reset.
         /// </param>
-        public delegate void ResetObjectDelegate(T instance);
+        public delegate void ResetObjectDelegate(ref T instance);
 
         /// <inheritdoc />
         public void Dispose()
@@ -141,7 +141,7 @@ namespace NetSharp.Utils
         {
             if (canObjectBeRebufferedPredicate(instance))
             {
-                resetObjectDelegate(instance);
+                resetObjectDelegate(ref instance);
 
                 objectBuffer.TryAdd(instance);
             }

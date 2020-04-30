@@ -18,18 +18,21 @@ namespace NetSharpExamples.Examples
         /// <inheritdoc />
         public string Name { get; } = "UDP Socket Server Example";
 
-        public static NetworkPacket ServerPacketHandler(in NetworkPacket request, in EndPoint remoteEndPoint)
+        public static bool ServerPacketHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> request, Memory<byte> response)
         {
             // lock is not necessary, but means that console output is clean and not interleaved
             lock (typeof(Console))
             {
-                Console.WriteLine($"[Server] Received request with contents \'{ServerEncoding.GetString(request.Data.Span).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
+                Console.WriteLine($"[Server] Received request with contents \'{ServerEncoding.GetString(request.Span).TrimEnd('\0', ' ')}\' from {remoteEndPoint}");
                 Console.WriteLine($"[Server] Echoing back request to {remoteEndPoint}");
             }
 
             // we echo back the request, but we could just as easily send back a new packet. if we would not want to send back any response, we need
-            // to return NetworkPacket.NullPacket
-            return request;
+            // to return false
+
+            request.CopyTo(response);
+
+            return true;
         }
 
         /// <inheritdoc />
@@ -38,8 +41,9 @@ namespace NetSharpExamples.Examples
             DatagramSocketServerOptions serverOptions =
                 new DatagramSocketServerOptions(Environment.ProcessorCount, 2);
 
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             using DatagramSocketServer server =
-                new DatagramSocketServer(AddressFamily.InterNetwork, ProtocolType.Udp, ServerPacketHandler, serverOptions);
+                new DatagramSocketServer(ref rawSocket, ServerPacketHandler, serverOptions);
 
             server.Bind(in ServerEndPoint);
 
