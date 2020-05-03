@@ -1,4 +1,4 @@
-﻿using NetSharp;
+﻿using NetSharp.Raw.Datagram;
 
 using System;
 using System.Net;
@@ -11,7 +11,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
     public class DatagramNetworkWriterAsyncBenchmark : INetSharpExample, INetSharpBenchmark
     {
-        private const int PacketSize = 8192, PacketCount = 100_000;
+        private const int PacketSize = 8192, PacketCount = 1_000_000;
 
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 

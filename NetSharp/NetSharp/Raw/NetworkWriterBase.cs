@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
-namespace NetSharp
+namespace NetSharp.Raw
 {
     public abstract class NetworkWriterBase<TState> : NetworkConnectionBase<TState> where TState : class
     {
@@ -20,7 +20,7 @@ namespace NetSharp
             SocketFlags flags = SocketFlags.None);
 
         public abstract int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
-                            SocketFlags flags = SocketFlags.None);
+            SocketFlags flags = SocketFlags.None);
 
         public abstract ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);

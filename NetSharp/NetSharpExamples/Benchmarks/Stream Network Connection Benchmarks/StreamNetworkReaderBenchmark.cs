@@ -1,4 +1,4 @@
-﻿using NetSharp;
+﻿using NetSharp.Raw.Stream;
 
 using System;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
     public class StreamNetworkReaderBenchmark : INetSharpExample, INetSharpBenchmark
     {
-        private const int PacketSize = 8192, PacketCount = 100_000, ClientCount = 12;
+        private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
         private double[] ClientBandwidths;
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
@@ -22,9 +22,11 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         /// <inheritdoc />
         public string Name { get; } = "Stream Network Reader Benchmark";
 
-        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, Memory<byte> responseBuffer)
+        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, Memory<byte> responseBuffer)
         {
-            return requestBuffer.TryCopyTo(responseBuffer);
+            requestBuffer.CopyTo(responseBuffer);
+
+            return true;
         }
 
         private Task BenchmarkClientTask(object idObj)
@@ -121,7 +123,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
             await Task.WhenAll(clientTasks);
 
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
+            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
 
             reader.Stop();
 

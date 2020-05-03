@@ -5,7 +5,7 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace NetSharp
+namespace NetSharp.Raw
 {
     public abstract class NetworkConnectionBase<TState> : IDisposable where TState : class
     {

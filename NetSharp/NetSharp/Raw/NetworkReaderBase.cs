@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace NetSharp
+namespace NetSharp.Raw
 {
-    public delegate bool NetworkRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer,
+    public delegate bool NetworkRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
         Memory<byte> responseBuffer);
 
     public abstract class NetworkReaderBase<TState> : NetworkConnectionBase<TState> where TState : class
@@ -37,8 +37,8 @@ namespace NetSharp
             base.Dispose(disposing);
         }
 
-        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer,
-                    Memory<byte> responseBuffer)
+        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+            Memory<byte> responseBuffer)
         {
             return requestBuffer.TryCopyTo(responseBuffer);
         }
