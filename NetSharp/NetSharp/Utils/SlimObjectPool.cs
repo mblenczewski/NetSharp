@@ -85,7 +85,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// Whether the given instance should be placed back into the pool.
         /// </returns>
-        public delegate bool CanRebufferObjectPredicate(in T instance);
+        public delegate bool CanRebufferObjectPredicate(ref T instance);
 
         /// <summary>
         /// Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.
@@ -139,7 +139,7 @@ namespace NetSharp.Utils
         /// </param>
         public void Return(T instance)
         {
-            if (canObjectBeRebufferedPredicate(instance))
+            if (canObjectBeRebufferedPredicate(ref instance))
             {
                 resetObjectDelegate(ref instance);
 

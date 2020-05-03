@@ -1,5 +1,5 @@
 ﻿using NetSharp.Packets;
-using NetSharp.Sockets.Datagram;
+using NetSharp.Sockets.Stream;
 using NetSharp.Utils;
 
 using System;
@@ -9,37 +9,59 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Benchmarks
+namespace NetSharpExamples.Benchmarks.TCP_Socket_Connection_Benchmarks
 {
-    public class UdpSocketClientAsyncBenchmark : INetSharpExample
+    public class TcpSocketClientAsyncBenchmark : INetSharpExample
     {
         /// <summary>
         /// Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
         /// </summary>
         private const int PacketCount = 1_000_000;
 
-        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12367);
+        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12368);
 
         /// <inheritdoc />
-        public string Name { get; } = "UDP Socket Client Benchmark (Asynchronous)";
+        public string Name { get; } = "TCP Socket Client Benchmark (Asynchronous)";
 
         private Task ServerTask(CancellationToken cancellationToken)
         {
-            Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             server.Bind(ServerEndPoint);
 
             byte[] transmissionBuffer = new byte[NetworkPacket.TotalSize];
 
-            EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            server.Listen(1);
+            Socket clientSocket = server.Accept();
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                int received = server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
+                int expectedBytes = transmissionBuffer.Length;
 
-                int sent = server.SendTo(transmissionBuffer, remoteEndPoint);
+                int receivedBytes = 0;
+                do
+                {
+                    receivedBytes += clientSocket.Receive(transmissionBuffer, receivedBytes, expectedBytes - receivedBytes, SocketFlags.None);
+                } while (receivedBytes != 0 && receivedBytes < expectedBytes);
+
+                if (receivedBytes == 0)
+                {
+                    break;
+                }
+
+                int sentBytes = 0;
+                do
+                {
+                    sentBytes += clientSocket.Send(transmissionBuffer, sentBytes, expectedBytes - sentBytes, SocketFlags.None);
+                } while (sentBytes != 0 && sentBytes < expectedBytes);
+
+                if (sentBytes == 0)
+                {
+                    break;
+                }
             }
 
+            server.Shutdown(SocketShutdown.Both);
             server.Close();
 
             return Task.CompletedTask;
@@ -48,8 +70,6 @@ namespace NetSharpExamples.Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            Console.WriteLine($"UDP Client Benchmark started!");
-
             if (PacketCount > 10_000)
             {
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
@@ -60,9 +80,11 @@ namespace NetSharpExamples.Benchmarks
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions((ushort)2);
-            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            using DatagramSocketClient client = new DatagramSocketClient(ref rawSocket, clientOptions);
+            StreamSocketClientOptions clientOptions = new StreamSocketClientOptions((ushort)2);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using StreamSocketClient client = new StreamSocketClient(ref rawSocket, clientOptions);
+
+            await client.ConnectAsync(in ServerEndPoint);
 
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
             byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
@@ -83,6 +105,13 @@ namespace NetSharpExamples.Benchmarks
 
             benchmarkHelper.PrintBandwidthStats(0, PacketCount, NetworkPacket.TotalSize);
             benchmarkHelper.PrintRttStats(0);
+
+            serverCts.Cancel();
+            try
+            {
+                serverTask.Dispose();
+            }
+            catch (Exception) { }
         }
     }
 }

@@ -4,7 +4,7 @@
         <name>NetSharp</name>
     </assembly>
     <members>
-        <member name="M:NetSharp.DatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32)">
+        <member name="M:NetSharp.DatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.DatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -22,7 +22,7 @@
         <member name="M:NetSharp.DatagramNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.DatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Int32,System.Int32)">
+        <member name="M:NetSharp.DatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.DatagramNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -35,6 +35,12 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.DatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.DatagramNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.DatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
@@ -51,13 +57,13 @@
         <member name="M:NetSharp.NetworkConnectionBase`1.Dispose">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.NetworkReaderBase`1.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32)">
+        <member name="M:NetSharp.NetworkReaderBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.NetworkReaderBase`1.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.NetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Int32,System.Int32)">
+        <member name="M:NetSharp.NetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Packets.NetworkPacket">
@@ -334,7 +340,7 @@
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketClient" /> class.
             </summary>
             <param name="rawConnection">
-            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> object which should be wrapped by this instance.
             </param>
             <param name="pooledBufferMaxSize">
             The maximum size in bytes of buffers held in the buffer pool.
@@ -579,7 +585,7 @@
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.RawSocketServer" /> class.
             </summary>
             <param name="rawConnection">
-            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> object which should be wrapped by this instance.
             </param>
             <param name="packetHandler">
             The packet handler delegate to use to respond to incoming requests.
@@ -598,8 +604,12 @@
             <param name="remoteEndPoint">
             The client from which the packet was received.
             </param>
-            <param name="requestBuffer">The data that was received.</param>
-            <param name="responseBuffer">The data that should be sent back.</param>
+            <param name="requestBuffer">
+            The data that was received.
+            </param>
+            <param name="responseBuffer">
+            The data that should be sent back.
+            </param>
             <returns>
             Whether to send back a response.
             </returns>
@@ -617,12 +627,13 @@
         </member>
         <member name="T:NetSharp.Sockets.SocketConnectionBase">
             <summary>
-            Abstract base class for client and server wrappers around existing <see cref="T:System.Net.Sockets.Socket"/> objects.
+            Abstract base class for client and server wrappers around existing <see cref="T:System.Net.Sockets.Socket" /> objects.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketConnectionBase.MaxBufferSize">
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool">
             <summary>
-            The maximum size of buffer that can be rented from the pool.
+            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
+            <see cref="T:System.Net.Sockets.Socket" />.XXXAsync( <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" />) methods.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketConnectionBase.BufferPool">
@@ -630,10 +641,9 @@
             Pools arrays to function as temporary buffers during network read/write operations.
             </summary>
         </member>
-        <member name="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool">
+        <member name="F:NetSharp.Sockets.SocketConnectionBase.MaxBufferSize">
             <summary>
-            Pools <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
-            <see cref="T:System.Net.Sockets.Socket" />.XXXAsync( <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" />) methods.
+            The maximum size of buffer that can be rented from the pool.
             </summary>
         </member>
         <member name="F:NetSharp.Sockets.SocketConnectionBase.Connection">
@@ -646,7 +656,7 @@
             Constructs a new instance of the <see cref="T:NetSharp.Sockets.SocketConnectionBase" /> class.
             </summary>
             <param name="rawConnection">
-            The underlying <see cref="T:System.Net.Sockets.Socket"/> object which should be wrapped by this instance.
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> object which should be wrapped by this instance.
             </param>
             <param name="pooledBufferMaxSize">
             The maximum size in bytes of buffers held in the buffer pool.
@@ -675,8 +685,8 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketConnectionBase.CreateTransmissionArgs">
             <summary>
-            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for use in the <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />.
-            The resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
+            Delegate method used to construct fresh <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances for use in the <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />. The
+            resulting instance should register <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
             <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
             </summary>
             <returns>
@@ -685,9 +695,8 @@
         </member>
         <member name="M:NetSharp.Sockets.SocketConnectionBase.DestroyTransmissionArgs(System.Net.Sockets.SocketAsyncEventArgs)">
             <summary>
-            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that cannot be reused by the
-            <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />. This method should deregister <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the
-            <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
+            Delegate method to destroy used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances that cannot be reused by the <see cref="F:NetSharp.Sockets.SocketConnectionBase.ArgsPool" />. This
+            method should deregister <see cref="M:NetSharp.Sockets.SocketConnectionBase.HandleIoCompleted(System.Object,System.Net.Sockets.SocketAsyncEventArgs)" /> as an event handler for the <see cref="E:System.Net.Sockets.SocketAsyncEventArgs.Completed" /> event.
             </summary>
             <param name="remoteConnectionArgs">
             The <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> which should be destroyed.
@@ -848,6 +857,51 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Sockets.Stream.StreamSocketServer.RunAsync(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.CreateStateObject">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkReader.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.CreateStateObject">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.StreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.BiDictionary`2">

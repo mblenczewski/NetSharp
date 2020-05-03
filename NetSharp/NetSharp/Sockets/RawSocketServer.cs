@@ -1,5 +1,4 @@
 ﻿using System;
-using NetSharp.Packets;
 
 using System.Net;
 using System.Net.Sockets;
@@ -39,7 +38,7 @@ namespace NetSharp.Sockets
         /// Constructs a new instance of the <see cref="RawSocketServer" /> class.
         /// </summary>
         /// <param name="rawConnection">
-        /// The underlying <see cref="Socket"/> object which should be wrapped by this instance.
+        /// The underlying <see cref="Socket" /> object which should be wrapped by this instance.
         /// </param>
         /// <param name="packetHandler">
         /// The packet handler delegate to use to respond to incoming requests.
@@ -62,8 +61,12 @@ namespace NetSharp.Sockets
         /// <param name="remoteEndPoint">
         /// The client from which the packet was received.
         /// </param>
-        /// <param name="requestBuffer">The data that was received.</param>
-        /// <param name="responseBuffer">The data that should be sent back.</param>
+        /// <param name="requestBuffer">
+        /// The data that was received.
+        /// </param>
+        /// <param name="responseBuffer">
+        /// The data that should be sent back.
+        /// </param>
         /// <returns>
         /// Whether to send back a response.
         /// </returns>

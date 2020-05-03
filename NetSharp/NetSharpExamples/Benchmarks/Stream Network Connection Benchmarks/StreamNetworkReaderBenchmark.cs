@@ -1,30 +1,31 @@
-﻿using NetSharp.Packets;
-using NetSharp.Sockets;
-using NetSharp.Sockets.Stream;
+﻿using NetSharp;
 
 using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Benchmarks
+namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class TcpSocketServerBenchmark : INetSharpExample
+    public class StreamNetworkReaderBenchmark : INetSharpExample, INetSharpBenchmark
     {
-        /// <summary>
-        /// Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
-        /// </summary>
-        private const int PacketCount = 1_000_000;
-
-        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12348);
+        private const int PacketSize = 8192, PacketCount = 100_000, ClientCount = 12;
 
         private double[] ClientBandwidths;
+        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
+
+        public static readonly Encoding ServerEncoding = Encoding.UTF8;
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12373);
 
         /// <inheritdoc />
-        public string Name { get; } = "TCP Socket Server Benchmark";
+        public string Name { get; } = "Stream Network Reader Benchmark";
+
+        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, Memory<byte> responseBuffer)
+        {
+            return requestBuffer.TryCopyTo(responseBuffer);
+        }
 
         private Task BenchmarkClientTask(object idObj)
         {
@@ -34,11 +35,11 @@ namespace NetSharpExamples.Benchmarks
 
             Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            clientSocket.Bind(new IPEndPoint(IPAddress.Any, 0));
+            clientSocket.Bind(ClientEndPoint);
             clientSocket.Connect(ServerEndPoint);
 
-            byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
-            byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] sendBuffer = new byte[PacketSize];
+            byte[] receiveBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = ServerEndPoint;
 
@@ -49,7 +50,7 @@ namespace NetSharpExamples.Benchmarks
 
             for (int i = 0; i < PacketCount; i++)
             {
-                byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client {id}] Hello World! (Packet {i})");
+                byte[] packetBuffer = ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
@@ -86,10 +87,10 @@ namespace NetSharpExamples.Benchmarks
             clientSocket.Disconnect(true);
             clientSocket.Close();
 
-            benchmarkHelper.PrintBandwidthStats(id, PacketCount, NetworkPacket.TotalSize);
+            benchmarkHelper.PrintBandwidthStats(id, PacketCount, PacketSize);
             benchmarkHelper.PrintRttStats(id);
 
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(PacketCount, NetworkPacket.TotalSize);
+            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(PacketCount, PacketSize);
 
             return Task.CompletedTask;
         }
@@ -97,30 +98,22 @@ namespace NetSharpExamples.Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            CancellationTokenSource serverCts = new CancellationTokenSource();
-
-            int clientCount = Environment.ProcessorCount / 2;
-
-            Console.WriteLine($"TCP Server Benchmark started!");
-
             if (PacketCount > 10_000)
             {
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
-            StreamSocketServerOptions serverOptions = new StreamSocketServerOptions(clientCount, (ushort)clientCount);
+            EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            StreamSocketServer server = new StreamSocketServer(ref rawSocket, RawSocketServer.DefaultRawPacketHandler, serverOptions);
+            rawSocket.Bind(ServerEndPoint);
+            rawSocket.Listen(ClientCount);
 
-            server.Bind(ServerEndPoint);
+            using StreamNetworkReader reader = new StreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
+            reader.Start(ClientCount);
 
-            Task serverTask = Task.Factory.StartNew(() =>
-            {
-                server.RunAsync(serverCts.Token).GetAwaiter().GetResult();
-            }, TaskCreationOptions.LongRunning);
-
-            ClientBandwidths = new double[clientCount];
-            Task[] clientTasks = new Task[clientCount];
+            ClientBandwidths = new double[ClientCount];
+            Task[] clientTasks = new Task[ClientCount];
             for (int i = 0; i < clientTasks.Length; i++)
             {
                 clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
@@ -130,11 +123,10 @@ namespace NetSharpExamples.Benchmarks
 
             Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F5}");
 
-            serverCts.Cancel();
+            reader.Stop();
 
-            await serverTask;
-
-            Console.WriteLine($"TCP Server Benchmark finished!");
+            rawSocket.Close();
+            rawSocket.Dispose();
         }
     }
 }

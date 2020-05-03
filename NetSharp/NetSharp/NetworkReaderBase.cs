@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace NetSharp
 {
@@ -13,28 +12,18 @@ namespace NetSharp
     {
         private readonly CancellationTokenSource shutdownTokenSource;
 
+        protected readonly NetworkRequestHandler RequestHandler;
         protected readonly CancellationToken ShutdownToken;
 
-        protected readonly NetworkRequestHandler RequestHandler;
-
-        protected readonly EndPoint DefaultEndPoint;
-
         /// <inheritdoc />
-        protected NetworkReaderBase(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledBufferSize, int preallocatedStateObjects = 0)
-            : base(ref rawConnection, maxPooledBufferSize, preallocatedStateObjects)
+        protected NetworkReaderBase(ref Socket rawConnection, EndPoint defaultEndPoint, NetworkRequestHandler? requestHandler, int maxPooledBufferSize,
+            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize,
+            maxPooledBuffersPerBucket, preallocatedStateObjects)
         {
             shutdownTokenSource = new CancellationTokenSource();
             ShutdownToken = shutdownTokenSource.Token;
 
-            DefaultEndPoint = defaultEndPoint;
-
             RequestHandler = requestHandler ?? DefaultRequestHandler;
-        }
-
-        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer,
-            Memory<byte> responseBuffer)
-        {
-            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         /// <inheritdoc />
@@ -46,6 +35,12 @@ namespace NetSharp
             shutdownTokenSource.Dispose();
 
             base.Dispose(disposing);
+        }
+
+        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer,
+                    Memory<byte> responseBuffer)
+        {
+            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         public abstract void Start(ushort concurrentReadTasks);

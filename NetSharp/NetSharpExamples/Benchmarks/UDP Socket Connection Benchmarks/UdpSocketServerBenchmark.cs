@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Benchmarks
+namespace NetSharpExamples.Benchmarks.UDP_Socket_Connection_Benchmarks
 {
     public class UdpSocketServerBenchmark : INetSharpExample
     {
@@ -75,8 +75,6 @@ namespace NetSharpExamples.Benchmarks
 
             int clientCount = Environment.ProcessorCount / 2;
 
-            Console.WriteLine($"UDP Server Benchmark started!");
-
             if (PacketCount > 10_000)
             {
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
@@ -111,8 +109,6 @@ namespace NetSharpExamples.Benchmarks
 
             rawSocket.Close();
             rawSocket.Dispose();
-
-            Console.WriteLine($"UDP Server Benchmark finished!");
         }
     }
 }

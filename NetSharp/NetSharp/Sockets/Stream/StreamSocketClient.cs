@@ -45,7 +45,7 @@ namespace NetSharp.Sockets.Stream
         private readonly StreamSocketClientOptions clientOptions;
 
         public StreamSocketClient(ref Socket rawConnection, in StreamSocketClientOptions? clientOptions = null)
-            : base(ref rawConnection, 
+            : base(ref rawConnection,
                 NetworkPacket.TotalSize,
                 clientOptions?.PreallocatedTransmissionArgs ?? StreamSocketClientOptions.Defaults.PreallocatedTransmissionArgs)
         {
@@ -216,7 +216,7 @@ namespace NetSharp.Sockets.Stream
         }
 
         /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        protected override bool CanTransmissionArgsBeReused(ref SocketAsyncEventArgs args)
         {
             return true;
         }

@@ -237,7 +237,7 @@ namespace NetSharp.Sockets.Stream
         }
 
         /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        protected override bool CanTransmissionArgsBeReused(ref SocketAsyncEventArgs args)
         {
             return true;
         }

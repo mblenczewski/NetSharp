@@ -1,6 +1,8 @@
 ﻿using NetSharp.Packets;
-using NetSharp.Sockets.Datagram;
+using NetSharp.Sockets.Stream;
 using NetSharp.Utils;
+
+using NetSharpExamples.Examples.UDP_Socket_Connection_Examples;
 
 using System;
 using System.Net;
@@ -8,39 +10,46 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Examples
+namespace NetSharpExamples.Examples.TCP_Socket_Connection_Examples
 {
-    public class UdpSocketClientExample : INetSharpExample
+    public class TcpSocketClientExample : INetSharpExample
     {
         /// <inheritdoc />
-        public string Name { get; } = "UDP Socket Client Example";
+        public string Name { get; } = "TCP Socket Client Example";
 
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            DatagramSocketClientOptions clientOptions = new DatagramSocketClientOptions(2);
+            StreamSocketClientOptions clientOptions = new StreamSocketClientOptions(2);
 
-            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            using DatagramSocketClient client = new DatagramSocketClient(ref rawSocket, clientOptions);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using StreamSocketClient client = new StreamSocketClient(ref rawSocket, clientOptions);
 
             Encoding dataEncoding = UdpSocketServerExample.ServerEncoding;
             byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
             byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
 
-            EndPoint remoteEndPoint = UdpSocketServerExample.ServerEndPoint;
+            EndPoint remoteEndPoint = TcpSocketServerExample.ServerEndPoint;
 
-            Console.WriteLine("Starting UDP Socket Client!");
+            client.Connect(in remoteEndPoint);
+
+            /* a cancellable asynchronous version also exists.
+            client.ConnectAsync(in remoteEndPoint, CancellationToken.None);
+            */
+
+            Console.WriteLine("Starting TCP Socket Client!");
 
             for (int i = 0; i < 10; i++)
             {
                 string data = $"Hello World from {client.LocalEndPoint}!";
                 dataEncoding.GetBytes(data).CopyTo(sendBuffer, 0);
 
-                TransmissionResult sendResult = client.Send(in remoteEndPoint, sendBuffer, SocketFlags.None);
+                TransmissionResult sendResult =
+                    client.Send(in remoteEndPoint, sendBuffer, SocketFlags.None);
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult sendResult =
-                    await client.SendAsync(in remoteEndPoint, sendBuffer, SocketFlags.None);
+                    await client.SendAsync(sendBuffer, SocketFlags.None, CancellationToken.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved
@@ -49,12 +58,12 @@ namespace NetSharpExamples.Examples
                     Console.WriteLine($"[Client] Sent request with contents \'{data}\' to {remoteEndPoint}");
                 }
 
-                TransmissionResult receiveResult = client.Receive(in remoteEndPoint, receiveBuffer, SocketFlags.None);
-                remoteEndPoint = receiveResult.RemoteEndPoint;
+                TransmissionResult receiveResult =
+                    client.Receive(in remoteEndPoint, receiveBuffer, SocketFlags.None);
 
                 /* a cancellable asynchronous version also exists. use only when necessary due to the inherent performance penalty of async operations
                 TransmissionResult receiveResult =
-                    await client.ReceiveAsync(in remoteEndPoint, receiveBuffer, SocketFlags.None);
+                    await client.ReceiveAsync(receiveBuffer, SocketFlags.None, CancellationToken.None);
                 */
 
                 // lock is not necessary, but means that console output is clean and not interleaved
@@ -64,6 +73,7 @@ namespace NetSharpExamples.Examples
                 }
             }
 
+            rawSocket.Shutdown(SocketShutdown.Both);
             rawSocket.Close();
             rawSocket.Dispose();
         }

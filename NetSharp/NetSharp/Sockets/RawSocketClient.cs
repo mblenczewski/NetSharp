@@ -18,7 +18,7 @@ namespace NetSharp.Sockets
         /// Constructs a new instance of the <see cref="RawSocketClient" /> class.
         /// </summary>
         /// <param name="rawConnection">
-        /// The underlying <see cref="Socket"/> object which should be wrapped by this instance.
+        /// The underlying <see cref="Socket" /> object which should be wrapped by this instance.
         /// </param>
         /// <param name="pooledBufferMaxSize">
         /// The maximum size in bytes of buffers held in the buffer pool.

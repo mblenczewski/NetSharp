@@ -9,23 +9,33 @@ namespace NetSharp
 {
     public abstract class NetworkConnectionBase<TState> : IDisposable where TState : class
     {
-        private readonly ArrayPool<byte> bufferPool;
-        protected readonly SlimObjectPool<TState> StateObjectPool;
+        protected readonly ArrayPool<byte> BufferPool;
         protected readonly int BufferSize;
         protected readonly Socket Connection;
+        protected readonly EndPoint DefaultEndPoint;
+        protected readonly SlimObjectPool<TState> StateObjectPool;
 
-        protected NetworkConnectionBase(ref Socket rawConnection, int maxPooledBufferSize, int preallocatedStateObjects = 0)
+        protected NetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
+            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
         {
             Connection = rawConnection;
 
             BufferSize = maxPooledBufferSize;
-            bufferPool = ArrayPool<byte>.Create(maxPooledBufferSize, 1_000);
+            BufferPool = ArrayPool<byte>.Create(maxPooledBufferSize, maxPooledBuffersPerBucket);
+
+            DefaultEndPoint = defaultEndPoint;
 
             StateObjectPool =
                 new SlimObjectPool<TState>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
+
+            // TODO implement pooling in better way
+            for (uint i = 0; i < preallocatedStateObjects; i++)
+            {
+                StateObjectPool.Return(CreateStateObject());
+            }
         }
 
-        protected abstract bool CanReuseStateObject(in TState instance);
+        protected abstract bool CanReuseStateObject(ref TState instance);
 
         protected abstract TState CreateStateObject();
 
@@ -41,35 +51,13 @@ namespace NetSharp
             StateObjectPool.Dispose();
         }
 
-        protected RentedBufferHandle RentBuffer(int desiredBufferSize)
-        {
-            byte[] rentedBuffer = bufferPool.Rent(desiredBufferSize);
-
-            return new RentedBufferHandle(ref rentedBuffer);
-        }
-
         protected abstract void ResetStateObject(ref TState instance);
-
-        protected void ReturnBuffer(RentedBufferHandle handle)
-        {
-            bufferPool.Return(handle.RentedBuffer, true);
-        }
 
         /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        protected readonly struct RentedBufferHandle
-        {
-            public readonly byte[] RentedBuffer;
-
-            internal RentedBufferHandle(ref byte[] rentedBuffer)
-            {
-                RentedBuffer = rentedBuffer;
-            }
         }
     }
 }

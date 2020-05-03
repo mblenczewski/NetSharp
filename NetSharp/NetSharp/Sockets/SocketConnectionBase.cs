@@ -8,14 +8,15 @@ using System.Net.Sockets;
 namespace NetSharp.Sockets
 {
     /// <summary>
-    /// Abstract base class for client and server wrappers around existing <see cref="Socket"/> objects.
+    /// Abstract base class for client and server wrappers around existing <see cref="Socket" /> objects.
     /// </summary>
     public abstract class SocketConnectionBase : IDisposable
     {
         /// <summary>
-        /// The maximum size of buffer that can be rented from the pool.
+        /// Pools <see cref="SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
+        /// <see cref="Socket" />.XXXAsync( <see cref="SocketAsyncEventArgs" />) methods.
         /// </summary>
-        protected readonly int MaxBufferSize;
+        protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
 
         /// <summary>
         /// Pools arrays to function as temporary buffers during network read/write operations.
@@ -23,10 +24,9 @@ namespace NetSharp.Sockets
         protected readonly ArrayPool<byte> BufferPool;
 
         /// <summary>
-        /// Pools <see cref="SocketAsyncEventArgs" /> objects for use during network read/write operations and calls to
-        /// <see cref="Socket" />.XXXAsync( <see cref="SocketAsyncEventArgs" />) methods.
+        /// The maximum size of buffer that can be rented from the pool.
         /// </summary>
-        protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
+        protected readonly int MaxBufferSize;
 
         /// <summary>
         /// The underlying <see cref="Socket" /> which provides access to network operations.
@@ -37,7 +37,7 @@ namespace NetSharp.Sockets
         /// Constructs a new instance of the <see cref="SocketConnectionBase" /> class.
         /// </summary>
         /// <param name="rawConnection">
-        /// The underlying <see cref="Socket"/> object which should be wrapped by this instance.
+        /// The underlying <see cref="Socket" /> object which should be wrapped by this instance.
         /// </param>
         /// <param name="pooledBufferMaxSize">
         /// The maximum size in bytes of buffers held in the buffer pool.
@@ -83,11 +83,11 @@ namespace NetSharp.Sockets
         /// <returns>
         /// Whether the given <paramref name="args" /> should be reset and reused, or should be destroyed.
         /// </returns>
-        protected abstract bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args);
+        protected abstract bool CanTransmissionArgsBeReused(ref SocketAsyncEventArgs args);
 
         /// <summary>
-        /// Delegate method used to construct fresh <see cref="SocketAsyncEventArgs" /> instances for use in the <see cref="ArgsPool" />.
-        /// The resulting instance should register <see cref="HandleIoCompleted" /> as an event handler for the
+        /// Delegate method used to construct fresh <see cref="SocketAsyncEventArgs" /> instances for use in the <see cref="ArgsPool" />. The
+        /// resulting instance should register <see cref="HandleIoCompleted" /> as an event handler for the
         /// <see cref="SocketAsyncEventArgs.Completed" /> event.
         /// </summary>
         /// <returns>
@@ -96,9 +96,8 @@ namespace NetSharp.Sockets
         protected abstract SocketAsyncEventArgs CreateTransmissionArgs();
 
         /// <summary>
-        /// Delegate method to destroy used <see cref="SocketAsyncEventArgs" /> instances that cannot be reused by the
-        /// <see cref="ArgsPool" />. This method should deregister <see cref="HandleIoCompleted" /> as an event handler for the
-        /// <see cref="SocketAsyncEventArgs.Completed" /> event.
+        /// Delegate method to destroy used <see cref="SocketAsyncEventArgs" /> instances that cannot be reused by the <see cref="ArgsPool" />. This
+        /// method should deregister <see cref="HandleIoCompleted" /> as an event handler for the <see cref="SocketAsyncEventArgs.Completed" /> event.
         /// </summary>
         /// <param name="remoteConnectionArgs">
         /// The <see cref="SocketAsyncEventArgs" /> which should be destroyed.

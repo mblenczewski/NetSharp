@@ -66,7 +66,7 @@ namespace NetSharp.Sockets.Datagram
         /// </param>
         /// <inheritdoc />
         public DatagramSocketServer(ref Socket rawConnection, in RawRequestPacketHandler packetHandler, in DatagramSocketServerOptions? serverOptions = null)
-            : base(ref rawConnection, 
+            : base(ref rawConnection,
                 NetworkPacket.TotalSize,
                 serverOptions?.PreallocatedTransmissionArgs ?? DatagramSocketServerOptions.Defaults.PreallocatedTransmissionArgs,
                 packetHandler)
@@ -180,7 +180,7 @@ namespace NetSharp.Sockets.Datagram
         }
 
         /// <inheritdoc />
-        protected override bool CanTransmissionArgsBeReused(in SocketAsyncEventArgs args)
+        protected override bool CanTransmissionArgsBeReused(ref SocketAsyncEventArgs args)
         {
             return true;
         }

@@ -1,5 +1,4 @@
-﻿using NetSharp.Packets;
-using NetSharp.Sockets.Stream;
+﻿using NetSharp.Sockets.Stream;
 
 using System;
 using System.Net;
@@ -8,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Examples
+namespace NetSharpExamples.Examples.TCP_Socket_Connection_Examples
 {
     public class TcpSocketServerExample : INetSharpExample
     {

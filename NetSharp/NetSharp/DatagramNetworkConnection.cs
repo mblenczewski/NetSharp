@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace NetSharp
@@ -9,39 +8,39 @@ namespace NetSharp
     public sealed class DatagramNetworkReader : NetworkReaderBase<SocketAsyncEventArgs>
     {
         /// <inheritdoc />
-        public DatagramNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledBufferSize, int preallocatedStateObjects = 0)
-            : base(ref rawConnection, requestHandler, defaultEndPoint, maxPooledBufferSize, preallocatedStateObjects)
+        public DatagramNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledBufferSize,
+            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, maxPooledBufferSize,
+            maxPooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
-            RentedBufferHandle receiveBufferHandle = (RentedBufferHandle) args.UserToken;
+            byte[] receiveBuffer = args.Buffer;
 
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    RentedBufferHandle responseBufferHandle = RentBuffer(BufferSize);
+                    byte[] responseBuffer = BufferPool.Rent(BufferSize);
 
                     bool responseExists =
-                        RequestHandler(args.RemoteEndPoint, receiveBufferHandle.RentedBuffer, responseBufferHandle.RentedBuffer);
-                    ReturnBuffer(receiveBufferHandle);
+                        RequestHandler(args.RemoteEndPoint, receiveBuffer, responseBuffer);
+                    BufferPool.Return(receiveBuffer, true);
 
                     if (responseExists)
                     {
-                        args.SetBuffer(responseBufferHandle.RentedBuffer);
-                        args.UserToken = responseBufferHandle;
+                        args.SetBuffer(responseBuffer, 0, BufferSize);
 
                         StartSendTo(args);
 
                         return;
                     }
 
-                    ReturnBuffer(responseBufferHandle);
+                    BufferPool.Return(responseBuffer, true);
                     break;
 
                 default:
-                    ReturnBuffer(receiveBufferHandle);
+                    BufferPool.Return(receiveBuffer, true);
                     StateObjectPool.Return(args);
                     break;
             }
@@ -49,9 +48,9 @@ namespace NetSharp
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
         {
-            RentedBufferHandle sendBufferHandle = (RentedBufferHandle)args.UserToken;
+            byte[] sendBuffer = args.Buffer;
 
-            ReturnBuffer(sendBufferHandle);
+            BufferPool.Return(sendBuffer, true);
             StateObjectPool.Return(args);
         }
 
@@ -84,18 +83,17 @@ namespace NetSharp
 
         private void StartReceiveFrom(SocketAsyncEventArgs args)
         {
-            RentedBufferHandle receiveBufferHandle = RentBuffer(BufferSize);
-
-            args.SetBuffer(receiveBufferHandle.RentedBuffer, 0, BufferSize);
-            args.UserToken = receiveBufferHandle;
+            byte[] receiveBuffer = BufferPool.Rent(BufferSize);
 
             if (ShutdownToken.IsCancellationRequested)
             {
-                ReturnBuffer(receiveBufferHandle);
+                BufferPool.Return(receiveBuffer, true);
                 StateObjectPool.Return(args);
 
                 return;
             }
+
+            args.SetBuffer(receiveBuffer, 0, BufferSize);
 
             if (Connection.ReceiveFromAsync(args)) return;
 
@@ -105,11 +103,11 @@ namespace NetSharp
 
         private void StartSendTo(SocketAsyncEventArgs args)
         {
-            RentedBufferHandle sendBufferHandle = (RentedBufferHandle) args.UserToken;
+            byte[] sendBuffer = args.Buffer;
 
             if (ShutdownToken.IsCancellationRequested)
             {
-                ReturnBuffer(sendBufferHandle);
+                BufferPool.Return(sendBuffer, true);
                 StateObjectPool.Return(args);
 
                 return;
@@ -121,7 +119,7 @@ namespace NetSharp
         }
 
         /// <inheritdoc />
-        protected override bool CanReuseStateObject(in SocketAsyncEventArgs instance)
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
         {
             return true;
         }
@@ -161,44 +159,253 @@ namespace NetSharp
     public sealed class DatagramNetworkWriter : NetworkWriterBase<SocketAsyncEventArgs>
     {
         /// <inheritdoc />
-        public DatagramNetworkWriter(ref Socket rawConnection, int maxPooledBufferSize, int preallocatedStateObjects = 0) : base(ref rawConnection, maxPooledBufferSize, preallocatedStateObjects)
+        public DatagramNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize, int maxPooledBuffersPerBucket = 1000,
+            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, maxPooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
-        /// <inheritdoc />
-        protected override bool CanReuseStateObject(in SocketAsyncEventArgs instance)
+        private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
-            throw new NotImplementedException();
+            AsyncDatagramReadToken token = (AsyncDatagramReadToken)args.UserToken;
+
+            byte[] receiveBuffer = token.TransmissionBuffer;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    receiveBuffer.CopyTo(token.UserBuffer);
+                    token.CompletionSource.SetResult(args.BytesTransferred);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    int errorCode = (int)args.SocketError;
+                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    break;
+            }
+
+            BufferPool.Return(receiveBuffer, true);
+            StateObjectPool.Return(args);
+        }
+
+        private void CompleteSendTo(SocketAsyncEventArgs args)
+        {
+            AsyncDatagramWriteToken token = (AsyncDatagramWriteToken)args.UserToken;
+
+            byte[] sendBuffer = token.TransmissionBuffer;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    token.CompletionSource.SetResult(args.BytesTransferred);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    int errorCode = (int)args.SocketError;
+                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    break;
+            }
+
+            BufferPool.Return(sendBuffer, true);
+            StateObjectPool.Return(args);
+        }
+
+        private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            switch (args.LastOperation)
+            {
+                case SocketAsyncOperation.Connect:
+                    break;
+
+                case SocketAsyncOperation.SendTo:
+                    CompleteSendTo(args);
+                    break;
+
+                case SocketAsyncOperation.ReceiveFrom:
+                    CompleteReceiveFrom(args);
+                    break;
+            }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
         }
 
         /// <inheritdoc />
         protected override SocketAsyncEventArgs CreateStateObject()
         {
-            throw new NotImplementedException();
+            SocketAsyncEventArgs instance = new SocketAsyncEventArgs();
+            instance.Completed += HandleIoCompleted;
+
+            return instance;
         }
 
         /// <inheritdoc />
         protected override void DestroyStateObject(SocketAsyncEventArgs instance)
         {
-            throw new NotImplementedException();
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
         }
 
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
-            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
+        public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
-            throw new NotImplementedException();
+            int totalBytes = readBuffer.Length;
+            if (totalBytes > BufferSize)
+            {
+                throw new ArgumentException(
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    nameof(readBuffer.Length)
+                );
+            }
+
+            byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
+
+            int readBytes = Connection.ReceiveFrom(transmissionBuffer, flags, ref remoteEndPoint);
+
+            transmissionBuffer.CopyTo(readBuffer);
+            BufferPool.Return(transmissionBuffer, true);
+
+            return readBytes;
+        }
+
+        /// <inheritdoc />
+        public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            int totalBytes = readBuffer.Length;
+            if (totalBytes > BufferSize)
+            {
+                throw new ArgumentException(
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    nameof(readBuffer.Length)
+                );
+            }
+
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            SocketAsyncEventArgs args = StateObjectPool.Rent();
+
+            byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
+
+            args.SetBuffer(transmissionBuffer);
+
+            args.RemoteEndPoint = remoteEndPoint;
+            args.SocketFlags = flags;
+
+            AsyncDatagramReadToken token = new AsyncDatagramReadToken(tcs, ref transmissionBuffer, in readBuffer);
+            args.UserToken = token;
+
+            if (Connection.ReceiveFromAsync(args)) return new ValueTask<int>(tcs.Task);
+
+            int result = args.BytesTransferred;
+
+            transmissionBuffer.CopyTo(readBuffer);
+
+            BufferPool.Return(transmissionBuffer, true);
+            StateObjectPool.Return(args);
+
+            return new ValueTask<int>(result);
+        }
+
+        /// <inheritdoc />
+        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
+            SocketFlags flags = SocketFlags.None)
+        {
+            int totalBytes = writeBuffer.Length;
+            if (totalBytes > BufferSize)
+            {
+                throw new ArgumentException(
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    nameof(writeBuffer.Length)
+                );
+            }
+
+            byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
+            writeBuffer.CopyTo(transmissionBuffer);
+
+            int writtenBytes = Connection.SendTo(transmissionBuffer, flags, remoteEndPoint);
+
+            BufferPool.Return(transmissionBuffer);
+
+            return writtenBytes;
         }
 
         /// <inheritdoc />
         public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
-            throw new NotImplementedException();
+            int totalBytes = writeBuffer.Length;
+            if (totalBytes > BufferSize)
+            {
+                throw new ArgumentException(
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    nameof(writeBuffer.Length)
+                );
+            }
+
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            SocketAsyncEventArgs args = StateObjectPool.Rent();
+
+            byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
+            writeBuffer.CopyTo(transmissionBuffer);
+
+            args.SetBuffer(transmissionBuffer);
+
+            args.RemoteEndPoint = remoteEndPoint;
+            args.SocketFlags = flags;
+
+            AsyncDatagramWriteToken token = new AsyncDatagramWriteToken(tcs, ref transmissionBuffer);
+            args.UserToken = token;
+
+            if (Connection.SendToAsync(args)) return new ValueTask<int>(tcs.Task);
+
+            int result = args.BytesTransferred;
+
+            BufferPool.Return(transmissionBuffer, true);
+            StateObjectPool.Return(args);
+
+            return new ValueTask<int>(result);
+        }
+
+        private readonly struct AsyncDatagramReadToken
+        {
+            public readonly TaskCompletionSource<int> CompletionSource;
+            public readonly byte[] TransmissionBuffer;
+            public readonly Memory<byte> UserBuffer;
+
+            public AsyncDatagramReadToken(TaskCompletionSource<int> completionSource, ref byte[] transmissionBuffer, in Memory<byte> userBuffer)
+            {
+                CompletionSource = completionSource;
+
+                TransmissionBuffer = transmissionBuffer;
+
+                UserBuffer = userBuffer;
+            }
+        }
+
+        private readonly struct AsyncDatagramWriteToken
+        {
+            public readonly TaskCompletionSource<int> CompletionSource;
+            public readonly byte[] TransmissionBuffer;
+
+            public AsyncDatagramWriteToken(TaskCompletionSource<int> completionSource, ref byte[] transmissionBuffer)
+            {
+                CompletionSource = completionSource;
+
+                TransmissionBuffer = transmissionBuffer;
+            }
         }
     }
 }

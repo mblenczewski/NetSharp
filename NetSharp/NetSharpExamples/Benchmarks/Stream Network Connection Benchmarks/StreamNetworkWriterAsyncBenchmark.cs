@@ -1,6 +1,4 @@
-﻿using NetSharp.Packets;
-using NetSharp.Sockets.Stream;
-using NetSharp.Utils;
+﻿using NetSharp;
 
 using System;
 using System.Net;
@@ -9,27 +7,30 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NetSharpExamples.Benchmarks
+namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class TcpSocketClientSyncBenchmark : INetSharpExample
+    public class StreamNetworkWriterAsyncBenchmark : INetSharpExample, INetSharpBenchmark
     {
-        /// <summary>
-        /// Packets contain 8 KiB of data, so 1 000 000 packet = 8GiB. the more data the more accurate the benchmark, but the slower it will run.
-        /// </summary>
-        private const int PacketCount = 1_000_000;
+        private const int PacketSize = 8192, PacketCount = 100_000;
 
-        private static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12358);
+        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
+
+        public static readonly Encoding ServerEncoding = Encoding.UTF8;
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12375);
+
+        public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "TCP Socket Client Benchmark (Synchronous)";
+        public string Name { get; } = "Stream Network Writer Benchmark (Asynchronous)";
 
-        private Task ServerTask(CancellationToken cancellationToken)
+        private static Task ServerTask(CancellationToken cancellationToken)
         {
-            Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            using Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             server.Bind(ServerEndPoint);
+            ServerReadyEvent.Set();
 
-            byte[] transmissionBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] transmissionBuffer = new byte[PacketSize];
 
             server.Listen(1);
             Socket clientSocket = server.Accept();
@@ -70,42 +71,44 @@ namespace NetSharpExamples.Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            Console.WriteLine($"TCP Client Benchmark started!");
-
             if (PacketCount > 10_000)
             {
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
+            EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            rawSocket.Bind(ClientEndPoint);
+
+            using StreamNetworkWriter writer = new StreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
 
+            ServerReadyEvent.Wait();
+            rawSocket.Connect(ServerEndPoint);
+
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            StreamSocketClientOptions clientOptions = new StreamSocketClientOptions((ushort)2);
-            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            using StreamSocketClient client = new StreamSocketClient(ref rawSocket, clientOptions);
-
-            client.Connect(in ServerEndPoint);
-
-            byte[] sendBuffer = new byte[NetworkPacket.TotalSize];
-            byte[] receiveBuffer = new byte[NetworkPacket.TotalSize];
+            byte[] sendBuffer = new byte[PacketSize];
+            byte[] receiveBuffer = new byte[PacketSize];
 
             for (int i = 0; i < PacketCount; i++)
             {
-                byte[] packetBuffer = Encoding.UTF8.GetBytes($"[Client 0] Hello World! (Packet {i})");
+                byte[] packetBuffer = ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                TransmissionResult sendResult = client.Send(in ServerEndPoint, sendBuffer);
+                int sendResult = await writer.WriteAsync(ServerEndPoint, sendBuffer);
 
-                TransmissionResult receiveResult = client.Receive(in ServerEndPoint, receiveBuffer);
+                int receiveResult = await writer.ReadAsync(ServerEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
-                
+
                 benchmarkHelper.SnapshotRttStats();
             }
 
-            benchmarkHelper.PrintBandwidthStats(0, PacketCount, NetworkPacket.TotalSize);
+            benchmarkHelper.PrintBandwidthStats(0, PacketCount, PacketSize);
             benchmarkHelper.PrintRttStats(0);
 
             serverCts.Cancel();
@@ -113,9 +116,15 @@ namespace NetSharpExamples.Benchmarks
             {
                 serverTask.Dispose();
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                // ignored
+            }
 
-            Console.WriteLine($"TCP Client Benchmark finished!");
+            rawSocket.Disconnect(false);
+            rawSocket.Shutdown(SocketShutdown.Both);
+            rawSocket.Close();
+            rawSocket.Dispose();
         }
     }
 }

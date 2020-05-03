@@ -1,28 +1,31 @@
-﻿using System;
+﻿using NetSharp;
+
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using NetSharp;
 
-namespace NetSharpExamples.Benchmarks
+namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    public class DatagramNetworkReaderBenchmark : INetSharpExample
+    public class DatagramNetworkReaderBenchmark : INetSharpExample, INetSharpBenchmark
     {
-        private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
-
-        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
-
-        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12349);
-
-        public static readonly Encoding ServerEncoding = Encoding.UTF8;
+        private const int PacketSize = 8192, PacketCount = 100_000, ClientCount = 12;
 
         private double[] ClientBandwidths;
+        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
+
+        public static readonly Encoding ServerEncoding = Encoding.UTF8;
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12370);
 
         /// <inheritdoc />
         public string Name { get; } = "Datagram Network Reader Benchmark";
+
+        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, Memory<byte> responseBuffer)
+        {
+            return requestBuffer.TryCopyTo(responseBuffer);
+        }
 
         private Task BenchmarkClientTask(object idObj)
         {
@@ -75,10 +78,16 @@ namespace NetSharpExamples.Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
+            if (PacketCount > 10_000)
+            {
+                Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
+            }
+
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(ServerEndPoint);
+
             using DatagramNetworkReader reader = new DatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, PacketSize);
             reader.Start(ClientCount);
 
@@ -97,13 +106,6 @@ namespace NetSharpExamples.Benchmarks
 
             rawSocket.Close();
             rawSocket.Dispose();
-
-            Console.WriteLine($"UDP Server Benchmark finished!");
-        }
-
-        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, Memory<byte> responseBuffer)
-        {
-            return requestBuffer.TryCopyTo(responseBuffer);
         }
     }
 }
