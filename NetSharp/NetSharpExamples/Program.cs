@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-#nullable enable
-
 namespace NetSharpExamples
 {
     internal class Program
@@ -26,7 +24,7 @@ namespace NetSharpExamples
                 }
 
                 Type[] interfaces = type.GetInterfaces();
-                object? instance = Activator.CreateInstance(type);
+                object instance = Activator.CreateInstance(type);
 
                 switch (interfaces.Length)
                 {
