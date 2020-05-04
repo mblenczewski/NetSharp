@@ -93,8 +93,8 @@ Therefore, average RTT-per-packet:
 
 [example-project]: ./docs/example-selector.png
 
-[datagram-network-listener-benchmark]: ./docs/datagram-network-listener-bench.png
-[datagram-network-writer-benchmark]: ./docs/datagram-network-writer-bench.png
+[datagram-network-listener-benchmark]: ./docs/datagram-network-listener-benchmark.png
+[datagram-network-writer-benchmark]: ./docs/datagram-network-writer-benchmark.png
 
-[stream-network-listener-benchmark]: ./docs/stream-network-listener-bench.png
-[stream-network-writer-benchmark]: ./docs/stream-network-writer-bench.png
+[stream-network-listener-benchmark]: ./docs/stream-network-listener-benchmark.png
+[stream-network-writer-benchmark]: ./docs/stream-network-writer-benchmark.png
