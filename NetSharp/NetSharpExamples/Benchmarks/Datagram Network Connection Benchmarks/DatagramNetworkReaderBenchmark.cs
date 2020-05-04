@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
@@ -18,6 +19,8 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
         public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12370);
+
+        public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
         public string Name { get; } = "Datagram Network Reader Benchmark";
@@ -39,6 +42,8 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 
                 Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 clientSocket.Bind(ClientEndPoint);
+
+                ServerReadyEvent.Wait();
 
                 byte[] sendBuffer = new byte[PacketSize];
                 byte[] receiveBuffer = new byte[PacketSize];
@@ -85,6 +90,13 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
+            ClientBandwidths = new double[ClientCount];
+            Task[] clientTasks = new Task[ClientCount];
+            for (int i = 0; i < clientTasks.Length; i++)
+            {
+                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
+            }
+
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -93,12 +105,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
             using DatagramNetworkReader reader = new DatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, PacketSize);
             reader.Start(ClientCount);
 
-            ClientBandwidths = new double[ClientCount];
-            Task[] clientTasks = new Task[ClientCount];
-            for (int i = 0; i < clientTasks.Length; i++)
-            {
-                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
-            }
+            ServerReadyEvent.Set();
 
             await Task.WhenAll(clientTasks);
 

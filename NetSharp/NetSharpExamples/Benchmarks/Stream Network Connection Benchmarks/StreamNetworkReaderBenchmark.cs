@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
@@ -18,6 +19,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
         public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12373);
+
+        public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
         public string Name { get; } = "Stream Network Reader Benchmark";
@@ -36,8 +39,9 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
             Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
             clientSocket.Bind(ClientEndPoint);
+
+            ServerReadyEvent.Wait();
             clientSocket.Connect(ServerEndPoint);
 
             byte[] sendBuffer = new byte[PacketSize];
@@ -105,6 +109,13 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
                 Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
+            ClientBandwidths = new double[ClientCount];
+            Task[] clientTasks = new Task[ClientCount];
+            for (int i = 0; i < clientTasks.Length; i++)
+            {
+                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
+            }
+
             EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -114,12 +125,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             using StreamNetworkReader reader = new StreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
             reader.Start(ClientCount);
 
-            ClientBandwidths = new double[ClientCount];
-            Task[] clientTasks = new Task[ClientCount];
-            for (int i = 0; i < clientTasks.Length; i++)
-            {
-                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
-            }
+            ServerReadyEvent.Set();
 
             await Task.WhenAll(clientTasks);
 
