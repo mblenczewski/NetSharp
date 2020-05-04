@@ -91,10 +91,10 @@ Therefore, average RTT-per-packet:
 
 [discord-server-badge]: https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue
 
-[example-project]: docs/example-selector.png
+[example-project]: example-selector.png
 
-[datagram-network-listener-benchmark]: docs/datagram-network-listener-benchmark.png
-[datagram-network-writer-benchmark]: docs/datagram-network-writer-benchmark.png
+[datagram-network-listener-benchmark]: datagram-network-listener-benchmark.png
+[datagram-network-writer-benchmark]: datagram-network-writer-benchmark.png
 
-[stream-network-listener-benchmark]: docs/stream-network-listener-benchmark.png
-[stream-network-writer-benchmark]: docs/stream-network-writer-benchmark.png
+[stream-network-listener-benchmark]: stream-network-listener-benchmark.png
+[stream-network-writer-benchmark]: stream-network-writer-benchmark.png
