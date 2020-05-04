@@ -189,6 +189,12 @@
         <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
+        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.Connect(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.ConnectAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
         <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
@@ -249,6 +255,12 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.Connect(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.ConnectAsync(System.Net.EndPoint)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">

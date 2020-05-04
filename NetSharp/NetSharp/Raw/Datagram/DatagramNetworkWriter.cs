@@ -13,11 +13,34 @@ namespace NetSharp.Raw.Datagram
         {
         }
 
+        private void CompleteConnect(SocketAsyncEventArgs args)
+        {
+            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    token.CompletionSource.SetResult(true);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    int errorCode = (int)args.SocketError;
+                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    break;
+            }
+
+            StateObjectPool.Return(args);
+        }
+
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
             AsyncDatagramReadToken token = (AsyncDatagramReadToken)args.UserToken;
 
-            byte[] receiveBuffer = token.TransmissionBuffer;
+            byte[] receiveBuffer = args.Buffer;
 
             switch (args.SocketError)
             {
@@ -44,7 +67,7 @@ namespace NetSharp.Raw.Datagram
         {
             AsyncDatagramWriteToken token = (AsyncDatagramWriteToken)args.UserToken;
 
-            byte[] sendBuffer = token.TransmissionBuffer;
+            byte[] sendBuffer = args.Buffer;
 
             switch (args.SocketError)
             {
@@ -71,6 +94,7 @@ namespace NetSharp.Raw.Datagram
             switch (args.LastOperation)
             {
                 case SocketAsyncOperation.Connect:
+                    CompleteConnect(args);
                     break;
 
                 case SocketAsyncOperation.SendTo:
@@ -108,6 +132,30 @@ namespace NetSharp.Raw.Datagram
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
+        }
+
+        /// <inheritdoc />
+        public override void Connect(EndPoint remoteEndPoint)
+        {
+            Connection.Connect(remoteEndPoint);
+        }
+
+        /// <inheritdoc />
+        public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            SocketAsyncEventArgs args = StateObjectPool.Rent();
+
+            args.RemoteEndPoint = remoteEndPoint;
+
+            AsyncOperationToken token = new AsyncOperationToken(tcs);
+            args.UserToken = token;
+
+            if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+
+            StateObjectPool.Return(args);
+
+            return new ValueTask();
         }
 
         /// <inheritdoc />
@@ -149,12 +197,12 @@ namespace NetSharp.Raw.Datagram
 
             byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
 
-            args.SetBuffer(transmissionBuffer);
+            args.SetBuffer(transmissionBuffer, 0, BufferSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
 
-            AsyncDatagramReadToken token = new AsyncDatagramReadToken(tcs, ref transmissionBuffer, in readBuffer);
+            AsyncDatagramReadToken token = new AsyncDatagramReadToken(tcs, in readBuffer);
             args.UserToken = token;
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<int>(tcs.Task);
@@ -210,12 +258,12 @@ namespace NetSharp.Raw.Datagram
             byte[] transmissionBuffer = BufferPool.Rent(BufferSize);
             writeBuffer.CopyTo(transmissionBuffer);
 
-            args.SetBuffer(transmissionBuffer);
+            args.SetBuffer(transmissionBuffer, 0, BufferSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
 
-            AsyncDatagramWriteToken token = new AsyncDatagramWriteToken(tcs, ref transmissionBuffer);
+            AsyncDatagramWriteToken token = new AsyncDatagramWriteToken(tcs);
             args.UserToken = token;
 
             if (Connection.SendToAsync(args)) return new ValueTask<int>(tcs.Task);
@@ -231,14 +279,11 @@ namespace NetSharp.Raw.Datagram
         private readonly struct AsyncDatagramReadToken
         {
             public readonly TaskCompletionSource<int> CompletionSource;
-            public readonly byte[] TransmissionBuffer;
             public readonly Memory<byte> UserBuffer;
 
-            public AsyncDatagramReadToken(TaskCompletionSource<int> completionSource, ref byte[] transmissionBuffer, in Memory<byte> userBuffer)
+            public AsyncDatagramReadToken(TaskCompletionSource<int> completionSource, in Memory<byte> userBuffer)
             {
                 CompletionSource = completionSource;
-
-                TransmissionBuffer = transmissionBuffer;
 
                 UserBuffer = userBuffer;
             }
@@ -247,13 +292,10 @@ namespace NetSharp.Raw.Datagram
         private readonly struct AsyncDatagramWriteToken
         {
             public readonly TaskCompletionSource<int> CompletionSource;
-            public readonly byte[] TransmissionBuffer;
 
-            public AsyncDatagramWriteToken(TaskCompletionSource<int> completionSource, ref byte[] transmissionBuffer)
+            public AsyncDatagramWriteToken(TaskCompletionSource<int> completionSource)
             {
                 CompletionSource = completionSource;
-
-                TransmissionBuffer = transmissionBuffer;
             }
         }
     }

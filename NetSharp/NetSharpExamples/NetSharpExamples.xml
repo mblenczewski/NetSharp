@@ -40,6 +40,42 @@
         <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.RunAsync">
             <inheritdoc />
         </member>
+        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.RunAsync">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.Name">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.RunAsync">
+            <inheritdoc />
+        </member>
         <member name="T:NetSharpExamples.INetSharpExample">
             <summary>
             Defines an example program.

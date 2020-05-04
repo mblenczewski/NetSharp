@@ -13,6 +13,10 @@ namespace NetSharp.Raw
         {
         }
 
+        public abstract void Connect(EndPoint remoteEndPoint);
+
+        public abstract ValueTask ConnectAsync(EndPoint remoteEndPoint);
+
         public abstract int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer,
             SocketFlags flags = SocketFlags.None);
 
@@ -24,5 +28,15 @@ namespace NetSharp.Raw
 
         public abstract ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);
+
+        protected readonly struct AsyncOperationToken
+        {
+            public readonly TaskCompletionSource<bool> CompletionSource;
+
+            public AsyncOperationToken(TaskCompletionSource<bool> completionSource)
+            {
+                CompletionSource = completionSource;
+            }
+        }
     }
 }

@@ -16,9 +16,4 @@
   <ItemGroup>
     <ProjectReference Include="..\NetSharp\NetSharp.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Examples\Datagram Network Connection Examples\" />
-    <Folder Include="Examples\Stream Network Connection Examples\" />
-  </ItemGroup>
 </Project>

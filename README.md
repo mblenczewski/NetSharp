@@ -31,9 +31,9 @@ During a benchmark 1,000,000 packets are sent per client by default, with a data
 
 The RTT values measured are the very extremes of what you would get. When printing the RTT-per-packet, the maximum value is attained at the start of the connection and the minimum value seems to be sustained for the remainder of the connection. Again, your mileage may vary depending on the speed of your network, your packet loss (if using TCP), and the amount of packet processing you do on the server. The more processing you do, the longer your RTT times will be.
 
-### Datagram Network Listener & Writer Benchmarks
+### Datagram Network Reader & Writer Benchmarks
 The following is the datagram network listener (UDP) benchmark:
-![Datagram Network Listener Benchmark][datagram-network-listener-benchmark]
+![Datagram Network Reader Benchmark][datagram-network-reader-benchmark]
 
 ```
 The worst performing client took 79911 ms to send all of their packets.
@@ -60,9 +60,9 @@ Therefore, average RTT-per-packet:
     Time per packet: 3.8569x10^-5 (0.038569 ms)
 ```
 
-### Stream Network Listener & Writer Benchmarks
+### Stream Network Reader & Writer Benchmarks
 The following is the stream network listener (TCP) benchmark:
-![Stream Network Listener Benchmark][stream-network-listener-benchmark]
+![Stream Network Reader Benchmark][stream-network-reader-benchmark]
 
 ```
 The worst performing client took 93616 ms to send all of their packets.
@@ -93,8 +93,8 @@ Therefore, average RTT-per-packet:
 
 [example-project]: docs/example-selector.png
 
-[datagram-network-listener-benchmark]: docs/datagram-network-listener-benchmark.png
+[datagram-network-reader-benchmark]: docs/datagram-network-reader-benchmark.png
 [datagram-network-writer-benchmark]: docs/datagram-network-writer-benchmark.png
 
-[stream-network-listener-benchmark]: docs/stream-network-listener-benchmark.png
+[stream-network-reader-benchmark]: docs/stream-network-reader-benchmark.png
 [stream-network-writer-benchmark]: docs/stream-network-writer-benchmark.png

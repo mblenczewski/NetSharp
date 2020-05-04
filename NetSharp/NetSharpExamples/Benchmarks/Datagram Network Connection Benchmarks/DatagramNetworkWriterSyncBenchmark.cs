@@ -16,7 +16,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
-        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12371);
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12372);
 
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 

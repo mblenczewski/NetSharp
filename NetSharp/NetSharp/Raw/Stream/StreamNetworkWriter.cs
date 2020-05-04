@@ -16,12 +16,48 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteConnect(SocketAsyncEventArgs args)
         {
-            throw new NotImplementedException();
+            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    token.CompletionSource.SetResult(true);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    int errorCode = (int)args.SocketError;
+                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    break;
+            }
+
+            StateObjectPool.Return(args);
         }
 
         private void CompleteDisconnect(SocketAsyncEventArgs args)
         {
-            throw new NotImplementedException();
+            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    token.CompletionSource.SetResult(true);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    int errorCode = (int)args.SocketError;
+                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    break;
+            }
+
+            StateObjectPool.Return(args);
         }
 
         private void CompleteReceive(SocketAsyncEventArgs args)
@@ -36,9 +72,10 @@ namespace NetSharp.Raw.Stream
                 case SocketError.Success:
                     int receivedBytes = args.BytesTransferred, totalReceivedBytes = token.TotalReadBytes;
 
-                    if (receivedBytes == 0)  // connection is dead
+                    if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
                     {
-                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+                        receiveBufferHandle.CopyTo(token.UserBuffer);
+                        token.CompletionSource.SetResult(args.BytesTransferred);
                     }
                     else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < expectedBytes)  // transmission not complete
                     {
@@ -51,10 +88,9 @@ namespace NetSharp.Raw.Stream
                         ContinueReceive(args);
                         return;
                     }
-                    else if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
+                    else if (receivedBytes == 0)  // connection is dead
                     {
-                        receiveBufferHandle.CopyTo(token.UserBuffer);
-                        token.CompletionSource.SetResult(args.BytesTransferred);
+                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
                     }
                     break;
 
@@ -84,9 +120,9 @@ namespace NetSharp.Raw.Stream
                 case SocketError.Success:
                     int sentBytes = args.BytesTransferred, totalSentBytes = token.TotalWrittenBytes;
 
-                    if (sentBytes == 0)  // connection is dead
+                    if (totalSentBytes + sentBytes == expectedBytes) // transmission complete
                     {
-                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+                        token.CompletionSource.SetResult(args.BytesTransferred);
                     }
                     else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < expectedBytes)  // transmission not complete
                     {
@@ -99,9 +135,9 @@ namespace NetSharp.Raw.Stream
                         ContinueSend(args);
                         return;
                     }
-                    else if (totalSentBytes + sentBytes == expectedBytes)  // transmission complete
+                    else if (sentBytes == 0)  // connection is dead
                     {
-                        token.CompletionSource.SetResult(args.BytesTransferred);
+                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
                     }
                     break;
 
@@ -182,6 +218,52 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
+        }
+
+        /// <inheritdoc />
+        public override void Connect(EndPoint remoteEndPoint)
+        {
+            Connection.Connect(remoteEndPoint);
+        }
+
+        /// <inheritdoc />
+        public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            SocketAsyncEventArgs args = StateObjectPool.Rent();
+
+            args.RemoteEndPoint = remoteEndPoint;
+
+            AsyncOperationToken token = new AsyncOperationToken(tcs);
+            args.UserToken = token;
+
+            if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+
+            StateObjectPool.Return(args);
+
+            return new ValueTask();
+        }
+
+        public void Disconnect(bool reuseSocket)
+        {
+            Connection.Disconnect(reuseSocket);
+        }
+
+        public ValueTask DisconnectAsync(bool reuseSocket)
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            SocketAsyncEventArgs args = StateObjectPool.Rent();
+
+            args.DisconnectReuseSocket = reuseSocket;
+
+            AsyncOperationToken token = new AsyncOperationToken(tcs);
+            args.UserToken = token;
+
+            if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
+
+            StateObjectPool.Return(args);
+
+            return new ValueTask();
         }
 
         /// <inheritdoc />
