@@ -29,35 +29,72 @@ All the benchmarks were performed on a Ryzen 7 1700 CPU @ 3.20GHz. This library 
 
 During a benchmark 1,000,000 packets are sent per client by default, with a data segment size of 8192 bytes (8 kibibytes). This means that, by default, 8.192 gigabytes of user data are sent one way, and 8.192 are received (in the form of a response packet). The server is set up to simply echo any received packets, so packet processing overhead is virtually non-existent. Your mileage may vary.
 
-The RTT values measured are the very extremes of what you would get. When printing the RTT-per-packet, the maximum value is attained at the start of the connection and the minimum value seems to be sustained for the remainder of the connection. Again, your mileage may vary depending on the speed of your network, your packet loss (if using TCP), and the amount of packet processing you do on the server.
+The RTT values measured are the very extremes of what you would get. When printing the RTT-per-packet, the maximum value is attained at the start of the connection and the minimum value seems to be sustained for the remainder of the connection. Again, your mileage may vary depending on the speed of your network, your packet loss (if using TCP), and the amount of packet processing you do on the server. The more processing you do, the longer your RTT times will be.
 
-### UDP Socket Server & Socket Client
-The following is the UDP socket server benchmark:
-![UDP Socket Server Benchmark][udp-server-benchmark]
+### Datagram Network Listener & Writer Benchmarks
+The following is the datagram network listener (UDP) benchmark:
+![Datagram Network Listener Benchmark][datagram-network-listener-benchmark]
 
-The following is the synchronous UDP socket client benchmark:
-![Synchronous UDP Socket Client Benchmark][udp-client-sync-benchmark]
+```
+The worst performing client took 79911 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 79.911 seconds; Packet count: 1 000 000
+    Time per packet: 79.911 / 1 000 000
+    Time per packet: 7.9911x10^-5 (0.079911 ms)
+```
 
-The following is the asynchronous UDP socket client benchmark. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
-![Asynchronous UDP Socket Client Benchmark][udp-client-async-benchmark]
+The following are the synchronous and asynchronous datagram network writer (UDP) benchmarks. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
+![Datagram Network Writer Benchmark][datagram-network-writer-benchmark]
 
-The following is the TCP socket server benchmark:
-![TCP Socket Server Benchmark][tcp-server-benchmark]
+```
+The synchronous client took 33906 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 33.906 seconds Packet count: 1 000 000
+    Time per packet: 33.906 / 1 000 000
+    Time per packet: 3.3906x10^-5 (0.033906 ms)
 
-The following is the synchronous TCP socket client benchmark:
-![Synchronous TCP Socket Client Benchmark][tcp-client-sync-benchmark]
+The asynchronous client took 38569 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 38.569 seconds Packet count: 1 000 000
+    Time per packet: 38.569 / 1 000 000
+    Time per packet: 3.8569x10^-5 (0.038569 ms)
+```
 
-The following is the asynchronous TCP socket client benchmark. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
-![Asynchronous TCP Socket Client Benchmark][tcp-client-async-benchmark]
+### Stream Network Listener & Writer Benchmarks
+The following is the stream network listener (TCP) benchmark:
+![Stream Network Listener Benchmark][stream-network-listener-benchmark]
+
+```
+The worst performing client took 93616 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 93.616 seconds; Packet count: 1 000 000
+    Time per packet: 93.616 / 1 000 000
+    Time per packet: 9.3616x10^-5 (0.093616 ms)
+```
+
+The following are the synchronous and asynchronous stream network writer (TCP) benchmarks. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
+![Stream Network Writer Benchmark][stream-network-writer-benchmark]
+
+```
+The synchronous client took 39889 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 39.889 seconds Packet count: 1 000 000
+    Time per packet: 39.889 / 1 000 000
+    Time per packet: 3.9889x10^-5 (0.039889 ms)
+
+The asynchronous client took 44806 ms to send all of their packets.
+Therefore, average RTT-per-packet:
+    Total time: 44.806 seconds Packet count: 1 000 000
+    Time per packet: 44.806 / 1 000 000
+    Time per packet: 4.4806x10^-5 (0.044806 ms)
+```
 
 [discord-server-badge]: https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue
 
-[example-project]: ./docs/netsharp-example-selector.png
+[example-project]: ./docs/example-selector.png
 
-[udp-server-benchmark]: ./docs/netsharp-udp-server-benchmark.png
-[udp-client-sync-benchmark]: ./docs/netsharp-udp-client-sync-benchmark.png
-[udp-client-async-benchmark]: ./docs/netsharp-udp-client-async-benchmark.png
+[datagram-network-listener-benchmark]: ./docs/datagram-network-listener-bench.png
+[datagram-network-writer-benchmark]: ./docs/datagram-network-writer-bench.png
 
-[tcp-server-benchmark]: ./docs/netsharp-tcp-server-benchmark.png
-[tcp-client-sync-benchmark]: ./docs/netsharp-tcp-client-sync-benchmark.png
-[tcp-client-async-benchmark]: ./docs/netsharp-tcp-client-async-benchmark.png
+[stream-network-listener-benchmark]: ./docs/stream-network-listener-bench.png
+[stream-network-writer-benchmark]: ./docs/stream-network-writer-bench.png
