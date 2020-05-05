@@ -28,7 +28,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
 
-            using StreamNetworkWriter writer = new StreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
             await writer.ConnectAsync(ServerEndPoint);
 
             byte[] transmissionBuffer = new byte[PacketSize];

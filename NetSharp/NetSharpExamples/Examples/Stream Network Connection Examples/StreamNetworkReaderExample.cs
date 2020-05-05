@@ -38,7 +38,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             rawSocket.Bind(ServerEndPoint);
             rawSocket.Listen(ExpectedClientCount);
 
-            using StreamNetworkReader reader = new StreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
             reader.Start(ExpectedClientCount);
 
             Console.WriteLine($"Started stream server at {ServerEndPoint}! Enter any key to stop the server...");

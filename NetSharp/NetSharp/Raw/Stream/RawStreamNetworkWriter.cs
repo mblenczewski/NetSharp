@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw.Stream
 {
-    public sealed class StreamNetworkWriter : NetworkWriterBase<SocketAsyncEventArgs>
+    public sealed class RawStreamNetworkWriter : RawNetworkWriterBase<SocketAsyncEventArgs>
     {
         /// <inheritdoc />
-        public StreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize, int maxPooledBuffersPerBucket = 1000,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, maxPooledBuffersPerBucket, preallocatedStateObjects)
+        public RawStreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
+            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
@@ -270,10 +270,10 @@ namespace NetSharp.Raw.Stream
         public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = readBuffer.Length;
-            if (totalBytes > BufferSize)
+            if (totalBytes > PacketBufferSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
                     nameof(readBuffer.Length)
                 );
             }
@@ -297,10 +297,10 @@ namespace NetSharp.Raw.Stream
         public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = readBuffer.Length;
-            if (totalBytes > BufferSize)
+            if (totalBytes > PacketBufferSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
                     nameof(readBuffer.Length)
                 );
             }
@@ -310,7 +310,7 @@ namespace NetSharp.Raw.Stream
 
             byte[] transmissionBuffer = BufferPool.Rent(totalBytes);
 
-            args.SetBuffer(transmissionBuffer, 0, BufferSize);
+            args.SetBuffer(transmissionBuffer, 0, PacketBufferSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
@@ -323,7 +323,7 @@ namespace NetSharp.Raw.Stream
             // inlining CompleteReceive(SocketAsyncEventArgs) for performance
             int receivedBytes = args.BytesTransferred, totalReceivedBytes = token.TotalReadBytes;
 
-            if (totalReceivedBytes + receivedBytes == BufferSize)  // transmission complete
+            if (totalReceivedBytes + receivedBytes == PacketBufferSize)  // transmission complete
             {
                 transmissionBuffer.CopyTo(readBuffer);
 
@@ -332,13 +332,13 @@ namespace NetSharp.Raw.Stream
 
                 return new ValueTask<int>(totalReceivedBytes + receivedBytes);
             }
-            else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < BufferSize)  // transmission not complete
+            else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < PacketBufferSize)  // transmission not complete
             {
                 // update user token to take account of newly read bytes
                 token = new AsyncStreamReadToken(in token, receivedBytes);
                 args.UserToken = token;
 
-                args.SetBuffer(totalReceivedBytes, BufferSize - receivedBytes);
+                args.SetBuffer(totalReceivedBytes, PacketBufferSize - receivedBytes);
 
                 ContinueReceive(args);
             }
@@ -354,10 +354,10 @@ namespace NetSharp.Raw.Stream
         public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = writeBuffer.Length;
-            if (totalBytes > BufferSize)
+            if (totalBytes > PacketBufferSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
                     nameof(writeBuffer.Length)
                 );
             }
@@ -381,10 +381,10 @@ namespace NetSharp.Raw.Stream
         public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = writeBuffer.Length;
-            if (totalBytes > BufferSize)
+            if (totalBytes > PacketBufferSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {BufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
                     nameof(writeBuffer.Length)
                 );
             }
@@ -395,7 +395,7 @@ namespace NetSharp.Raw.Stream
             byte[] transmissionBuffer = BufferPool.Rent(totalBytes);
             writeBuffer.CopyTo(transmissionBuffer);
 
-            args.SetBuffer(transmissionBuffer, 0, BufferSize);
+            args.SetBuffer(transmissionBuffer, 0, PacketBufferSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
@@ -408,20 +408,20 @@ namespace NetSharp.Raw.Stream
             // inlining CompleteSend(SocketAsyncEventArgs) for performance
             int sentBytes = args.BytesTransferred, totalSentBytes = token.TotalWrittenBytes;
 
-            if (totalSentBytes + sentBytes == BufferSize) // transmission complete
+            if (totalSentBytes + sentBytes == PacketBufferSize) // transmission complete
             {
                 BufferPool.Return(transmissionBuffer, true);
                 StateObjectPool.Return(args);
 
                 return new ValueTask<int>(totalSentBytes + sentBytes);
             }
-            else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < BufferSize)  // transmission not complete
+            else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < PacketBufferSize)  // transmission not complete
             {
                 // update user token to take account of newly written bytes
                 token = new AsyncStreamWriteToken(in token, sentBytes);
                 args.UserToken = token;
 
-                args.SetBuffer(totalSentBytes, BufferSize - sentBytes);
+                args.SetBuffer(totalSentBytes, PacketBufferSize - sentBytes);
 
                 ContinueSend(args);
             }

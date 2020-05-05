@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class StreamNetworkWriterAsyncBenchmark : INetSharpExample, INetSharpBenchmark
+    public class StreamNetworkWriterAsyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
 
@@ -21,7 +21,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Stream Network Writer Benchmark (Asynchronous)";
+        public string Name { get; } = "Stream Raw Network Writer Benchmark (Asynchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -81,7 +81,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
 
-            using StreamNetworkWriter writer = new StreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);

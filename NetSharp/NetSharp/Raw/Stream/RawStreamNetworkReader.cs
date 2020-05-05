@@ -4,12 +4,12 @@ using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Stream
 {
-    public sealed class StreamNetworkReader : NetworkReaderBase<SocketAsyncEventArgs>
+    public sealed class RawStreamNetworkReader : RawNetworkReaderBase<SocketAsyncEventArgs>
     {
         /// <inheritdoc />
-        public StreamNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledBufferSize,
-            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, maxPooledBufferSize,
-            maxPooledBuffersPerBucket, preallocatedStateObjects)
+        public RawStreamNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
+            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, pooledPacketBufferSize,
+            pooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
@@ -74,7 +74,7 @@ namespace NetSharp.Raw.Stream
 
                         if (responseExists)
                         {
-                            args.SetBuffer(responseBufferHandle, 0, BufferSize);
+                            args.SetBuffer(responseBufferHandle, 0, PacketBufferSize);
 
                             TransmissionToken sendToken = new TransmissionToken(0);
                             args.UserToken = sendToken;
@@ -232,9 +232,9 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            byte[] receiveBuffer = BufferPool.Rent(BufferSize);
+            byte[] receiveBuffer = BufferPool.Rent(PacketBufferSize);
 
-            args.SetBuffer(receiveBuffer, 0, BufferSize);
+            args.SetBuffer(receiveBuffer, 0, PacketBufferSize);
 
             TransmissionToken token = new TransmissionToken(0);
             args.UserToken = token;

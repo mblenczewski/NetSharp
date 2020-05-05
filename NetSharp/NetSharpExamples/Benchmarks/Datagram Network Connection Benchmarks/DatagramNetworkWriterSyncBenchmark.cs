@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    public class DatagramNetworkWriterSyncBenchmark : INetSharpExample, INetSharpBenchmark
+    public class DatagramNetworkWriterSyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
 
@@ -21,7 +21,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Datagram Network Writer Benchmark (Synchronous)";
+        public string Name { get; } = "Datagram Raw Network Writer Benchmark (Synchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -59,7 +59,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(ClientEndPoint);
 
-            using DatagramNetworkWriter writer = new DatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+            using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);

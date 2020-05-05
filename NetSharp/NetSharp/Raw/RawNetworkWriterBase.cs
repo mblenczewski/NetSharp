@@ -5,27 +5,33 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw
 {
-    public abstract class NetworkWriterBase<TState> : NetworkConnectionBase<TState> where TState : class
+    public abstract class RawNetworkWriterBase<TState> : RawNetworkConnectionBase<TState>, INetworkWriter where TState : class
     {
         /// <inheritdoc />
-        protected NetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize, int maxPooledBuffersPerBucket = 1000,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, maxPooledBuffersPerBucket, preallocatedStateObjects)
+        protected RawNetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
+            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
+        /// <inheritdoc />
         public abstract void Connect(EndPoint remoteEndPoint);
 
+        /// <inheritdoc />
         public abstract ValueTask ConnectAsync(EndPoint remoteEndPoint);
 
+        /// <inheritdoc />
         public abstract int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer,
             SocketFlags flags = SocketFlags.None);
 
+        /// <inheritdoc />
         public abstract ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer,
             SocketFlags flags = SocketFlags.None);
 
+        /// <inheritdoc />
         public abstract int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);
 
+        /// <inheritdoc />
         public abstract ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);
 

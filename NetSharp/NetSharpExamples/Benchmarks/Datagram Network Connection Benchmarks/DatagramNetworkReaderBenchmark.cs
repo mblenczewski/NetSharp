@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    public class DatagramNetworkReaderBenchmark : INetSharpExample, INetSharpBenchmark
+    public class DatagramNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
@@ -23,7 +23,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Datagram Network Reader Benchmark";
+        public string Name { get; } = "Datagram Raw Network Reader Benchmark";
 
         private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, Memory<byte> responseBuffer)
         {
@@ -102,7 +102,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(ServerEndPoint);
 
-            using DatagramNetworkReader reader = new DatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, PacketSize);
+            using RawDatagramNetworkReader reader = new RawDatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, PacketSize);
             reader.Start(ClientCount);
 
             ServerReadyEvent.Set();

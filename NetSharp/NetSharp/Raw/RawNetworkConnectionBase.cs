@@ -7,21 +7,21 @@ using System.Net.Sockets;
 
 namespace NetSharp.Raw
 {
-    public abstract class NetworkConnectionBase<TState> : IDisposable where TState : class
+    public abstract class RawNetworkConnectionBase<TState> : IDisposable where TState : class
     {
         protected readonly ArrayPool<byte> BufferPool;
-        protected readonly int BufferSize;
         protected readonly Socket Connection;
         protected readonly EndPoint DefaultEndPoint;
+        protected readonly int PacketBufferSize;
         protected readonly SlimObjectPool<TState> StateObjectPool;
 
-        protected NetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
-            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
+        protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize,
+            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
         {
             Connection = rawConnection;
 
-            BufferSize = maxPooledBufferSize;
-            BufferPool = ArrayPool<byte>.Create(maxPooledBufferSize, maxPooledBuffersPerBucket);
+            PacketBufferSize = pooledPacketBufferSize;
+            BufferPool = ArrayPool<byte>.Create(pooledPacketBufferSize, pooledBuffersPerBucket);
 
             DefaultEndPoint = defaultEndPoint;
 

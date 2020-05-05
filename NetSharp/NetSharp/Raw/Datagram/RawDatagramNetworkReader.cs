@@ -3,12 +3,12 @@ using System.Net.Sockets;
 
 namespace NetSharp.Raw.Datagram
 {
-    public sealed class DatagramNetworkReader : NetworkReaderBase<SocketAsyncEventArgs>
+    public sealed class RawDatagramNetworkReader : RawNetworkReaderBase<SocketAsyncEventArgs>
     {
         /// <inheritdoc />
-        public DatagramNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledBufferSize,
-            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, maxPooledBufferSize,
-            maxPooledBuffersPerBucket, preallocatedStateObjects)
+        public RawDatagramNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
+            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, pooledPacketBufferSize,
+            pooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
 
@@ -19,7 +19,7 @@ namespace NetSharp.Raw.Datagram
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    byte[] responseBuffer = BufferPool.Rent(BufferSize);
+                    byte[] responseBuffer = BufferPool.Rent(PacketBufferSize);
 
                     bool responseExists =
                         RequestHandler(args.RemoteEndPoint, receiveBuffer, args.BytesTransferred, responseBuffer);
@@ -27,7 +27,7 @@ namespace NetSharp.Raw.Datagram
 
                     if (responseExists)
                     {
-                        args.SetBuffer(responseBuffer, 0, BufferSize);
+                        args.SetBuffer(responseBuffer, 0, PacketBufferSize);
 
                         StartSendTo(args);
 
@@ -81,7 +81,7 @@ namespace NetSharp.Raw.Datagram
 
         private void StartReceiveFrom(SocketAsyncEventArgs args)
         {
-            byte[] receiveBuffer = BufferPool.Rent(BufferSize);
+            byte[] receiveBuffer = BufferPool.Rent(PacketBufferSize);
 
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -91,7 +91,7 @@ namespace NetSharp.Raw.Datagram
                 return;
             }
 
-            args.SetBuffer(receiveBuffer, 0, BufferSize);
+            args.SetBuffer(receiveBuffer, 0, PacketBufferSize);
 
             if (Connection.ReceiveFromAsync(args)) return;
 

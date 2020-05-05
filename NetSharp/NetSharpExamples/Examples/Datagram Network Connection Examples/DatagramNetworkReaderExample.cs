@@ -37,7 +37,7 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(ServerEndPoint);
 
-            using DatagramNetworkReader reader = new DatagramNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
+            using RawDatagramNetworkReader reader = new RawDatagramNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
             reader.Start(ExpectedClientCount);
 
             Console.WriteLine($"Started datagram server at {ServerEndPoint}! Enter any key to stop the server...");

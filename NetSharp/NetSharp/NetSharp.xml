@@ -4,6 +4,15 @@
         <name>NetSharp</name>
     </assembly>
     <members>
+        <member name="M:NetSharp.Connection.#ctor(System.Net.Sockets.AddressFamily,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,NetSharp.Raw.IRawNetworkTransportProvider{System.Net.Sockets.SocketAsyncEventArgs},System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.HandleRawPacketReceived(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Int32,System.Memory{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Dispose">
+            <inheritdoc />
+        </member>
         <member name="T:NetSharp.Packets.NetworkPacket">
             <summary>
             Represents a raw packet sent across the network.
@@ -156,123 +165,141 @@
             The memory buffer to write the serialised packet header instance to.
             </param>
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.CreateStateObject">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.CreateStateObject">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkReader.Start(System.UInt16)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.CreateStateObject">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.CreateStateObject">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.Connect(System.Net.EndPoint)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Connect(System.Net.EndPoint)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.ConnectAsync(System.Net.EndPoint)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ConnectAsync(System.Net.EndPoint)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.DatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.NetworkConnectionBase`1.Dispose(System.Boolean)">
+        <member name="P:NetSharp.Raw.DatagramRawNetworkTransportProvider.TransportProtocolType">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Raw.StreamRawNetworkTransportProvider.TransportProtocolType">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase`1.Dispose(System.Boolean)">
             <summary>
             Allows for inheritors to dispose of their own resources.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.NetworkConnectionBase`1.Dispose">
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase`1.Dispose">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.NetworkReaderBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.NetworkReaderBase`1.Dispose(System.Boolean)">
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase`1.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.NetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.CreateStateObject">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.CreateStateObject">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkReader.Start(System.UInt16)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.CreateStateObject">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CreateStateObject">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.Connect(System.Net.EndPoint)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Connect(System.Net.EndPoint)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.ConnectAsync(System.Net.EndPoint)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ConnectAsync(System.Net.EndPoint)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.StreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.BiDictionary`2">

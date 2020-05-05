@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class StreamNetworkReaderBenchmark : INetSharpExample, INetSharpBenchmark
+    public class StreamNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
@@ -23,7 +23,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Stream Network Reader Benchmark";
+        public string Name { get; } = "Stream Raw Network Reader Benchmark";
 
         private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, Memory<byte> responseBuffer)
         {
@@ -122,7 +122,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             rawSocket.Bind(ServerEndPoint);
             rawSocket.Listen(ClientCount);
 
-            using StreamNetworkReader reader = new StreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
             reader.Start(ClientCount);
 
             ServerReadyEvent.Set();

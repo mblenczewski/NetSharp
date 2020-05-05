@@ -28,7 +28,7 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(ClientEndPoint);
 
-            using DatagramNetworkWriter writer = new DatagramNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
+            using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
 
             byte[] transmissionBuffer = new byte[PacketSize];
 
