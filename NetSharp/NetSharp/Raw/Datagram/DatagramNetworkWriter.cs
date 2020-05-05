@@ -207,6 +207,7 @@ namespace NetSharp.Raw.Datagram
 
             if (Connection.ReceiveFromAsync(args)) return new ValueTask<int>(tcs.Task);
 
+            // inlining CompleteReceiveFrom(SocketAsyncEventArgs) for performance
             int result = args.BytesTransferred;
 
             transmissionBuffer.CopyTo(readBuffer);
@@ -268,6 +269,7 @@ namespace NetSharp.Raw.Datagram
 
             if (Connection.SendToAsync(args)) return new ValueTask<int>(tcs.Task);
 
+            // inlining CompleteSendTo(SocketAsyncEventArgs) for performance
             int result = args.BytesTransferred;
 
             BufferPool.Return(transmissionBuffer, true);

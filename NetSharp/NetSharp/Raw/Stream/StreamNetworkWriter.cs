@@ -64,8 +64,8 @@ namespace NetSharp.Raw.Stream
         {
             AsyncStreamReadToken token = (AsyncStreamReadToken)args.UserToken;
 
-            byte[] receiveBufferHandle = args.Buffer;
-            int expectedBytes = receiveBufferHandle.Length;
+            byte[] receiveBuffer = args.Buffer;
+            int expectedBytes = receiveBuffer.Length;
 
             switch (args.SocketError)
             {
@@ -74,8 +74,8 @@ namespace NetSharp.Raw.Stream
 
                     if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
                     {
-                        receiveBufferHandle.CopyTo(token.UserBuffer);
-                        token.CompletionSource.SetResult(args.BytesTransferred);
+                        receiveBuffer.CopyTo(token.UserBuffer);
+                        token.CompletionSource.SetResult(totalReceivedBytes + receivedBytes);
                     }
                     else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < expectedBytes)  // transmission not complete
                     {
@@ -104,7 +104,7 @@ namespace NetSharp.Raw.Stream
                     break;
             }
 
-            BufferPool.Return(receiveBufferHandle, true);
+            BufferPool.Return(receiveBuffer, true);
             StateObjectPool.Return(args);
         }
 
@@ -112,8 +112,8 @@ namespace NetSharp.Raw.Stream
         {
             AsyncStreamWriteToken token = (AsyncStreamWriteToken)args.UserToken;
 
-            byte[] sendBufferHandle = args.Buffer;
-            int expectedBytes = sendBufferHandle.Length;
+            byte[] sendBuffer = args.Buffer;
+            int expectedBytes = sendBuffer.Length;
 
             switch (args.SocketError)
             {
@@ -122,7 +122,7 @@ namespace NetSharp.Raw.Stream
 
                     if (totalSentBytes + sentBytes == expectedBytes) // transmission complete
                     {
-                        token.CompletionSource.SetResult(args.BytesTransferred);
+                        token.CompletionSource.SetResult(totalSentBytes + sentBytes);
                     }
                     else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < expectedBytes)  // transmission not complete
                     {
@@ -151,7 +151,7 @@ namespace NetSharp.Raw.Stream
                     break;
             }
 
-            BufferPool.Return(sendBufferHandle, true);
+            BufferPool.Return(sendBuffer, true);
             StateObjectPool.Return(args);
         }
 
@@ -318,7 +318,34 @@ namespace NetSharp.Raw.Stream
             AsyncStreamReadToken token = new AsyncStreamReadToken(tcs, 0, in readBuffer);
             args.UserToken = token;
 
-            if (!Connection.ReceiveAsync(args)) CompleteReceive(args);
+            if (Connection.ReceiveAsync(args)) return new ValueTask<int>(tcs.Task);
+
+            // inlining CompleteReceive(SocketAsyncEventArgs) for performance
+            int receivedBytes = args.BytesTransferred, totalReceivedBytes = token.TotalReadBytes;
+
+            if (totalReceivedBytes + receivedBytes == BufferSize)  // transmission complete
+            {
+                transmissionBuffer.CopyTo(readBuffer);
+
+                BufferPool.Return(transmissionBuffer, true);
+                StateObjectPool.Return(args);
+
+                return new ValueTask<int>(totalReceivedBytes + receivedBytes);
+            }
+            else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < BufferSize)  // transmission not complete
+            {
+                // update user token to take account of newly read bytes
+                token = new AsyncStreamReadToken(in token, receivedBytes);
+                args.UserToken = token;
+
+                args.SetBuffer(totalReceivedBytes, BufferSize - receivedBytes);
+
+                ContinueReceive(args);
+            }
+            else if (receivedBytes == 0)  // connection is dead
+            {
+                token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+            }
 
             return new ValueTask<int>(tcs.Task);
         }
@@ -376,7 +403,32 @@ namespace NetSharp.Raw.Stream
             AsyncStreamWriteToken token = new AsyncStreamWriteToken(tcs, 0);
             args.UserToken = token;
 
-            if (!Connection.SendAsync(args)) CompleteSend(args);
+            if (Connection.SendAsync(args)) return new ValueTask<int>(tcs.Task);
+
+            // inlining CompleteSend(SocketAsyncEventArgs) for performance
+            int sentBytes = args.BytesTransferred, totalSentBytes = token.TotalWrittenBytes;
+
+            if (totalSentBytes + sentBytes == BufferSize) // transmission complete
+            {
+                BufferPool.Return(transmissionBuffer, true);
+                StateObjectPool.Return(args);
+
+                return new ValueTask<int>(totalSentBytes + sentBytes);
+            }
+            else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < BufferSize)  // transmission not complete
+            {
+                // update user token to take account of newly written bytes
+                token = new AsyncStreamWriteToken(in token, sentBytes);
+                args.UserToken = token;
+
+                args.SetBuffer(totalSentBytes, BufferSize - sentBytes);
+
+                ContinueSend(args);
+            }
+            else if (sentBytes == 0)  // connection is dead
+            {
+                token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+            }
 
             return new ValueTask<int>(tcs.Task);
         }

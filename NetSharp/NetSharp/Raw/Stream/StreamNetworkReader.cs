@@ -25,6 +25,8 @@ namespace NetSharp.Raw.Stream
             clientSocket.Dispose();
 
             StateObjectPool.Return(args);
+
+            StartDefaultAccept();
         }
 
         private void CompleteAccept(SocketAsyncEventArgs args)
@@ -53,25 +55,12 @@ namespace NetSharp.Raw.Stream
                 case SocketError.Success:
                     int receivedBytes = args.BytesTransferred, totalReceivedBytes = token.BytesTransferred;
 
-                    if (receivedBytes == 0)  // connection is dead
-                    {
-                        CloseClientConnection(args);
-                    }
-                    else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < expectedBytes)  // transmission not complete
-                    {
-                        token = new TransmissionToken(in token, args.BytesTransferred);
-                        args.UserToken = token;
-
-                        args.SetBuffer(totalReceivedBytes, expectedBytes - receivedBytes);
-
-                        ContinueReceive(args);
-                    }
-                    else if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
+                    if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
                     {
                         byte[] responseBufferHandle = BufferPool.Rent(expectedBytes);
 
                         bool responseExists =
-                            RequestHandler(args.RemoteEndPoint, receiveBuffer, totalReceivedBytes + receivedBytes, responseBufferHandle);
+                            RequestHandler(args.AcceptSocket.RemoteEndPoint, receiveBuffer, totalReceivedBytes + receivedBytes, responseBufferHandle);
                         BufferPool.Return(receiveBuffer, true);
 
                         if (responseExists)
@@ -88,6 +77,19 @@ namespace NetSharp.Raw.Stream
                         BufferPool.Return(responseBufferHandle, true);
 
                         StartReceive(args);
+                    }
+                    else if (0 < totalReceivedBytes + receivedBytes && totalReceivedBytes + receivedBytes < expectedBytes)  // transmission not complete
+                    {
+                        token = new TransmissionToken(in token, args.BytesTransferred);
+                        args.UserToken = token;
+
+                        args.SetBuffer(totalReceivedBytes, expectedBytes - receivedBytes);
+
+                        ContinueReceive(args);
+                    }
+                    else if (receivedBytes == 0)  // connection is dead
+                    {
+                        CloseClientConnection(args);
                     }
                     break;
 
@@ -109,9 +111,11 @@ namespace NetSharp.Raw.Stream
                 case SocketError.Success:
                     int sentBytes = args.BytesTransferred, totalSentBytes = token.BytesTransferred;
 
-                    if (sentBytes == 0)  // connection is dead
+                    if (totalSentBytes + sentBytes == expectedBytes)  // transmission complete
                     {
-                        CloseClientConnection(args);
+                        BufferPool.Return(sendBuffer, true);
+
+                        StartReceive(args);
                     }
                     else if (0 < totalSentBytes + sentBytes && totalSentBytes + sentBytes < expectedBytes)  // transmission not complete
                     {
@@ -122,11 +126,9 @@ namespace NetSharp.Raw.Stream
 
                         ContinueSend(args);
                     }
-                    else if (totalSentBytes + sentBytes == expectedBytes)  // transmission complete
+                    else if (sentBytes == 0)  // connection is dead
                     {
-                        BufferPool.Return(sendBuffer, true);
-
-                        StartReceive(args);
+                        CloseClientConnection(args);
                     }
                     break;
 
@@ -273,6 +275,7 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
+            instance.AcceptSocket = null;
         }
 
         /// <inheritdoc />

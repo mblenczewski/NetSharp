@@ -59,7 +59,7 @@ namespace NetSharpExamples
             Console.WriteLine("Available Examples:");
             for (int i = 0; i < Examples.Count; i++)
             {
-                Console.WriteLine($"\t{i} - {Examples[i].Name}");
+                Console.WriteLine($"\t{i:D2} - {Examples[i].Name}");
             }
 
             while (true)
@@ -77,9 +77,11 @@ namespace NetSharpExamples
                         continue;
                     }
 
-                    Console.WriteLine($"Starting \'{Examples[choice].Name}\'...");
-                    Examples[choice].RunAsync().GetAwaiter().GetResult();
-                    Console.WriteLine($"Finished \'{Examples[choice].Name}\'!");
+                    INetSharpExample selectedExample = Examples[choice];
+
+                    Console.WriteLine($"Starting \'{selectedExample.Name}\'...");
+                    selectedExample.RunAsync().GetAwaiter().GetResult();
+                    Console.WriteLine($"Finished \'{selectedExample.Name}\'!");
 
                     break;
                 }

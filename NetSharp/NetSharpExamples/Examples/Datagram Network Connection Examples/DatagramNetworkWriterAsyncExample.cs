@@ -3,6 +3,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
@@ -13,6 +14,7 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
 
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
+        public static readonly Encoding ServerEncoding = DatagramNetworkReaderExample.ServerEncoding;
         public static readonly EndPoint ServerEndPoint = DatagramNetworkReaderExample.ServerEndPoint;
 
         /// <inheritdoc />
