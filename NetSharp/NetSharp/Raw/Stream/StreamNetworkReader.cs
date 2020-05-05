@@ -25,8 +25,6 @@ namespace NetSharp.Raw.Stream
             clientSocket.Dispose();
 
             StateObjectPool.Return(args);
-
-            StartDefaultAccept();
         }
 
         private void CompleteAccept(SocketAsyncEventArgs args)
@@ -37,10 +35,21 @@ namespace NetSharp.Raw.Stream
                     StartReceive(args);
                     break;
 
+                case SocketError.ConnectionReset:
+                    /*
+                     * The SocketAsyncEventArgs.Completed event can occur in some cases when no connection has been accepted and cause the SocketAsyncEventArgs.SocketError property to be set to ConnectionReset.
+                     * This can occur as a result of port scanning using a half-open SYN type scan (a SYN -> SYN-ACK -> RST sequence).
+                     * Applications using the AcceptAsync method should be prepared to handle this condition.
+                     */
+                    StateObjectPool.Return(args);
+                    break;
+
                 default:
                     StateObjectPool.Return(args);
                     break;
             }
+
+            StartDefaultAccept();
         }
 
         private void CompleteReceive(SocketAsyncEventArgs args)
