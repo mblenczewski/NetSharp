@@ -4,14 +4,13 @@ using NetSharp.Raw;
 
 namespace NetSharp
 {
-    /*
     public static class ConnectionBuilder
     {
         public static ConfiguredConnectionBuilder WithCustomTransport(
             IRawNetworkTransportProvider transportProvider, ProtocolType transportProtocol) =>
             new ConfiguredConnectionBuilder(transportProvider, transportProtocol);
 
-        public static ConfiguredConnectionBuilder WithDatagramTransport(ushort datagramSize, ProtocolType transportProtocol = ProtocolType.Udp) =>
+        public static ConfiguredConnectionBuilder WithDatagramTransport(ushort datagramSize = 8192, ProtocolType transportProtocol = ProtocolType.Udp) =>
             WithCustomTransport(new DatagramRawNetworkTransportProvider(datagramSize), transportProtocol);
 
         public static ConfiguredConnectionBuilder WithStreamTransport(ProtocolType transportProtocol = ProtocolType.Tcp) =>
@@ -102,5 +101,4 @@ namespace NetSharp
             }
         }
     }
-    */
 }

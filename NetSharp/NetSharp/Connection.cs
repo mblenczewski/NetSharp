@@ -12,7 +12,7 @@ namespace NetSharp
     {
         /// <inheritdoc />
         internal Connection(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType,
-            IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider, EndPoint defaultEndPoint, int packetBufferSize,
+            IRawNetworkTransportProvider transportProvider, EndPoint defaultEndPoint, int packetBufferSize,
             int pooledBuffersPerBucket, uint preallocatedStateObjects) : base(addressFamily, socketType, protocolType,
             transportProvider, defaultEndPoint, packetBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
@@ -82,12 +82,12 @@ namespace NetSharp
     {
         private readonly Socket connection;
 
-        protected readonly RawNetworkReaderBase<SocketAsyncEventArgs> Reader;
+        protected readonly RawNetworkReaderBase Reader;
 
-        protected readonly RawNetworkWriterBase<SocketAsyncEventArgs> Writer;
+        protected readonly RawNetworkWriterBase Writer;
 
         private protected ConnectionBase(AddressFamily addressFamily, SocketType socketType, ProtocolType protocolType,
-            IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider, EndPoint defaultEndPoint, int packetBufferSize,
+            IRawNetworkTransportProvider transportProvider, EndPoint defaultEndPoint, int packetBufferSize,
             int pooledBuffersPerBucket, uint preallocatedStateObjects)
         {
             connection = new Socket(addressFamily, socketType, protocolType);
@@ -147,105 +147,5 @@ namespace NetSharp
         /// <inheritdoc />
         public abstract ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);
-    }
-
-    public sealed class ConnectionBuilder
-    {
-        public static ConfiguredConnectionBuilder WithCustomTransport(IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider,
-            ProtocolType transportProtocol)
-        {
-            return new ConfiguredConnectionBuilder(transportProvider, transportProtocol);
-        }
-
-        public static ConfiguredConnectionBuilder WithDatagramTransport(ProtocolType transportProtocol = ProtocolType.Udp) =>
-            WithCustomTransport(new DatagramRawNetworkTransportProvider(), transportProtocol);
-
-        public static ConfiguredConnectionBuilder WithStreamTransport(ProtocolType transportProtocol = ProtocolType.Tcp) =>
-            WithCustomTransport(new StreamRawNetworkTransportProvider(), transportProtocol);
-
-        public sealed class ConfiguredConnectionBuilder
-        {
-            private readonly IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider;
-
-            internal ConfiguredConnectionBuilder(IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider, ProtocolType transportProtocol)
-            {
-                this.transportProvider = transportProvider;
-
-                SocketType = transportProvider.TransportProtocolType;
-
-                ProtocolType = transportProtocol;
-            }
-
-            public AddressFamily AddressFamily { get; private set; } = AddressFamily.InterNetwork;
-            public EndPoint DefaultEndPoint { get; private set; } = new IPEndPoint(IPAddress.Any, 0);
-            public ProtocolType ProtocolType { get; }
-            public SocketType SocketType { get; }
-
-            public ConfiguredConnectionBuilder WithAddressFamily(AddressFamily addressFamily, EndPoint defaultEndPoint)
-            {
-                AddressFamily = addressFamily;
-
-                DefaultEndPoint = defaultEndPoint;
-
-                return this;
-            }
-
-            public CompletedConnectionBuilder WithDefaultSettings(int packetBufferSize) =>
-                WithSettings(packetBufferSize, 1000, 0);
-
-            public ConfiguredConnectionBuilder WithInterNetwork(EndPoint defaultEndPoint) =>
-                                        WithAddressFamily(AddressFamily.InterNetwork, defaultEndPoint);
-
-            public ConfiguredConnectionBuilder WithInterNetworkV6(EndPoint defaultEndPoint) =>
-                WithAddressFamily(AddressFamily.InterNetworkV6, defaultEndPoint);
-
-            public CompletedConnectionBuilder WithSettings(int packetBufferSize, int pooledBuffersPerBucket,
-                uint preallocatedStateObjects)
-            {
-                return new CompletedConnectionBuilder(transportProvider, AddressFamily, DefaultEndPoint, SocketType,
-                    ProtocolType, packetBufferSize, pooledBuffersPerBucket, preallocatedStateObjects);
-            }
-
-            public sealed class CompletedConnectionBuilder
-            {
-                private readonly IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider;
-
-                internal CompletedConnectionBuilder(
-                    IRawNetworkTransportProvider<SocketAsyncEventArgs> transportProvider, AddressFamily addressFamily, EndPoint defaultEndPoint,
-                    SocketType transportProtocolType, ProtocolType transportProtocol, int maxBufferSize, int pooledBuffersPerBucket,
-                    uint preallocatedStateObjects)
-                {
-                    this.transportProvider = transportProvider;
-
-                    AddressFamily = addressFamily;
-
-                    DefaultEndPoint = defaultEndPoint;
-
-                    SocketType = transportProtocolType;
-
-                    ProtocolType = transportProtocol;
-
-                    BufferSize = maxBufferSize;
-
-                    PooledBuffersPerBucket = pooledBuffersPerBucket;
-
-                    PreallocatedStateObjects = preallocatedStateObjects;
-                }
-
-                public AddressFamily AddressFamily { get; }
-                public int BufferSize { get; }
-                public EndPoint DefaultEndPoint { get; }
-                public int PooledBuffersPerBucket { get; }
-                public uint PreallocatedStateObjects { get; }
-                public ProtocolType ProtocolType { get; }
-                public SocketType SocketType { get; }
-
-                public Connection BuildDefault()
-                {
-                    return new Connection(AddressFamily, SocketType, ProtocolType, transportProvider, DefaultEndPoint,
-                        BufferSize, PooledBuffersPerBucket, PreallocatedStateObjects);
-                }
-            }
-        }
     }
 }
