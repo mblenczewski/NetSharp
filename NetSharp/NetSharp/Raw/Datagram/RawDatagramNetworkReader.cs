@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace NetSharp.Raw.Datagram
 {
-    public sealed class RawDatagramNetworkReader : RawNetworkReaderBase<SocketAsyncEventArgs>
+    public sealed class RawDatagramNetworkReader : RawNetworkReaderBase
     {
         /// <inheritdoc />
         public RawDatagramNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
@@ -39,7 +39,7 @@ namespace NetSharp.Raw.Datagram
 
                 default:
                     BufferPool.Return(receiveBuffer, true);
-                    StateObjectPool.Return(args);
+                    ArgsPool.Return(args);
                     break;
             }
         }
@@ -49,7 +49,7 @@ namespace NetSharp.Raw.Datagram
             byte[] sendBuffer = args.Buffer;
 
             BufferPool.Return(sendBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -75,7 +75,7 @@ namespace NetSharp.Raw.Datagram
                 return;
             }
 
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
             StartReceiveFrom(args);
         }
 
@@ -86,7 +86,7 @@ namespace NetSharp.Raw.Datagram
             if (ShutdownToken.IsCancellationRequested)
             {
                 BufferPool.Return(receiveBuffer, true);
-                StateObjectPool.Return(args);
+                ArgsPool.Return(args);
 
                 return;
             }
@@ -106,7 +106,7 @@ namespace NetSharp.Raw.Datagram
             if (ShutdownToken.IsCancellationRequested)
             {
                 BufferPool.Return(sendBuffer, true);
-                StateObjectPool.Return(args);
+                ArgsPool.Return(args);
 
                 return;
             }

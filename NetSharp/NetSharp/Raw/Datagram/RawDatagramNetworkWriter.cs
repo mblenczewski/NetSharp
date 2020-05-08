@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw.Datagram
 {
-    public sealed class RawDatagramNetworkWriter : RawNetworkWriterBase<SocketAsyncEventArgs>
+    public sealed class RawDatagramNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
         public RawDatagramNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
@@ -33,7 +33,7 @@ namespace NetSharp.Raw.Datagram
                     break;
             }
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
@@ -60,7 +60,7 @@ namespace NetSharp.Raw.Datagram
             }
 
             BufferPool.Return(receiveBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
@@ -86,7 +86,7 @@ namespace NetSharp.Raw.Datagram
             }
 
             BufferPool.Return(sendBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -144,7 +144,7 @@ namespace NetSharp.Raw.Datagram
         public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             args.RemoteEndPoint = remoteEndPoint;
 
@@ -153,7 +153,7 @@ namespace NetSharp.Raw.Datagram
 
             if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask();
         }
@@ -193,7 +193,7 @@ namespace NetSharp.Raw.Datagram
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
 
@@ -213,7 +213,7 @@ namespace NetSharp.Raw.Datagram
             transmissionBuffer.CopyTo(readBuffer);
 
             BufferPool.Return(transmissionBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask<int>(result);
         }
@@ -254,7 +254,7 @@ namespace NetSharp.Raw.Datagram
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
             writeBuffer.CopyTo(transmissionBuffer);
@@ -273,7 +273,7 @@ namespace NetSharp.Raw.Datagram
             int result = args.BytesTransferred;
 
             BufferPool.Return(transmissionBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask<int>(result);
         }

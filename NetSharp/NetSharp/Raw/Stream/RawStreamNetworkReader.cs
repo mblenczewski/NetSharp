@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Stream
 {
-    public sealed class RawStreamNetworkReader : RawNetworkReaderBase<SocketAsyncEventArgs>
+    public sealed class RawStreamNetworkReader : RawNetworkReaderBase
     {
         /// <inheritdoc />
         public RawStreamNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
@@ -24,7 +24,7 @@ namespace NetSharp.Raw.Stream
             clientSocket.Close();
             clientSocket.Dispose();
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteAccept(SocketAsyncEventArgs args)
@@ -41,11 +41,11 @@ namespace NetSharp.Raw.Stream
                      * This can occur as a result of port scanning using a half-open SYN type scan (a SYN -> SYN-ACK -> RST sequence).
                      * Applications using the AcceptAsync method should be prepared to handle this condition.
                      */
-                    StateObjectPool.Return(args);
+                    ArgsPool.Return(args);
                     break;
 
                 default:
-                    StateObjectPool.Return(args);
+                    ArgsPool.Return(args);
                     break;
             }
 
@@ -218,7 +218,7 @@ namespace NetSharp.Raw.Stream
                 return;
             }
 
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
             StartAccept(args);
         }
 

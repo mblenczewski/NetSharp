@@ -8,7 +8,7 @@ namespace NetSharp.Raw
     public delegate bool NetworkRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
         Memory<byte> responseBuffer);
 
-    public abstract class RawNetworkReaderBase<TState> : RawNetworkConnectionBase<TState>, INetworkReader where TState : class
+    public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, INetworkReader
     {
         private readonly CancellationTokenSource shutdownTokenSource;
 

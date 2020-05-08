@@ -7,13 +7,13 @@ using System.Net.Sockets;
 
 namespace NetSharp.Raw
 {
-    public abstract class RawNetworkConnectionBase<TState> : IDisposable where TState : class
+    public abstract class RawNetworkConnectionBase : IDisposable
     {
+        protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
         protected readonly ArrayPool<byte> BufferPool;
         protected readonly Socket Connection;
         protected readonly EndPoint DefaultEndPoint;
         protected readonly int PacketBufferSize;
-        protected readonly SlimObjectPool<TState> StateObjectPool;
 
         protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize,
             int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
@@ -25,21 +25,21 @@ namespace NetSharp.Raw
 
             DefaultEndPoint = defaultEndPoint;
 
-            StateObjectPool =
-                new SlimObjectPool<TState>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
+            ArgsPool =
+                new SlimObjectPool<SocketAsyncEventArgs>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
 
             // TODO implement pooling in better way
             for (uint i = 0; i < preallocatedStateObjects; i++)
             {
-                StateObjectPool.Return(CreateStateObject());
+                ArgsPool.Return(CreateStateObject());
             }
         }
 
-        protected abstract bool CanReuseStateObject(ref TState instance);
+        protected abstract bool CanReuseStateObject(ref SocketAsyncEventArgs instance);
 
-        protected abstract TState CreateStateObject();
+        protected abstract SocketAsyncEventArgs CreateStateObject();
 
-        protected abstract void DestroyStateObject(TState instance);
+        protected abstract void DestroyStateObject(SocketAsyncEventArgs instance);
 
         /// <summary>
         /// Allows for inheritors to dispose of their own resources.
@@ -48,10 +48,10 @@ namespace NetSharp.Raw
         {
             if (!disposing) return;
 
-            StateObjectPool.Dispose();
+            ArgsPool.Dispose();
         }
 
-        protected abstract void ResetStateObject(ref TState instance);
+        protected abstract void ResetStateObject(ref SocketAsyncEventArgs instance);
 
         /// <inheritdoc />
         public void Dispose()

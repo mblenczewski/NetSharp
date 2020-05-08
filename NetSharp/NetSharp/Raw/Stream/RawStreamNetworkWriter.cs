@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw.Stream
 {
-    public sealed class RawStreamNetworkWriter : RawNetworkWriterBase<SocketAsyncEventArgs>
+    public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
         public RawStreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
@@ -34,7 +34,7 @@ namespace NetSharp.Raw.Stream
                     break;
             }
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteDisconnect(SocketAsyncEventArgs args)
@@ -57,7 +57,7 @@ namespace NetSharp.Raw.Stream
                     break;
             }
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteReceive(SocketAsyncEventArgs args)
@@ -105,7 +105,7 @@ namespace NetSharp.Raw.Stream
             }
 
             BufferPool.Return(receiveBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         private void CompleteSend(SocketAsyncEventArgs args)
@@ -152,7 +152,7 @@ namespace NetSharp.Raw.Stream
             }
 
             BufferPool.Return(sendBuffer, true);
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -230,7 +230,7 @@ namespace NetSharp.Raw.Stream
         public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             args.RemoteEndPoint = remoteEndPoint;
 
@@ -239,7 +239,7 @@ namespace NetSharp.Raw.Stream
 
             if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask();
         }
@@ -252,7 +252,7 @@ namespace NetSharp.Raw.Stream
         public ValueTask DisconnectAsync(bool reuseSocket)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             args.DisconnectReuseSocket = reuseSocket;
 
@@ -261,7 +261,7 @@ namespace NetSharp.Raw.Stream
 
             if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
 
-            StateObjectPool.Return(args);
+            ArgsPool.Return(args);
 
             return new ValueTask();
         }
@@ -306,7 +306,7 @@ namespace NetSharp.Raw.Stream
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             byte[] transmissionBuffer = BufferPool.Rent(totalBytes);
 
@@ -328,7 +328,7 @@ namespace NetSharp.Raw.Stream
                 transmissionBuffer.CopyTo(readBuffer);
 
                 BufferPool.Return(transmissionBuffer, true);
-                StateObjectPool.Return(args);
+                ArgsPool.Return(args);
 
                 return new ValueTask<int>(totalReceivedBytes + receivedBytes);
             }
@@ -390,7 +390,7 @@ namespace NetSharp.Raw.Stream
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = StateObjectPool.Rent();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
 
             byte[] transmissionBuffer = BufferPool.Rent(totalBytes);
             writeBuffer.CopyTo(transmissionBuffer);
@@ -411,7 +411,7 @@ namespace NetSharp.Raw.Stream
             if (totalSentBytes + sentBytes == PacketBufferSize) // transmission complete
             {
                 BufferPool.Return(transmissionBuffer, true);
-                StateObjectPool.Return(args);
+                ArgsPool.Return(args);
 
                 return new ValueTask<int>(totalSentBytes + sentBytes);
             }

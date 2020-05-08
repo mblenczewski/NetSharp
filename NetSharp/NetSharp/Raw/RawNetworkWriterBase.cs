@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw
 {
-    public abstract class RawNetworkWriterBase<TState> : RawNetworkConnectionBase<TState>, INetworkWriter where TState : class
+    public abstract class RawNetworkWriterBase : RawNetworkConnectionBase, INetworkWriter
     {
         /// <inheritdoc />
         protected RawNetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,

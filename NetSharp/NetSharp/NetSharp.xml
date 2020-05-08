@@ -9,8 +9,57 @@
         </member>
         <member name="M:NetSharp.Connection.HandleRawPacketReceived(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Int32,System.Memory{System.Byte})">
             <inheritdoc />
+            TODO convert to use registered packet handlers
+        </member>
+        <member name="M:NetSharp.Connection.Connect(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.ConnectAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.Stop">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Connection.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Connect(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.ConnectAsync(System.Net.EndPoint)">
+            <inheritdoc />
         </member>
         <member name="M:NetSharp.ConnectionBase.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Stop">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.ConnectionBase.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Packets.NetworkPacket">
@@ -248,7 +297,31 @@
         <member name="M:NetSharp.Raw.RawNetworkReaderBase`1.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase`1.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase`1.Stop">
+            <inheritdoc />
+        </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.Connect(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.ConnectAsync(System.Net.EndPoint)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkWriterBase`1.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
