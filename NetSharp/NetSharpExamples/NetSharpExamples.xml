@@ -40,12 +40,6 @@
         <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Examples.Connection_Examples.DefaultConnectionExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Connection_Examples.DefaultConnectionExample.RunAsync">
-            <inheritdoc />
-        </member>
         <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.Name">
             <inheritdoc />
         </member>

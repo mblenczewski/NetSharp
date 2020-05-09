@@ -7,10 +7,21 @@ namespace NetSharp.Raw.Datagram
 {
     public sealed class RawDatagramNetworkWriter : RawNetworkWriterBase
     {
+        private const int MaxDatagramSize = ushort.MaxValue - 28;
+
+        private readonly int datagramSize;
+
         /// <inheritdoc />
-        public RawDatagramNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
+        public RawDatagramNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int datagramSize, int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, datagramSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
+            if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
+            {
+                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize,
+                    $"The datagram size must be greater than 0 and less than {MaxDatagramSize}");
+            }
+
+            this.datagramSize = datagramSize;
         }
 
         private void CompleteConnect(SocketAsyncEventArgs args)
@@ -162,15 +173,15 @@ namespace NetSharp.Raw.Datagram
         public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = readBuffer.Length;
-            if (totalBytes > PacketBufferSize)
+            if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
                     nameof(readBuffer.Length)
                 );
             }
 
-            byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
+            byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
 
             int readBytes = Connection.ReceiveFrom(transmissionBuffer, flags, ref remoteEndPoint);
 
@@ -184,10 +195,10 @@ namespace NetSharp.Raw.Datagram
         public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = readBuffer.Length;
-            if (totalBytes > PacketBufferSize)
+            if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
                     nameof(readBuffer.Length)
                 );
             }
@@ -195,9 +206,9 @@ namespace NetSharp.Raw.Datagram
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             SocketAsyncEventArgs args = ArgsPool.Rent();
 
-            byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
+            byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
 
-            args.SetBuffer(transmissionBuffer, 0, PacketBufferSize);
+            args.SetBuffer(transmissionBuffer, 0, datagramSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
@@ -223,15 +234,15 @@ namespace NetSharp.Raw.Datagram
             SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = writeBuffer.Length;
-            if (totalBytes > PacketBufferSize)
+            if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
                     nameof(writeBuffer.Length)
                 );
             }
 
-            byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
+            byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
             writeBuffer.CopyTo(transmissionBuffer);
 
             int writtenBytes = Connection.SendTo(transmissionBuffer, flags, remoteEndPoint);
@@ -245,10 +256,10 @@ namespace NetSharp.Raw.Datagram
         public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = writeBuffer.Length;
-            if (totalBytes > PacketBufferSize)
+            if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {PacketBufferSize} bytes",
+                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
                     nameof(writeBuffer.Length)
                 );
             }
@@ -256,10 +267,10 @@ namespace NetSharp.Raw.Datagram
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
             SocketAsyncEventArgs args = ArgsPool.Rent();
 
-            byte[] transmissionBuffer = BufferPool.Rent(PacketBufferSize);
+            byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
             writeBuffer.CopyTo(transmissionBuffer);
 
-            args.SetBuffer(transmissionBuffer, 0, PacketBufferSize);
+            args.SetBuffer(transmissionBuffer, 0, datagramSize);
 
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;

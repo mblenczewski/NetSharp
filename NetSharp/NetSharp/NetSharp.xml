@@ -4,217 +4,7 @@
         <name>NetSharp</name>
     </assembly>
     <members>
-        <member name="M:NetSharp.Connection.#ctor(System.Net.Sockets.AddressFamily,System.Net.Sockets.SocketType,System.Net.Sockets.ProtocolType,NetSharp.Raw.IRawNetworkTransportProvider,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.HandleRawPacketReceived(System.Net.EndPoint@,System.ReadOnlyMemory{System.Byte},System.Int32,System.Memory{System.Byte})">
-            <inheritdoc />
-            TODO convert to use registered packet handlers
-        </member>
-        <member name="M:NetSharp.Connection.Connect(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.ConnectAsync(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.Start(System.UInt16)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.Stop">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Connection.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Connect(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.ConnectAsync(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Dispose">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Start(System.UInt16)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Stop">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.ConnectionBase.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharp.Packets.NetworkPacket">
-            <summary>
-            Represents a raw packet sent across the network.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.DataSize">
-            <summary>
-            The size in bytes of the packet data segment.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.FooterSize">
-            <summary>
-            The size in bytes of the packet footer segment.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.HeaderSize">
-            <summary>
-            The size in bytes of the packet header segment.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.TotalSize">
-            <summary>
-            The total size of the packet in bytes.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.NullPacket">
-            <summary>
-            Represents an empty packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.Data">
-            <summary>
-            The data held by this packet instance.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.Footer">
-            <summary>
-            The footer for this packet instance, holding additional metadata.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacket.Header">
-            <summary>
-            The header for this packet instance, holding additional metadata.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.#ctor(NetSharp.Packets.NetworkPacketHeader,System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacketFooter)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Packets.NetworkPacket" /> struct.
-            </summary>
-            <param name="packetHeader">
-            The header for this packet.
-            </param>
-            <param name="packetDataBuffer">
-            The data that should be stored in the packet.
-            </param>
-            <param name="packetFooter">
-            The footer for this packet.
-            </param>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.Deserialise(System.ReadOnlyMemory{System.Byte},NetSharp.Packets.NetworkPacket@)">
-            <summary>
-            Deserialises the serialised packet in the given memory buffer into a new <see cref="T:NetSharp.Packets.NetworkPacket" /> instance.
-            </summary>
-            <param name="buffer">
-            The memory buffer to read the serialised packet instance from.
-            </param>
-            <param name="instance">
-            The deserialised instance.
-            </param>
-            <returns>
-            Whether the deserialisation attempt was successful. The <paramref name="instance" /> will be equal to <see cref="F:NetSharp.Packets.NetworkPacket.NullPacket" /> if the
-            attempt fails.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacket.Serialise(NetSharp.Packets.NetworkPacket,System.Memory{System.Byte})">
-            <summary>
-            Serialises the given <see cref="T:NetSharp.Packets.NetworkPacket" /> instance into the given memory buffer.
-            </summary>
-            <param name="instance">
-            The packet instance which should be serialised.
-            </param>
-            <param name="buffer">
-            The memory buffer to write the serialised packet instance to. <see cref="F:NetSharp.Packets.NetworkPacket.TotalSize" /> bytes will be written into this buffer on success.
-            </param>
-            <returns>
-            Whether the serialisation attempt was successful. No bytes are written to the <paramref name="buffer" /> if the attempt fails.
-            </returns>
-        </member>
-        <member name="T:NetSharp.Packets.NetworkPacketFooter">
-            <summary>
-            Represents the footer of a <see cref="T:NetSharp.Packets.NetworkPacket" />, holding additional metadata.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketFooter.TotalSize">
-            <summary>
-            The total size of the packet footer, in bytes.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacketFooter.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <summary>
-            Deserialises the serialised packet footer in the given memory buffer into a new <see cref="T:NetSharp.Packets.NetworkPacketFooter" /> instance.
-            </summary>
-            <param name="buffer">
-            The memory buffer to read the serialised packet footer instance from.
-            </param>
-            <returns>
-            The deserialised instance.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacketFooter.Serialise(NetSharp.Packets.NetworkPacketFooter,System.Memory{System.Byte})">
-            <summary>
-            Serialises the given <see cref="T:NetSharp.Packets.NetworkPacketFooter" /> instance into the given memory buffer.
-            </summary>
-            <param name="instance">
-            The packet footer instance which should be serialised.
-            </param>
-            <param name="buffer">
-            The memory buffer to write the serialised packet footer instance to.
-            </param>
-        </member>
-        <member name="T:NetSharp.Packets.NetworkPacketHeader">
-            <summary>
-            Represents the header of a <see cref="T:NetSharp.Packets.NetworkPacket" />, holding additional metadata.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.NetworkPacketHeader.TotalSize">
-            <summary>
-            The total size of the packet header, in bytes.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacketHeader.Deserialise(System.ReadOnlyMemory{System.Byte})">
-            <summary>
-            Deserialises the serialised packet header in the given memory buffer into a new <see cref="T:NetSharp.Packets.NetworkPacketHeader" /> instance.
-            </summary>
-            <param name="buffer">
-            The memory buffer to read the serialised packet header instance from.
-            </param>
-            <returns>
-            The deserialised instance.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Packets.NetworkPacketHeader.Serialise(NetSharp.Packets.NetworkPacketHeader,System.Memory{System.Byte})">
-            <summary>
-            Serialises the given <see cref="T:NetSharp.Packets.NetworkPacketHeader" /> instance into the given memory buffer.
-            </summary>
-            <param name="instance">
-            The packet header instance which should be serialised.
-            </param>
-            <param name="buffer">
-            The memory buffer to write the serialised packet header instance to.
-            </param>
-        </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Datagram.RawDatagramRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -268,7 +58,7 @@
         <member name="P:NetSharp.Raw.DatagramRawNetworkTransportProvider.TransportProtocolType">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.Datagram.RawDatagramRequestHandler,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
@@ -277,7 +67,7 @@
         <member name="P:NetSharp.Raw.StreamRawNetworkTransportProvider.TransportProtocolType">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
@@ -291,7 +81,7 @@
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.NetworkRequestHandler,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Dispose(System.Boolean)">
@@ -324,7 +114,7 @@
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.NetworkRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">

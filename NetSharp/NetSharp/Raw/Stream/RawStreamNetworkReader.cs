@@ -1,16 +1,28 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Stream
 {
+    public delegate bool RawStreamRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+        Memory<byte> responseBuffer);
+
     public sealed class RawStreamNetworkReader : RawNetworkReaderBase
     {
+        // TODO remove and replace with proper packet size
+        private readonly int datagramSize;
+
+        private readonly RawStreamRequestHandler requestHandler;
+
         /// <inheritdoc />
-        public RawStreamNetworkReader(ref Socket rawConnection, NetworkRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
-            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, requestHandler, pooledPacketBufferSize,
+        public RawStreamNetworkReader(ref Socket rawConnection, RawStreamRequestHandler? requestHandler, EndPoint defaultEndPoint, int pooledPacketBufferSize,
+            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize,
             pooledBuffersPerBucket, preallocatedStateObjects)
         {
+            datagramSize = pooledPacketBufferSize;
+
+            this.requestHandler = requestHandler ?? DefaultRequestHandler;
         }
 
         private void CloseClientConnection(SocketAsyncEventArgs args)
@@ -66,24 +78,22 @@ namespace NetSharp.Raw.Stream
 
                     if (totalReceivedBytes + receivedBytes == expectedBytes)  // transmission complete
                     {
-                        byte[] responseBufferHandle = BufferPool.Rent(expectedBytes);
+                        byte[] responseBuffer = BufferPool.Rent(expectedBytes);
 
                         bool responseExists =
-                            RequestHandler(args.AcceptSocket.RemoteEndPoint, receiveBuffer, totalReceivedBytes + receivedBytes, responseBufferHandle);
-                        BufferPool.Return(receiveBuffer, true);
+                            requestHandler(args.AcceptSocket.RemoteEndPoint, receiveBuffer, totalReceivedBytes + receivedBytes, responseBuffer);
+
+                        Buffer.BlockCopy(responseBuffer, 0, receiveBuffer, 0, datagramSize);
+                        BufferPool.Return(responseBuffer, true);
 
                         if (responseExists)
                         {
-                            args.SetBuffer(responseBufferHandle, 0, PacketBufferSize);
-
                             TransmissionToken sendToken = new TransmissionToken(0);
                             args.UserToken = sendToken;
 
                             StartSend(args);
                             return;
                         }
-
-                        BufferPool.Return(responseBufferHandle, true);
 
                         StartReceive(args);
                     }
@@ -232,9 +242,9 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            byte[] receiveBuffer = BufferPool.Rent(PacketBufferSize);
+            byte[] receiveBuffer = BufferPool.Rent(datagramSize);
 
-            args.SetBuffer(receiveBuffer, 0, PacketBufferSize);
+            args.SetBuffer(receiveBuffer, 0, datagramSize);
 
             TransmissionToken token = new TransmissionToken(0);
             args.UserToken = token;
@@ -285,6 +295,12 @@ namespace NetSharp.Raw.Stream
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
             instance.AcceptSocket = null;
+        }
+
+        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+            Memory<byte> responseBuffer)
+        {
+            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         /// <inheritdoc />

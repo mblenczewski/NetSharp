@@ -5,25 +5,18 @@ using System.Threading;
 
 namespace NetSharp.Raw
 {
-    public delegate bool NetworkRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
-        Memory<byte> responseBuffer);
-
     public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, INetworkReader
     {
         private readonly CancellationTokenSource shutdownTokenSource;
 
-        protected readonly NetworkRequestHandler RequestHandler;
         protected readonly CancellationToken ShutdownToken;
 
         /// <inheritdoc />
-        protected RawNetworkReaderBase(ref Socket rawConnection, EndPoint defaultEndPoint, NetworkRequestHandler? requestHandler, int pooledPacketBufferSize,
-            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize,
-            pooledBuffersPerBucket, preallocatedStateObjects)
+        private protected RawNetworkReaderBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             shutdownTokenSource = new CancellationTokenSource();
             ShutdownToken = shutdownTokenSource.Token;
-
-            RequestHandler = requestHandler ?? DefaultRequestHandler;
         }
 
         /// <inheritdoc />
@@ -35,12 +28,6 @@ namespace NetSharp.Raw
             shutdownTokenSource.Dispose();
 
             base.Dispose(disposing);
-        }
-
-        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
-            Memory<byte> responseBuffer)
-        {
-            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         /// <inheritdoc />

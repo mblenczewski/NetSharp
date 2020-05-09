@@ -9,19 +9,22 @@ namespace NetSharp.Raw
 {
     public abstract class RawNetworkConnectionBase : IDisposable
     {
+        // https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
+        private const int DefaultMaxPooledBufferSize = 1024 * 1024, DefaultMaxPooledBuffersPerBucket = 50;
+
         protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
         protected readonly ArrayPool<byte> BufferPool;
         protected readonly Socket Connection;
         protected readonly EndPoint DefaultEndPoint;
-        protected readonly int PacketBufferSize;
 
         protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize,
-            int pooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
+            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0)
         {
             Connection = rawConnection;
 
-            PacketBufferSize = pooledPacketBufferSize;
-            BufferPool = ArrayPool<byte>.Create(pooledPacketBufferSize, pooledBuffersPerBucket);
+            BufferPool = pooledPacketBufferSize <= DefaultMaxPooledBufferSize && pooledBuffersPerBucket <= DefaultMaxPooledBuffersPerBucket
+                ? ArrayPool<byte>.Shared
+                : BufferPool = ArrayPool<byte>.Create(pooledPacketBufferSize, pooledBuffersPerBucket);
 
             DefaultEndPoint = defaultEndPoint;
 

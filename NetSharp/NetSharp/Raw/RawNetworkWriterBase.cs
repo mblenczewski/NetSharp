@@ -8,7 +8,7 @@ namespace NetSharp.Raw
     public abstract class RawNetworkWriterBase : RawNetworkConnectionBase, INetworkWriter
     {
         /// <inheritdoc />
-        protected RawNetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 1000,
+        protected RawNetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize, int pooledBuffersPerBucket = 50,
             uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, pooledPacketBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
         }
