@@ -1,34 +1,41 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Datagram
 {
-    public delegate bool RawDatagramRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
-        Memory<byte> responseBuffer);
+    public delegate bool RawDatagramRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+        in Memory<byte> responseBuffer);
 
     public sealed class RawDatagramNetworkReader : RawNetworkReaderBase
     {
         private const int MaxDatagramSize = ushort.MaxValue - 28;
 
-        private readonly int datagramSize;
+        private readonly int messageSize;
 
         private readonly RawDatagramRequestHandler requestHandler;
 
         /// <inheritdoc />
-        public RawDatagramNetworkReader(ref Socket rawConnection, RawDatagramRequestHandler? requestHandler, EndPoint defaultEndPoint, int datagramSize,
-            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, datagramSize,
+        public RawDatagramNetworkReader(ref Socket rawConnection, RawDatagramRequestHandler? requestHandler, EndPoint defaultEndPoint, int messageSize,
+            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, messageSize,
             pooledBuffersPerBucket, preallocatedStateObjects)
         {
-            if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
+            if (messageSize <= 0 || MaxDatagramSize < messageSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize,
+                throw new ArgumentOutOfRangeException(nameof(messageSize), messageSize,
                     $"The datagram size must be greater than 0 and less than {MaxDatagramSize}");
             }
 
-            this.datagramSize = datagramSize;
+            this.messageSize = messageSize;
 
             this.requestHandler = requestHandler ?? DefaultRequestHandler;
+        }
+
+        private static bool DefaultRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+            in Memory<byte> responseBuffer)
+        {
+            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
@@ -38,15 +45,20 @@ namespace NetSharp.Raw.Datagram
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    byte[] responseBuffer = BufferPool.Rent(datagramSize);
+                    byte[] responseBuffer = BufferPool.Rent(messageSize);
 
-                    bool responseExists =
-                        requestHandler(args.RemoteEndPoint, receiveBuffer, args.BytesTransferred, responseBuffer);
+                    bool responseExists = requestHandler(args.RemoteEndPoint, receiveBuffer, args.BytesTransferred, responseBuffer);
+                    BufferPool.Return(receiveBuffer, true);
 
-                    Buffer.BlockCopy(responseBuffer, 0, receiveBuffer, 0, datagramSize);
+                    if (responseExists)
+                    {
+                        args.SetBuffer(responseBuffer, 0, messageSize);
+
+                        SendTo(args);
+                        return;
+                    }
+
                     BufferPool.Return(responseBuffer, true);
-
-                    if (responseExists) StartSendTo(args);
                     break;
 
                 default:
@@ -62,6 +74,13 @@ namespace NetSharp.Raw.Datagram
             BufferPool.Return(sendBuffer, true);
 
             ArgsPool.Return(args);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ConfigureReceiveFrom(SocketAsyncEventArgs args)
+        {
+            byte[] receiveBuffer = BufferPool.Rent(messageSize);
+            args.SetBuffer(receiveBuffer, 0, messageSize);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -80,18 +99,7 @@ namespace NetSharp.Raw.Datagram
             }
         }
 
-        private void StartDefaultReceiveFrom()
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            SocketAsyncEventArgs args = ArgsPool.Rent();
-            StartReceiveFrom(args);
-        }
-
-        private void StartReceiveFrom(SocketAsyncEventArgs args)
+        private void ReceiveFrom(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -99,16 +107,13 @@ namespace NetSharp.Raw.Datagram
                 return;
             }
 
-            byte[] receiveBuffer = BufferPool.Rent(datagramSize);
-            args.SetBuffer(receiveBuffer, 0, datagramSize);
-
             if (Connection.ReceiveFromAsync(args)) return;
 
             StartDefaultReceiveFrom();
             CompleteReceiveFrom(args);
         }
 
-        private void StartSendTo(SocketAsyncEventArgs args)
+        private void SendTo(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -123,6 +128,20 @@ namespace NetSharp.Raw.Datagram
             if (Connection.SendToAsync(args)) return;
 
             CompleteSendTo(args);
+        }
+
+        private void StartDefaultReceiveFrom()
+        {
+            if (ShutdownToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            SocketAsyncEventArgs args = ArgsPool.Rent();
+
+            ConfigureReceiveFrom(args);
+
+            ReceiveFrom(args);
         }
 
         /// <inheritdoc />
@@ -151,12 +170,6 @@ namespace NetSharp.Raw.Datagram
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
             instance.RemoteEndPoint = DefaultEndPoint;
-        }
-
-        public static bool DefaultRequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
-            Memory<byte> responseBuffer)
-        {
-            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         /// <inheritdoc />

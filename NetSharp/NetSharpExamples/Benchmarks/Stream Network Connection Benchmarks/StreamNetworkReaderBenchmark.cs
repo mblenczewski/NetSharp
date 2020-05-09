@@ -25,7 +25,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         /// <inheritdoc />
         public string Name { get; } = "Stream Raw Network Reader Benchmark";
 
-        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, Memory<byte> responseBuffer)
+        private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+            in Memory<byte> responseBuffer)
         {
             requestBuffer.CopyTo(responseBuffer);
 
@@ -44,8 +45,9 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             ServerReadyEvent.Wait();
             clientSocket.Connect(ServerEndPoint);
 
-            byte[] sendBuffer = new byte[PacketSize];
-            byte[] receiveBuffer = new byte[PacketSize];
+            byte[] sendBuffer = new byte[PacketSize + RawMessage.Header.TotalHeaderSize];
+            byte[] receiveBuffer = new byte[PacketSize + RawMessage.Header.TotalHeaderSize];
+            byte[] packetBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = ServerEndPoint;
 
@@ -56,8 +58,10 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
             for (int i = 0; i < PacketCount; i++)
             {
-                byte[] packetBuffer = ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
-                packetBuffer.CopyTo(sendBuffer, 0);
+                ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
+
+                RawMessage message = new RawMessage(packetBuffer);
+                message.Serialise(sendBuffer);
 
                 benchmarkHelper.StartStopwatch();
 
@@ -66,7 +70,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
                 {
                     totalSent += clientSocket.Send(sendBuffer, totalSent, sendBuffer.Length - totalSent,
                         SocketFlags.None);
-                } while (totalSent != 0 && totalSent != sendBuffer.Length);
+                } while (totalSent != 0 && totalSent < sendBuffer.Length);
 
                 if (totalSent == 0)
                 {
@@ -76,9 +80,9 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
                 int totalReceived = 0;
                 do
                 {
-                    totalReceived += clientSocket.Receive(receiveBuffer, totalReceived,
-                        receiveBuffer.Length - totalReceived, SocketFlags.None);
-                } while (totalReceived != 0 && totalReceived != sendBuffer.Length);
+                    totalReceived += clientSocket.Receive(receiveBuffer, totalReceived, receiveBuffer.Length - totalReceived,
+                        SocketFlags.None);
+                } while (totalReceived != 0 && totalReceived < receiveBuffer.Length);
 
                 if (totalReceived == 0)
                 {

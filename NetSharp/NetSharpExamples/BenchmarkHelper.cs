@@ -37,7 +37,7 @@ namespace NetSharpExamples
 
             lock (typeof(Console))
             {
-                Console.WriteLine($"[Client {clientId}] Sent {sentPacketCount} packets (of size {packetSize}) in {millis} milliseconds");
+                Console.WriteLine($"[Client {clientId}] Sent {sentPacketCount} packets (of size {packetSize} bytes; {megabytes / 1000} gigabytes [one-way]) in {millis} milliseconds");
                 Console.WriteLine($"[Client {clientId}] Approximate bandwidth: {bandwidth:F3} MBps");
             }
         }

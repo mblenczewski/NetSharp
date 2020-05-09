@@ -17,7 +17,8 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
         /// <inheritdoc />
         public string Name { get; } = "Datagram Network Reader Example";
 
-        private static bool RequestHandler(in EndPoint remoteEndPoint, ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, Memory<byte> responseBuffer)
+        private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+            in Memory<byte> responseBuffer)
         {
             requestBuffer.CopyTo(responseBuffer);
 
