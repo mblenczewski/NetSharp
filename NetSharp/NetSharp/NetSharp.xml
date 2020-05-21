@@ -64,13 +64,22 @@
         <member name="M:NetSharp.Raw.DatagramRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="P:NetSharp.Raw.StreamRawNetworkTransportProvider.TransportProtocolType">
+        <member name="P:NetSharp.Raw.FixedPacketRawStreamNetworkTransportProvider.TransportProtocolType">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.FixedPacketRawStreamNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.StreamRawNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+        <member name="M:NetSharp.Raw.FixedPacketRawStreamNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="P:NetSharp.Raw.VariablePacketRawStreamNetworkTransportProvider.TransportProtocolType">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.VariablePacketRawStreamNetworkTransportProvider.GetReader(System.Net.Sockets.Socket@,System.Net.EndPoint,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.VariablePacketRawStreamNetworkTransportProvider.GetWriter(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose(System.Boolean)">
@@ -114,6 +123,39 @@
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkReader.CompleteAccept(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkReader.CompleteReceive(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkReader.CompleteSend(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.CompleteReceive(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.CompleteSend(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.FixedPacketRawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
@@ -153,16 +195,37 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ConnectAsync(System.Net.EndPoint)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkReader.CompleteAccept(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkReader.CompleteReceive(System.Net.Sockets.SocketAsyncEventArgs)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkReader.CompleteSend(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.CompleteReceive(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.CompleteSend(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.VariablePacketRawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.BiDictionary`2">

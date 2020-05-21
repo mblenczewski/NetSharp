@@ -21,7 +21,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Datagram Raw Network Writer Benchmark (Synchronous)";
+        public string Name { get; } = "Raw Datagram Network Writer Benchmark (Synchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {

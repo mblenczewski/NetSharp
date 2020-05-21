@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class StreamNetworkWriterSyncBenchmark : INetSharpBenchmark
+    public class FixedPacketStreamNetworkWriterAsyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
 
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
-        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12375);
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12374);
 
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Stream Raw Network Writer Benchmark (Synchronous)";
+        public string Name { get; } = "Raw Fixed Packet-size Stream Network Writer Benchmark (Asynchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -69,7 +69,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         }
 
         /// <inheritdoc />
-        public Task RunAsync()
+        public async Task RunAsync()
         {
             if (PacketCount > 10_000)
             {
@@ -81,7 +81,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
 
-            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+            using RawStreamNetworkWriter writer = new FixedPacketRawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
@@ -94,17 +94,15 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             byte[] sendBuffer = new byte[PacketSize];
             byte[] receiveBuffer = new byte[PacketSize];
 
-            EndPoint remoteEndPoint = ServerEndPoint;
-
             for (int i = 0; i < PacketCount; i++)
             {
                 byte[] packetBuffer = ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sendResult = writer.Write(ServerEndPoint, sendBuffer);
+                int sendResult = await writer.WriteAsync(ServerEndPoint, sendBuffer);
 
-                int receiveResult = writer.Read(ref remoteEndPoint, receiveBuffer);
+                int receiveResult = await writer.ReadAsync(ServerEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
 
                 benchmarkHelper.SnapshotRttStats();
@@ -127,8 +125,6 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             rawSocket.Shutdown(SocketShutdown.Both);
             rawSocket.Close();
             rawSocket.Dispose();
-
-            return Task.CompletedTask;
         }
     }
 }

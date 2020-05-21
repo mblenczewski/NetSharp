@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class StreamNetworkReaderBenchmark : INetSharpBenchmark
+    public class FixedPacketStreamNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
@@ -23,7 +23,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Stream Raw Network Reader Benchmark";
+        public string Name { get; } = "Raw Fixed Packet-size Stream Network Reader Benchmark";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
@@ -45,9 +45,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             ServerReadyEvent.Wait();
             clientSocket.Connect(ServerEndPoint);
 
-            byte[] sendBuffer = new byte[PacketSize + RawMessage.Header.TotalHeaderSize];
-            byte[] receiveBuffer = new byte[PacketSize + RawMessage.Header.TotalHeaderSize];
-            byte[] packetBuffer = new byte[PacketSize];
+            byte[] sendBuffer = new byte[PacketSize];
+            byte[] receiveBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = ServerEndPoint;
 
@@ -58,10 +57,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
             for (int i = 0; i < PacketCount; i++)
             {
-                ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
-
-                RawMessage message = new RawMessage(packetBuffer);
-                message.Serialise(sendBuffer);
+                ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
 
@@ -126,7 +122,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             rawSocket.Bind(ServerEndPoint);
             rawSocket.Listen(ClientCount);
 
-            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
+            using RawStreamNetworkReader reader = new FixedPacketRawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
             reader.Start(ClientCount);
 
             ServerReadyEvent.Set();

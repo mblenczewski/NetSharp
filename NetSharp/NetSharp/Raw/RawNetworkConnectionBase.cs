@@ -17,14 +17,14 @@ namespace NetSharp.Raw
         protected readonly Socket Connection;
         protected readonly EndPoint DefaultEndPoint;
 
-        protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int pooledPacketBufferSize,
+        protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
             int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0)
         {
             Connection = rawConnection;
 
-            BufferPool = pooledPacketBufferSize <= DefaultMaxPooledBufferSize && pooledBuffersPerBucket <= DefaultMaxPooledBuffersPerBucket
+            BufferPool = maxPooledBufferSize <= DefaultMaxPooledBufferSize && pooledBuffersPerBucket <= DefaultMaxPooledBuffersPerBucket
                 ? ArrayPool<byte>.Shared
-                : BufferPool = ArrayPool<byte>.Create(pooledPacketBufferSize, pooledBuffersPerBucket);
+                : BufferPool = ArrayPool<byte>.Create(maxPooledBufferSize, pooledBuffersPerBucket);
 
             DefaultEndPoint = defaultEndPoint;
 

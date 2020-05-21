@@ -1,7 +1,7 @@
-﻿using System;
-using NetSharp.Raw.Datagram;
+﻿using NetSharp.Raw.Datagram;
 using NetSharp.Raw.Stream;
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -47,7 +47,7 @@ namespace NetSharp.Raw
         }
     }
 
-    public sealed class StreamRawNetworkTransportProvider : IRawNetworkTransportProvider<RawStreamRequestHandler>
+    public sealed class FixedPacketRawStreamNetworkTransportProvider : IRawNetworkTransportProvider<RawStreamRequestHandler>
     {
         /// <inheritdoc />
         public SocketType TransportProtocolType { get; } = SocketType.Stream;
@@ -56,7 +56,7 @@ namespace NetSharp.Raw
         public RawNetworkReaderBase GetReader(ref Socket rawConnection, EndPoint defaultEndPoint, RawStreamRequestHandler? requestHandler,
             int maxPooledBufferSize, int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
         {
-            return new RawStreamNetworkReader(ref rawConnection, requestHandler, defaultEndPoint, maxPooledBufferSize,
+            return new FixedPacketRawStreamNetworkReader(ref rawConnection, requestHandler, defaultEndPoint, maxPooledBufferSize,
                 maxPooledBuffersPerBucket, preallocatedStateObjects);
         }
 
@@ -64,7 +64,29 @@ namespace NetSharp.Raw
         public RawNetworkWriterBase GetWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
             int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
         {
-            return new RawStreamNetworkWriter(ref rawConnection, defaultEndPoint, maxPooledBufferSize,
+            return new FixedPacketRawStreamNetworkWriter(ref rawConnection, defaultEndPoint, maxPooledBufferSize,
+                maxPooledBuffersPerBucket, preallocatedStateObjects);
+        }
+    }
+
+    public sealed class VariablePacketRawStreamNetworkTransportProvider : IRawNetworkTransportProvider<RawStreamRequestHandler>
+    {
+        /// <inheritdoc />
+        public SocketType TransportProtocolType { get; } = SocketType.Stream;
+
+        /// <inheritdoc />
+        public RawNetworkReaderBase GetReader(ref Socket rawConnection, EndPoint defaultEndPoint, RawStreamRequestHandler? requestHandler,
+            int maxPooledBufferSize, int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
+        {
+            return new VariablePacketRawStreamNetworkReader(ref rawConnection, requestHandler, defaultEndPoint, maxPooledBufferSize,
+                maxPooledBuffersPerBucket, preallocatedStateObjects);
+        }
+
+        /// <inheritdoc />
+        public RawNetworkWriterBase GetWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
+            int maxPooledBuffersPerBucket = 1000, uint preallocatedStateObjects = 0)
+        {
+            return new VariablePacketRawStreamNetworkWriter(ref rawConnection, defaultEndPoint, maxPooledBufferSize,
                 maxPooledBuffersPerBucket, preallocatedStateObjects);
         }
     }
