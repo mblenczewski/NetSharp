@@ -1,11 +1,11 @@
-﻿using NetSharp.Raw.Datagram;
-
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Datagram;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
@@ -62,7 +62,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
             using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
-            Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
+            Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
 
             ServerReadyEvent.Wait();
 

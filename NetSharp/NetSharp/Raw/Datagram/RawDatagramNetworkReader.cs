@@ -107,7 +107,10 @@ namespace NetSharp.Raw.Datagram
                 return;
             }
 
-            if (Connection.ReceiveFromAsync(args)) return;
+            if (Connection.ReceiveFromAsync(args))
+            {
+                return;
+            }
 
             StartDefaultReceiveFrom();
             CompleteReceiveFrom(args);
@@ -125,7 +128,10 @@ namespace NetSharp.Raw.Datagram
                 return;
             }
 
-            if (Connection.SendToAsync(args)) return;
+            if (Connection.SendToAsync(args))
+            {
+                return;
+            }
 
             CompleteSendTo(args);
         }

@@ -19,7 +19,7 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void CompleteReceive(SocketAsyncEventArgs args)
         {
-            AsyncStreamReadToken token = (AsyncStreamReadToken)args.UserToken;
+            AsyncStreamReadToken token = (AsyncStreamReadToken) args.UserToken;
 
             byte[] receiveBuffer = args.Buffer;
             int expectedBytes = receiveBuffer.Length;
@@ -47,7 +47,7 @@ namespace NetSharp.Raw.Stream
                     }
                     else if (receivedBytes == 0)  // connection is dead
                     {
-                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+                        token.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
                     }
                     break;
 
@@ -56,7 +56,7 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 default:
-                    int errorCode = (int)args.SocketError;
+                    int errorCode = (int) args.SocketError;
                     token.CompletionSource.SetException(new SocketException(errorCode));
                     break;
             }
@@ -68,7 +68,7 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void CompleteSend(SocketAsyncEventArgs args)
         {
-            AsyncStreamWriteToken token = (AsyncStreamWriteToken)args.UserToken;
+            AsyncStreamWriteToken token = (AsyncStreamWriteToken) args.UserToken;
 
             byte[] sendBuffer = args.Buffer;
             int expectedBytes = sendBuffer.Length;
@@ -95,7 +95,7 @@ namespace NetSharp.Raw.Stream
                     }
                     else if (sentBytes == 0)  // connection is dead
                     {
-                        token.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
+                        token.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
                     }
                     break;
 
@@ -104,7 +104,7 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 default:
-                    int errorCode = (int)args.SocketError;
+                    int errorCode = (int) args.SocketError;
                     token.CompletionSource.SetException(new SocketException(errorCode));
                     break;
             }
@@ -165,7 +165,10 @@ namespace NetSharp.Raw.Stream
             AsyncStreamReadToken token = new AsyncStreamReadToken(tcs, 0, in readBuffer);
             args.UserToken = token;
 
-            if (Connection.ReceiveAsync(args)) return new ValueTask<int>(tcs.Task);
+            if (Connection.ReceiveAsync(args))
+            {
+                return new ValueTask<int>(tcs.Task);
+            }
 
             CompleteReceive(args);
 
@@ -225,7 +228,10 @@ namespace NetSharp.Raw.Stream
             AsyncStreamWriteToken token = new AsyncStreamWriteToken(tcs, 0);
             args.UserToken = token;
 
-            if (Connection.SendAsync(args)) return new ValueTask<int>(tcs.Task);
+            if (Connection.SendAsync(args))
+            {
+                return new ValueTask<int>(tcs.Task);
+            }
 
             CompleteSend(args);
 

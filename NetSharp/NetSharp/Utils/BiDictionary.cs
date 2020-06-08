@@ -51,7 +51,7 @@ namespace NetSharp.Utils
                 return key;
             }
 
-            set { valueToKeyMap.AddOrUpdate(index, value, (v, k) => value); }
+            set => valueToKeyMap.AddOrUpdate(index, value, (v, k) => value);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace NetSharp.Utils
                 return value;
             }
 
-            set { keyToValueMap.AddOrUpdate(index, value, (k, v) => value); }
+            set => keyToValueMap.AddOrUpdate(index, value, (k, v) => value);
         }
 
         /// <summary>
@@ -93,7 +93,10 @@ namespace NetSharp.Utils
         /// <returns>
         /// Whether the given key was found.
         /// </returns>
-        public bool ContainsKey(in K key) => keyToValueMap.ContainsKey(key);
+        public bool ContainsKey(in K key)
+        {
+            return keyToValueMap.ContainsKey(key);
+        }
 
         /// <summary>
         /// Whether this instance contains the given value.
@@ -104,7 +107,10 @@ namespace NetSharp.Utils
         /// <returns>
         /// Whether the given value was found.
         /// </returns>
-        public bool ContainsValue(in V value) => valueToKeyMap.ContainsKey(value);
+        public bool ContainsValue(in V value)
+        {
+            return valueToKeyMap.ContainsKey(value);
+        }
 
         /// <summary>
         /// Attempts to set the key associated with the given value.

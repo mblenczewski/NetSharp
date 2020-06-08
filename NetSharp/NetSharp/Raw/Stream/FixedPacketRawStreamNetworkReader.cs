@@ -47,7 +47,7 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void CompleteReceive(SocketAsyncEventArgs args)
         {
-            TransmissionToken token = (TransmissionToken)args.UserToken;
+            TransmissionToken token = (TransmissionToken) args.UserToken;
 
             byte[] receiveBuffer = args.Buffer;
 
@@ -107,7 +107,7 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void CompleteSend(SocketAsyncEventArgs args)
         {
-            TransmissionToken token = (TransmissionToken)args.UserToken;
+            TransmissionToken token = (TransmissionToken) args.UserToken;
 
             byte[] sendBuffer = args.Buffer;
             int expectedBytes = token.ExpectedBytes;

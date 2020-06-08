@@ -1,9 +1,9 @@
-﻿using NetSharp.Raw.Datagram;
-using NetSharp.Raw.Stream;
-
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
+
+using NetSharp.Raw.Datagram;
+using NetSharp.Raw.Stream;
 
 namespace NetSharp.Raw
 {

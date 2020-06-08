@@ -10,15 +10,9 @@ namespace NetSharpExamples
         private long minRttMs = int.MaxValue, maxRttMs = int.MinValue;
         private long minRttTicks = int.MaxValue, maxRttTicks = int.MinValue;
 
-        public long RttMs
-        {
-            get { return stopwatch.ElapsedMilliseconds; }
-        }
+        public long RttMs => stopwatch.ElapsedMilliseconds;
 
-        public long RttTicks
-        {
-            get { return stopwatch.ElapsedTicks; }
-        }
+        public long RttTicks => stopwatch.ElapsedTicks;
 
         public double CalcBandwidth(long sentPacketCount, long packetSize)
         {

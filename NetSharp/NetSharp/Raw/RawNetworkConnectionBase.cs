@@ -1,9 +1,9 @@
-﻿using NetSharp.Utils;
-
-using System;
+﻿using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+
+using NetSharp.Utils;
 
 namespace NetSharp.Raw
 {
@@ -49,7 +49,10 @@ namespace NetSharp.Raw
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposing) return;
+            if (!disposing)
+            {
+                return;
+            }
 
             ArgsPool.Dispose();
         }

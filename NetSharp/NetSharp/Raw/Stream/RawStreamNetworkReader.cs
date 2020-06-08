@@ -90,7 +90,10 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            if (clientSocket.ReceiveAsync(args)) return;
+            if (clientSocket.ReceiveAsync(args))
+            {
+                return;
+            }
 
             CompleteReceive(args);
         }
@@ -106,7 +109,10 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            if (clientSocket.SendAsync(args)) return;
+            if (clientSocket.SendAsync(args))
+            {
+                return;
+            }
 
             CompleteSend(args);
         }
@@ -140,7 +146,10 @@ namespace NetSharp.Raw.Stream
                 return;
             }
 
-            if (Connection.AcceptAsync(args)) return;
+            if (Connection.AcceptAsync(args))
+            {
+                return;
+            }
 
             StartDefaultAccept();
             CompleteAccept(args);
@@ -167,7 +176,10 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            if (clientSocket.ReceiveAsync(args)) return;
+            if (clientSocket.ReceiveAsync(args))
+            {
+                return;
+            }
 
             CompleteReceive(args);
         }
@@ -182,7 +194,10 @@ namespace NetSharp.Raw.Stream
 
             Socket clientSocket = args.AcceptSocket;
 
-            if (clientSocket.SendAsync(args)) return;
+            if (clientSocket.SendAsync(args))
+            {
+                return;
+            }
 
             CompleteSend(args);
         }

@@ -1,12 +1,12 @@
-﻿using NetSharp.Raw.Stream;
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
@@ -35,7 +35,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
-            int id = (int)idObj;
+            int id = (int) idObj;
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 

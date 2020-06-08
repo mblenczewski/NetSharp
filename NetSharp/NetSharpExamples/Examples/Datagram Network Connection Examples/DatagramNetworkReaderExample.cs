@@ -1,10 +1,10 @@
-﻿using NetSharp.Raw.Datagram;
-
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Datagram;
 
 namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
 {

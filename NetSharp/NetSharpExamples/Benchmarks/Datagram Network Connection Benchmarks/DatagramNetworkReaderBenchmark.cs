@@ -1,12 +1,12 @@
-﻿using NetSharp.Raw.Datagram;
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Datagram;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
@@ -37,7 +37,7 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
         {
             try
             {
-                int id = (int)idObj;
+                int id = (int) idObj;
 
                 BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 

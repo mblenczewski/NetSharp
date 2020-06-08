@@ -1,4 +1,5 @@
 ﻿using System;
+
 using NetSharp.Utils.Conversion;
 
 namespace NetSharp.Raw.Stream

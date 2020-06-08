@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -22,7 +21,10 @@ namespace NetSharp.Raw
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
-            if (!disposing) return;
+            if (!disposing)
+            {
+                return;
+            }
 
             shutdownTokenSource.Cancel();
             shutdownTokenSource.Dispose();

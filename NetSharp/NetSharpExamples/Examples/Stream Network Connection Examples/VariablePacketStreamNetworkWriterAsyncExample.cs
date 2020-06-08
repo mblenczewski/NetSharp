@@ -1,10 +1,10 @@
-﻿using NetSharp.Raw.Stream;
-
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 {

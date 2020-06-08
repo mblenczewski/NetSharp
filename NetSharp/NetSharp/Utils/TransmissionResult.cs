@@ -69,6 +69,9 @@ namespace NetSharp.Utils
         /// Whether this instance has timed out.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TimedOut() => Equals(Timeout);
+        public bool TimedOut()
+        {
+            return Equals(Timeout);
+        }
     }
 }

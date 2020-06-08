@@ -29,12 +29,12 @@ namespace NetSharpExamples
                 switch (interfaces.Length)
                 {
                     case 1 when type.GetInterface(nameof(INetSharpExample)) == typeof(INetSharpExample):
-                        Examples.Add((INetSharpExample)instance);
+                        Examples.Add((INetSharpExample) instance);
                         break;
 
                     case 2 when type.GetInterface(nameof(INetSharpBenchmark)) == typeof(INetSharpBenchmark):
-                        Examples.Add((INetSharpExample)instance);
-                        Benchmarks.Add((INetSharpBenchmark)instance);
+                        Examples.Add((INetSharpExample) instance);
+                        Benchmarks.Add((INetSharpBenchmark) instance);
                         break;
                 }
             }

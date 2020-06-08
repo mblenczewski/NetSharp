@@ -1,11 +1,11 @@
-﻿using NetSharp.Raw.Stream;
-
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
@@ -84,7 +84,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             using RawStreamNetworkWriter writer = new VariablePacketRawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
-            Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken)state), serverCts.Token, TaskCreationOptions.LongRunning);
+            Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
 
             ServerReadyEvent.Wait();
             rawSocket.Connect(ServerEndPoint);

@@ -21,7 +21,7 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteConnect(SocketAsyncEventArgs args)
         {
-            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+            AsyncOperationToken token = (AsyncOperationToken) args.UserToken;
 
             switch (args.SocketError)
             {
@@ -34,7 +34,7 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 default:
-                    int errorCode = (int)args.SocketError;
+                    int errorCode = (int) args.SocketError;
                     token.CompletionSource.SetException(new SocketException(errorCode));
                     break;
             }
@@ -44,7 +44,7 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteDisconnect(SocketAsyncEventArgs args)
         {
-            AsyncOperationToken token = (AsyncOperationToken)args.UserToken;
+            AsyncOperationToken token = (AsyncOperationToken) args.UserToken;
 
             switch (args.SocketError)
             {
@@ -57,7 +57,7 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 default:
-                    int errorCode = (int)args.SocketError;
+                    int errorCode = (int) args.SocketError;
                     token.CompletionSource.SetException(new SocketException(errorCode));
                     break;
             }
@@ -100,7 +100,10 @@ namespace NetSharp.Raw.Stream
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ContinueReceive(SocketAsyncEventArgs args)
         {
-            if (Connection.ReceiveAsync(args)) return;
+            if (Connection.ReceiveAsync(args))
+            {
+                return;
+            }
 
             CompleteReceive(args);
         }
@@ -108,7 +111,10 @@ namespace NetSharp.Raw.Stream
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ContinueSend(SocketAsyncEventArgs args)
         {
-            if (Connection.SendAsync(args)) return;
+            if (Connection.SendAsync(args))
+            {
+                return;
+            }
 
             CompleteSend(args);
         }
@@ -151,7 +157,10 @@ namespace NetSharp.Raw.Stream
             AsyncOperationToken token = new AsyncOperationToken(tcs);
             args.UserToken = token;
 
-            if (Connection.ConnectAsync(args)) return new ValueTask(tcs.Task);
+            if (Connection.ConnectAsync(args))
+            {
+                return new ValueTask(tcs.Task);
+            }
 
             ArgsPool.Return(args);
 
@@ -173,7 +182,10 @@ namespace NetSharp.Raw.Stream
             AsyncOperationToken token = new AsyncOperationToken(tcs);
             args.UserToken = token;
 
-            if (Connection.DisconnectAsync(args)) return new ValueTask(tcs.Task);
+            if (Connection.DisconnectAsync(args))
+            {
+                return new ValueTask(tcs.Task);
+            }
 
             ArgsPool.Return(args);
 
