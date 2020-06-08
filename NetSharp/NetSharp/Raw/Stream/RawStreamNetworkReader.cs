@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Stream
 {
     public delegate bool RawStreamRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
         in Memory<byte> responseBuffer);
 
-    public abstract class RawStreamNetworkReader : RawNetworkReaderBase
+    public sealed class RawStreamNetworkReader : RawNetworkReaderBase
     {
-        protected readonly RawStreamRequestHandler RequestHandler;
+        private readonly RawStreamRequestHandler RequestHandler;
 
         /// <inheritdoc />
-        protected RawStreamNetworkReader(ref Socket rawConnection, RawStreamRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxMessageSize,
+        public RawStreamNetworkReader(ref Socket rawConnection, RawStreamRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxMessageSize,
             int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxMessageSize,
             pooledBuffersPerBucket, preallocatedStateObjects)
         {
@@ -30,6 +29,192 @@ namespace NetSharp.Raw.Stream
             in Memory<byte> responseBuffer)
         {
             return requestBuffer.TryCopyTo(responseBuffer);
+        }
+
+        private void CloseClientConnection(SocketAsyncEventArgs args)
+        {
+            byte[] rentedBuffer = args.Buffer;
+            BufferPool.Return(rentedBuffer, true);
+
+            Socket clientSocket = args.AcceptSocket;
+
+            clientSocket.Shutdown(SocketShutdown.Both);
+            clientSocket.Close();
+            clientSocket.Dispose();
+
+            ArgsPool.Return(args);
+        }
+
+        private void CompleteAccept(SocketAsyncEventArgs args)
+        {
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    ConfigureReceiveHeader(args);
+                    StartReceive(args);
+                    break;
+
+                default:
+                    ArgsPool.Return(args);
+                    break;
+            }
+        }
+
+        private void CompleteReceive(SocketAsyncEventArgs args)
+        {
+            void CompleteReceiveHeader(SocketAsyncEventArgs args)
+            {
+                Memory<byte> headerBuffer = args.Buffer;
+
+                RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
+
+                // TODO configure the number of bytes of data to receive
+                ConfigureReceiveData(args, in header);
+                StartReceive(args);
+            }
+
+            void CompleteReceiveData(SocketAsyncEventArgs args)
+            {
+                byte[] dataBuffer = args.Buffer;
+
+                // TODO handle request packet
+                //bool haveResponsePacket = RequestHandler(args.AcceptSocket.RemoteEndPoint, );
+
+                ConfigureSendHeader(args);
+                StartSend(args);
+            }
+
+            bool receivingHeader = args.Buffer.Length == RawStreamPacketHeader.TotalSize;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    switch (receivingHeader)
+                    {
+                        case true:
+                            CompleteReceiveHeader(args);
+                            break;
+
+                        case false:
+                            CompleteReceiveData(args);
+                            break;
+                    }
+                    break;
+
+                default:
+                    CloseClientConnection(args);
+                    break;
+            }
+        }
+
+        private void CompleteSend(SocketAsyncEventArgs args)
+        {
+            void CompleteSendHeader(SocketAsyncEventArgs args)
+            {
+                byte[] headerBuffer = args.Buffer;
+
+                // TODO configure the number of bytes of data to send
+                ConfigureSendData(args);
+                StartSend(args);
+            }
+
+            void CompleteSendData(SocketAsyncEventArgs args)
+            {
+                byte[] dataBuffer = args.Buffer;
+
+                ConfigureReceiveHeader(args);
+                StartReceive(args);
+            }
+
+            bool sendingHeader = args.Buffer.Length == RawStreamPacketHeader.TotalSize;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    switch (sendingHeader)
+                    {
+                        case true:
+                            CompleteSendHeader(args);
+                            break;
+
+                        case false:
+                            CompleteSendData(args);
+                            break;
+                    }
+                    break;
+
+                default:
+                    CloseClientConnection(args);
+                    break;
+            }
+        }
+
+        private void ConfigureReceiveData(SocketAsyncEventArgs args, in RawStreamPacketHeader receivedPacketHeader)
+        {
+            byte[] pendingPacketDataBuffer = BufferPool.Rent(receivedPacketHeader.DataSize);
+
+            args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketDataBuffer.Length);
+        }
+
+        private void ConfigureReceiveHeader(SocketAsyncEventArgs args)
+        {
+            byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
+
+            args.SetBuffer(pendingPacketHeaderBuffer, 0, pendingPacketHeaderBuffer.Length);
+        }
+
+        private void ConfigureSendData(SocketAsyncEventArgs args, in RawStreamPacket pendingPacket)
+        {
+            byte[] pendingPacketDataBuffer = BufferPool.Rent(pendingPacket.Header.DataSize);
+
+            pendingPacket.Data.CopyTo(pendingPacketDataBuffer);
+
+            args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketDataBuffer.Length);
+        }
+
+        private void ConfigureSendHeader(SocketAsyncEventArgs args, in RawStreamPacket pendingPacket)
+        {
+            byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
+
+            pendingPacket.Header.Serialise(pendingPacketHeaderBuffer);
+
+            args.SetBuffer(pendingPacketHeaderBuffer, 0, pendingPacketHeaderBuffer.Length);
+        }
+
+        private void ContinueReceive(SocketAsyncEventArgs args)
+        {
+            if (ShutdownToken.IsCancellationRequested)
+            {
+                CloseClientConnection(args);
+                return;
+            }
+
+            Socket clientSocket = args.AcceptSocket;
+
+            if (clientSocket.ReceiveAsync(args))
+            {
+                return;
+            }
+
+            CompleteReceive(args);
+        }
+
+        private void ContinueSend(SocketAsyncEventArgs args)
+        {
+            if (ShutdownToken.IsCancellationRequested)
+            {
+                CloseClientConnection(args);
+                return;
+            }
+
+            Socket clientSocket = args.AcceptSocket;
+
+            if (clientSocket.SendAsync(args))
+            {
+                return;
+            }
+
+            CompleteSend(args);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -51,95 +236,7 @@ namespace NetSharp.Raw.Stream
             }
         }
 
-        /// <inheritdoc />
-        protected sealed override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
-        {
-            return true;
-        }
-
-        protected void CloseClientConnection(SocketAsyncEventArgs args)
-        {
-            args.BufferList = null;
-
-            byte[] rentedBuffer = args.Buffer;
-            BufferPool.Return(rentedBuffer, true);
-
-            Socket clientSocket = args.AcceptSocket;
-
-            clientSocket.Shutdown(SocketShutdown.Both);
-            clientSocket.Close();
-            clientSocket.Dispose();
-
-            ArgsPool.Return(args);
-        }
-
-        protected abstract void CompleteAccept(SocketAsyncEventArgs args);
-
-        protected abstract void CompleteReceive(SocketAsyncEventArgs args);
-
-        protected abstract void CompleteSend(SocketAsyncEventArgs args);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ContinueReceive(SocketAsyncEventArgs args)
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
-            Socket clientSocket = args.AcceptSocket;
-
-            if (clientSocket.ReceiveAsync(args))
-            {
-                return;
-            }
-
-            CompleteReceive(args);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ContinueSend(SocketAsyncEventArgs args)
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
-            Socket clientSocket = args.AcceptSocket;
-
-            if (clientSocket.SendAsync(args))
-            {
-                return;
-            }
-
-            CompleteSend(args);
-        }
-
-        /// <inheritdoc />
-        protected sealed override SocketAsyncEventArgs CreateStateObject()
-        {
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += HandleIoCompleted;
-
-            return args;
-        }
-
-        /// <inheritdoc />
-        protected sealed override void DestroyStateObject(SocketAsyncEventArgs instance)
-        {
-            instance.Completed -= HandleIoCompleted;
-            instance.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected sealed override void ResetStateObject(ref SocketAsyncEventArgs instance)
-        {
-            instance.AcceptSocket = null;
-        }
-
-        protected void StartAccept(SocketAsyncEventArgs args)
+        private void StartAccept(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -155,7 +252,7 @@ namespace NetSharp.Raw.Stream
             CompleteAccept(args);
         }
 
-        protected void StartDefaultAccept()
+        private void StartDefaultAccept()
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -166,7 +263,7 @@ namespace NetSharp.Raw.Stream
             StartAccept(args);
         }
 
-        protected void StartReceive(SocketAsyncEventArgs args)
+        private void StartReceive(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -184,7 +281,7 @@ namespace NetSharp.Raw.Stream
             CompleteReceive(args);
         }
 
-        protected void StartSend(SocketAsyncEventArgs args)
+        private void StartSend(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -203,7 +300,35 @@ namespace NetSharp.Raw.Stream
         }
 
         /// <inheritdoc />
-        public sealed override void Start(ushort concurrentReadTasks)
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateStateObject()
+        {
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += HandleIoCompleted;
+
+            return args;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
+        {
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        {
+            instance.AcceptSocket = null;
+        }
+
+        /// <inheritdoc />
+        public override void Start(ushort concurrentReadTasks)
         {
             for (ushort i = 0; i < concurrentReadTasks; i++)
             {
@@ -211,7 +336,7 @@ namespace NetSharp.Raw.Stream
             }
         }
 
-        protected readonly struct TransmissionToken
+        private readonly struct TransmissionToken
         {
             public readonly int BytesTransferred;
             public readonly int ExpectedBytes;

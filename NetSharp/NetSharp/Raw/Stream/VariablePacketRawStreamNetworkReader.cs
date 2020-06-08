@@ -1,10 +1,6 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-
-namespace NetSharp.Raw.Stream
+﻿namespace NetSharp.Raw.Stream
 {
+    /*
     public sealed class VariablePacketRawStreamNetworkReader : RawStreamNetworkReader
     {
         /// <inheritdoc />
@@ -179,4 +175,5 @@ namespace NetSharp.Raw.Stream
             }
         }
     }
+    */
 }

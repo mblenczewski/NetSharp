@@ -7,63 +7,61 @@ namespace NetSharp.Raw.Stream
     public readonly struct RawStreamPacket
     {
         public readonly Memory<byte> Data;
-        public readonly Header PacketHeader;
+        public readonly RawStreamPacketHeader Header;
 
-        private RawStreamPacket(in Header header, in Memory<byte> data)
+        private RawStreamPacket(in RawStreamPacketHeader packetHeader, in Memory<byte> packetData)
         {
-            PacketHeader = header;
+            Header = packetHeader;
 
-            Data = data;
+            Data = packetData;
         }
 
-        public RawStreamPacket(in Memory<byte> data)
+        public RawStreamPacket(in Memory<byte> packetData)
         {
-            PacketHeader = new Header(data.Length);
+            Header = new RawStreamPacketHeader(packetData.Length);
 
-            Data = data;
+            Data = packetData;
         }
 
         public static RawStreamPacket Deserialise(in Memory<byte> buffer)
         {
-            Memory<byte> serialisedHeader = buffer.Slice(0, Header.TotalHeaderSize);
-            Header header = Header.Deserialise(in serialisedHeader);
+            Memory<byte> serialisedHeader = buffer.Slice(0, RawStreamPacketHeader.TotalSize);
+            RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in serialisedHeader);
 
-            Memory<byte> serialisedData = buffer.Slice(Header.TotalHeaderSize);
-
-            return new RawStreamPacket(in header, in serialisedData);
+            return new RawStreamPacket(in header, in buffer);
         }
 
         public void Serialise(in Memory<byte> buffer)
         {
-            PacketHeader.Serialise(buffer.Slice(0, Header.TotalHeaderSize));
+            Header.Serialise(buffer.Slice(0, RawStreamPacketHeader.TotalSize));
 
-            Data.CopyTo(buffer.Slice(Header.TotalHeaderSize, Data.Length));
+            Buffer.CopyTo(buffer.Slice(RawStreamPacketHeader.TotalSize, Data.Length));
+        }
+    }
+
+    public readonly struct RawStreamPacketHeader
+    {
+        public const int TotalSize = sizeof(int);
+
+        public readonly int DataSize;
+
+        internal RawStreamPacketHeader(int dataSize)
+        {
+            DataSize = dataSize;
         }
 
-        public readonly struct Header
+        public static RawStreamPacketHeader Deserialise(in Memory<byte> buffer)
         {
-            public const int TotalHeaderSize = sizeof(int);
+            Span<byte> serialisedDataSize = buffer.Slice(0, sizeof(int)).Span;
+            int dataSize = EndianAwareBitConverter.ToInt32(serialisedDataSize);
 
-            public readonly int DataSize;
+            return new RawStreamPacketHeader(dataSize);
+        }
 
-            internal Header(int dataSize)
-            {
-                DataSize = dataSize;
-            }
-
-            public static Header Deserialise(in Memory<byte> buffer)
-            {
-                Span<byte> serialisedDataSize = buffer.Slice(0, sizeof(int)).Span;
-                int dataSize = EndianAwareBitConverter.ToInt32(serialisedDataSize);
-
-                return new Header(dataSize);
-            }
-
-            public void Serialise(in Memory<byte> buffer)
-            {
-                Span<byte> serialisedDataSize = EndianAwareBitConverter.GetBytes(DataSize);
-                serialisedDataSize.CopyTo(buffer.Slice(0, sizeof(int)).Span);
-            }
+        public void Serialise(in Memory<byte> buffer)
+        {
+            Span<byte> serialisedDataSize = EndianAwareBitConverter.GetBytes(DataSize);
+            serialisedDataSize.CopyTo(buffer.Slice(0, sizeof(int)).Span);
         }
     }
 }

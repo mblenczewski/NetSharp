@@ -1,10 +1,6 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-
-namespace NetSharp.Raw.Stream
+﻿namespace NetSharp.Raw.Stream
 {
+    /*
     public sealed class VariablePacketRawStreamNetworkWriter : RawStreamNetworkWriter
     {
         //TODO replace as soon as possible
@@ -16,7 +12,6 @@ namespace NetSharp.Raw.Stream
         {
         }
 
-        /*
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ConfigureReceiveData(SocketAsyncEventArgs args, in RawStreamPacket.Header header)
         {
@@ -56,7 +51,6 @@ namespace NetSharp.Raw.Stream
             AsyncStreamWriteToken token = new AsyncStreamWriteToken(RawStreamPacket.Header.TotalHeaderSize, 0);
             args.UserToken = token;
         }
-        */
 
         /// <inheritdoc />
         protected override void CompleteReceive(SocketAsyncEventArgs args)
@@ -361,4 +355,5 @@ namespace NetSharp.Raw.Stream
             }
         }
     }
+    */
 }
