@@ -33,8 +33,7 @@ namespace NetSharp.Raw.Stream
 
         private void CloseClientConnection(SocketAsyncEventArgs args)
         {
-            byte[] rentedBuffer = args.Buffer;
-            BufferPool.Return(rentedBuffer, true);
+            BufferPool.Return(args.Buffer, true);
 
             Socket clientSocket = args.AcceptSocket;
 

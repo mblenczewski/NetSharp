@@ -3,12 +3,17 @@ using System.Diagnostics;
 
 namespace NetSharpExamples
 {
-    public class BenchmarkHelper
+    public sealed class BenchmarkHelper
     {
         private readonly Stopwatch stopwatch = new Stopwatch();
         private long lastTicksSnapshot = 0, lastMsSnapshot = 0;
         private long minRttMs = int.MaxValue, maxRttMs = int.MinValue;
         private long minRttTicks = int.MaxValue, maxRttTicks = int.MinValue;
+
+        public BenchmarkHelper()
+        {
+            stopwatch.Reset();
+        }
 
         public long RttMs => stopwatch.ElapsedMilliseconds;
 

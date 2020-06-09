@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace NetSharp.Raw.Stream
 {
+    // TODO finish off implementation
     public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
@@ -67,10 +67,90 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteReceive(SocketAsyncEventArgs args)
         {
+            void CompleteReceiveHeader(SocketAsyncEventArgs args)
+            {
+            }
+
+            void CompleteReceiveData(SocketAsyncEventArgs args)
+            {
+            }
         }
 
         private void CompleteSend(SocketAsyncEventArgs args)
         {
+            void CompleteSendHeader(SocketAsyncEventArgs args)
+            {
+            }
+
+            void CompleteSendData(SocketAsyncEventArgs args)
+            {
+            }
+        }
+
+        private void ConfigureReceiveData(SocketAsyncEventArgs args, in RawStreamPacketHeader receivedPacketHeader)
+        {
+            BufferPool.Return(args.Buffer, true);  // return and clear the requestHeaderBuffer (as it was already parsed)
+
+            byte[] pendingPacketDataBuffer = BufferPool.Rent(receivedPacketHeader.DataSize);
+
+            args.SetBuffer(pendingPacketDataBuffer, 0, receivedPacketHeader.DataSize);
+
+            // TODO add transmission state token
+            args.UserToken = new RequestReadToken(receivedPacketHeader.DataSize, receivedPacketHeader);
+        }
+
+        private void ConfigureReceiveHeader(SocketAsyncEventArgs args)
+        {
+            byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
+
+            args.SetBuffer(pendingPacketHeaderBuffer, 0, RawStreamPacketHeader.TotalSize);
+
+            // TODO add transmission state token
+            args.UserToken = new RequestReadToken(RawStreamPacketHeader.TotalSize, null);
+        }
+
+        private void ConfigureSendData(SocketAsyncEventArgs args, in RawStreamPacketHeader pendingPacketHeader, in ReadOnlyMemory<byte> pendingPacketData)
+        {
+            BufferPool.Return(args.Buffer, true);  // return and clear the requestHeaderBuffer (as it was already sent)
+
+            byte[] pendingPacketDataBuffer = BufferPool.Rent(pendingPacketHeader.DataSize);
+
+            args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketHeader.DataSize);
+
+            // TODO add transmission state token
+            args.UserToken = new ResponseWriteToken(pendingPacketHeader.DataSize);
+        }
+
+        private void ConfigureSendHeader(SocketAsyncEventArgs args, in RawStreamPacketHeader pendingPacketHeader)
+        {
+            byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
+
+            pendingPacketHeader.Serialise(pendingPacketHeaderBuffer);
+
+            args.SetBuffer(pendingPacketHeaderBuffer, 0, RawStreamPacketHeader.TotalSize);
+
+            // TODO add transmission state token
+            args.UserToken = new ResponseWriteToken(RawStreamPacketHeader.TotalSize);
+        }
+
+        private void ContinueReceive(SocketAsyncEventArgs args)
+        {
+            if (Connection.ReceiveAsync(args))
+            {
+                return;
+            }
+
+            CompleteReceive(args);
+        }
+
+        private void ContinueSend(SocketAsyncEventArgs args)
+        {
+            if (Connection.SendAsync(args))
+            {
+                return;
+            }
+
+            CompleteSend(args);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -99,28 +179,6 @@ namespace NetSharp.Raw.Stream
         protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
         {
             return true;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ContinueReceive(SocketAsyncEventArgs args)
-        {
-            if (Connection.ReceiveAsync(args))
-            {
-                return;
-            }
-
-            CompleteReceive(args);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void ContinueSend(SocketAsyncEventArgs args)
-        {
-            if (Connection.SendAsync(args))
-            {
-                return;
-            }
-
-            CompleteSend(args);
         }
 
         /// <inheritdoc />
@@ -214,6 +272,29 @@ namespace NetSharp.Raw.Stream
         public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             throw new NotImplementedException();
+        }
+
+        private readonly struct RequestReadToken
+        {
+            public readonly int BytesToTransfer;
+            public readonly RawStreamPacketHeader? Header;
+
+            public RequestReadToken(int bytesToTransfer, in RawStreamPacketHeader? header)
+            {
+                BytesToTransfer = bytesToTransfer;
+
+                Header = header;
+            }
+        }
+
+        private readonly struct ResponseWriteToken
+        {
+            public readonly int BytesToTransfer;
+
+            public ResponseWriteToken(int bytesToTransfer)
+            {
+                BytesToTransfer = bytesToTransfer;
+            }
         }
     }
 }
