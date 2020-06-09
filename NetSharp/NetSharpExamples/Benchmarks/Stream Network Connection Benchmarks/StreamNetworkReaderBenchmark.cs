@@ -10,7 +10,7 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class VariablePacketStreamNetworkReaderBenchmark : INetSharpBenchmark
+    public class StreamNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
@@ -45,8 +45,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             ServerReadyEvent.Wait();
             clientSocket.Connect(ServerEndPoint);
 
-            byte[] sendBuffer = new byte[PacketSize + RawStreamPacket.Header.TotalHeaderSize];
-            byte[] receiveBuffer = new byte[PacketSize + RawStreamPacket.Header.TotalHeaderSize];
+            byte[] sendBuffer = new byte[PacketSize + RawStreamPacketHeader.TotalSize];
+            byte[] receiveBuffer = new byte[PacketSize + RawStreamPacketHeader.TotalSize];
             byte[] packetBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = ServerEndPoint;
@@ -126,7 +126,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             rawSocket.Bind(ServerEndPoint);
             rawSocket.Listen(ClientCount);
 
-            using RawStreamNetworkReader reader = new VariablePacketRawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
             reader.Start(ClientCount);
 
             ServerReadyEvent.Set();

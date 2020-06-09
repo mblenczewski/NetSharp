@@ -9,14 +9,14 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class VariablePacketStreamNetworkWriterSyncBenchmark : INetSharpBenchmark
+    public class StreamNetworkWriterSyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
 
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
-        public static readonly Encoding ServerEncoding = VariablePacketStreamNetworkReaderBenchmark.ServerEncoding;
-        public static readonly EndPoint ServerEndPoint = VariablePacketStreamNetworkReaderBenchmark.ServerEndPoint;
+        public static readonly Encoding ServerEncoding = StreamNetworkReaderBenchmark.ServerEncoding;
+        public static readonly EndPoint ServerEndPoint = StreamNetworkReaderBenchmark.ServerEndPoint;
 
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
@@ -81,7 +81,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
 
-            using RawStreamNetworkWriter writer = new VariablePacketRawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);

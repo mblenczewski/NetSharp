@@ -19,7 +19,7 @@ namespace NetSharp.Raw.Stream
             if (maxMessageSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxMessageSize), maxMessageSize,
-                    $"The message size must be greater than 0");
+                    $"The maximum message size must be greater than 0");
             }
 
             RequestHandler = requestHandler ?? DefaultRequestHandler;
@@ -50,6 +50,11 @@ namespace NetSharp.Raw.Stream
             switch (args.SocketError)
             {
                 case SocketError.Success:
+                    // the buffer is set to allow a simpler ConfigureReceiveHeader() implemetation. Since returning an empty buffer is ignored in the
+                    // array pool, this allows us to just return the last assigned buffer in the ConfigureXXX() method to the pool (this means that
+                    // usually we will usually be returning the ResponseDataBuffer).
+                    args.SetBuffer(Array.Empty<byte>(), 0, 0);
+
                     ConfigureReceiveHeader(args);
                     StartReceive(args);
                     break;
@@ -66,22 +71,85 @@ namespace NetSharp.Raw.Stream
             {
                 Memory<byte> headerBuffer = args.Buffer;
 
-                RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
+                int receivedBytes = args.BytesTransferred,
+                    previousReceivedBytes = args.Offset,
+                    totalReceivedBytes = previousReceivedBytes + receivedBytes,
+                    expectedBytes = args.Buffer.Length;
 
-                // TODO configure the number of bytes of data to receive
-                ConfigureReceiveData(args, in header);
-                StartReceive(args);
+                if (totalReceivedBytes == expectedBytes)  // transmission complete
+                {
+                    RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
+
+                    args.UserToken = header;  // allow the header to be used in the CompleteReceiveData method
+
+                    ConfigureReceiveData(args, in header);
+                    StartReceive(args);
+                }
+                else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+                {
+                    args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
+
+                    ContinueReceive(args);
+                }
+                else if (receivedBytes == 0)  // connection is dead
+                {
+                    CloseClientConnection(args);
+                }
             }
 
             void CompleteReceiveData(SocketAsyncEventArgs args)
             {
-                byte[] dataBuffer = args.Buffer;
+                Memory<byte> dataBuffer = args.Buffer;
+                RawStreamPacketHeader requestPacketHeader = (RawStreamPacketHeader) args.UserToken;
 
-                // TODO handle request packet
-                //bool haveResponsePacket = RequestHandler(args.AcceptSocket.RemoteEndPoint, );
+                int receivedBytes = args.BytesTransferred,
+                    previousReceivedBytes = args.Offset,
+                    totalReceivedBytes = previousReceivedBytes + receivedBytes,
+                    expectedBytes = args.Buffer.Length;
 
-                ConfigureSendHeader(args);
-                StartSend(args);
+                if (totalReceivedBytes == expectedBytes)  // transmission complete
+                {
+                    EndPoint clientEndPoint = args.AcceptSocket.RemoteEndPoint;
+
+                    // TODO use user-supplied delegate to get response packet size
+                    int responseBufferSize = RawStreamPacket.TotalPacketSize(expectedBytes);
+
+                    byte[] responseBuffer = BufferPool.Rent(responseBufferSize);
+
+                    Memory<byte> responseBufferMemory = responseBuffer[RawStreamPacketHeader.TotalSize..expectedBytes];
+
+                    // TODO rework request handler
+                    bool responseExists = RequestHandler(clientEndPoint, dataBuffer, totalReceivedBytes, responseBufferMemory);
+
+                    switch (responseExists)
+                    {
+                        case true:
+                            RawStreamPacket response = new RawStreamPacket(in responseBufferMemory);
+
+                            ConfigureSendResponse(args, ref responseBuffer, in response);
+                            StartSend(args);
+                            break;
+
+                        case false:
+                            // we manually returns the response buffer, as it wasnt set to be the args.Buffer, and since we dont have a response
+                            // packet we can reuse it as a packet header buffer in the below ConfigureReceiveHeader() call
+                            BufferPool.Return(responseBuffer, true);
+
+                            ConfigureReceiveHeader(args);
+                            StartReceive(args);
+                            break;
+                    }
+                }
+                else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+                {
+                    args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
+
+                    ContinueReceive(args);
+                }
+                else if (receivedBytes == 0)  // connection is dead
+                {
+                    CloseClientConnection(args);
+                }
             }
 
             bool receivingHeader = args.Buffer.Length == RawStreamPacketHeader.TotalSize;
@@ -109,37 +177,28 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteSend(SocketAsyncEventArgs args)
         {
-            void CompleteSendHeader(SocketAsyncEventArgs args)
-            {
-                byte[] headerBuffer = args.Buffer;
-
-                // TODO configure the number of bytes of data to send
-                ConfigureSendData(args);
-                StartSend(args);
-            }
-
-            void CompleteSendData(SocketAsyncEventArgs args)
-            {
-                byte[] dataBuffer = args.Buffer;
-
-                ConfigureReceiveHeader(args);
-                StartReceive(args);
-            }
-
-            bool sendingHeader = args.Buffer.Length == RawStreamPacketHeader.TotalSize;
+            int sentBytes = args.BytesTransferred,
+                previousSentBytes = args.Offset,
+                totalSentBytes = previousSentBytes + sentBytes,
+                expectedBytes = args.Buffer.Length;
 
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    switch (sendingHeader)
+                    if (totalSentBytes == expectedBytes)  // transmission complete
                     {
-                        case true:
-                            CompleteSendHeader(args);
-                            break;
+                        ConfigureReceiveHeader(args);
+                        StartReceive(args);
+                    }
+                    else if (0 < totalSentBytes && totalSentBytes < expectedBytes)  // transmission not complete
+                    {
+                        args.SetBuffer(totalSentBytes, expectedBytes - totalSentBytes);
 
-                        case false:
-                            CompleteSendData(args);
-                            break;
+                        ContinueSend(args);
+                    }
+                    else if (sentBytes == 0)  // connection is dead
+                    {
+                        CloseClientConnection(args);
                     }
                     break;
 
@@ -151,6 +210,8 @@ namespace NetSharp.Raw.Stream
 
         private void ConfigureReceiveData(SocketAsyncEventArgs args, in RawStreamPacketHeader receivedPacketHeader)
         {
+            BufferPool.Return(args.Buffer, true);  // return and clear the requestHeaderBuffer (as it was already parsed)
+
             byte[] pendingPacketDataBuffer = BufferPool.Rent(receivedPacketHeader.DataSize);
 
             args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketDataBuffer.Length);
@@ -158,27 +219,20 @@ namespace NetSharp.Raw.Stream
 
         private void ConfigureReceiveHeader(SocketAsyncEventArgs args)
         {
+            BufferPool.Return(args.Buffer, true);  // return and clear the responseDataBuffer (or requestDataBuffer if no response was generated)
+
             byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
 
             args.SetBuffer(pendingPacketHeaderBuffer, 0, pendingPacketHeaderBuffer.Length);
         }
 
-        private void ConfigureSendData(SocketAsyncEventArgs args, in RawStreamPacket pendingPacket)
+        private void ConfigureSendResponse(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacket pendingPacket)
         {
-            byte[] pendingPacketDataBuffer = BufferPool.Rent(pendingPacket.Header.DataSize);
+            BufferPool.Return(args.Buffer, true);  // return and clear the requestDataBuffer (as it was already parsed)
 
-            pendingPacket.Data.CopyTo(pendingPacketDataBuffer);
+            pendingPacket.Serialise(pendingPacketBuffer);
 
-            args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketDataBuffer.Length);
-        }
-
-        private void ConfigureSendHeader(SocketAsyncEventArgs args, in RawStreamPacket pendingPacket)
-        {
-            byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
-
-            pendingPacket.Header.Serialise(pendingPacketHeaderBuffer);
-
-            args.SetBuffer(pendingPacketHeaderBuffer, 0, pendingPacketHeaderBuffer.Length);
+            args.SetBuffer(pendingPacketBuffer, 0, pendingPacketBuffer.Length);
         }
 
         private void ContinueReceive(SocketAsyncEventArgs args)
@@ -333,26 +387,6 @@ namespace NetSharp.Raw.Stream
             for (ushort i = 0; i < concurrentReadTasks; i++)
             {
                 StartDefaultAccept();
-            }
-        }
-
-        private readonly struct TransmissionToken
-        {
-            public readonly int BytesTransferred;
-            public readonly int ExpectedBytes;
-
-            public TransmissionToken(int expectedBytes, int bytesTransferred)
-            {
-                ExpectedBytes = expectedBytes;
-
-                BytesTransferred = bytesTransferred;
-            }
-
-            public TransmissionToken(in TransmissionToken token, int newlyTransferredBytes)
-            {
-                ExpectedBytes = token.ExpectedBytes;
-
-                BytesTransferred = token.BytesTransferred + newlyTransferredBytes;
             }
         }
     }

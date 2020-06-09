@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 using NetSharp.Utils.Conversion;
 
@@ -31,11 +32,17 @@ namespace NetSharp.Raw.Stream
             return new RawStreamPacket(in header, in buffer);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TotalPacketSize(int packetDataSize)
+        {
+            return RawStreamPacketHeader.TotalSize + packetDataSize;
+        }
+
         public void Serialise(in Memory<byte> buffer)
         {
             Header.Serialise(buffer.Slice(0, RawStreamPacketHeader.TotalSize));
 
-            Buffer.CopyTo(buffer.Slice(RawStreamPacketHeader.TotalSize, Data.Length));
+            Data.CopyTo(buffer.Slice(RawStreamPacketHeader.TotalSize, Data.Length));
         }
     }
 

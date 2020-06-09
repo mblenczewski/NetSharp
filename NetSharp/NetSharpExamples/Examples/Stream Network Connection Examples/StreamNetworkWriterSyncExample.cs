@@ -8,28 +8,28 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 {
-    public class VariablePacketStreamNetworkWriterAsyncExample : INetSharpExample
+    public class StreamNetworkWriterSyncExample : INetSharpExample
     {
         private const int PacketSize = 8192;
 
         public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
-        public static readonly Encoding ServerEncoding = VariablePacketStreamNetworkReaderExample.ServerEncoding;
-        public static readonly EndPoint ServerEndPoint = VariablePacketStreamNetworkReaderExample.ServerEndPoint;
+        public static readonly Encoding ServerEncoding = StreamNetworkReaderExample.ServerEncoding;
+        public static readonly EndPoint ServerEndPoint = StreamNetworkReaderExample.ServerEndPoint;
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Writer Example (Asynchronous)";
+        public string Name { get; } = "Raw Variable Packet-size Stream Network Writer Example (Synchronous)";
 
         /// <inheritdoc />
-        public async Task RunAsync()
+        public Task RunAsync()
         {
             EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
 
-            using RawStreamNetworkWriter writer = new VariablePacketRawStreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
-            await writer.ConnectAsync(ServerEndPoint);
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
+            writer.Connect(ServerEndPoint);
 
             byte[] transmissionBuffer = new byte[PacketSize];
 
@@ -37,14 +37,14 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 
             while (true)
             {
-                int sent = await writer.WriteAsync(remoteEndPoint, transmissionBuffer);
+                int sent = writer.Write(remoteEndPoint, transmissionBuffer);
 
                 lock (typeof(Console))
                 {
                     Console.WriteLine($"Sent {sent} bytes to {remoteEndPoint}!");
                 }
 
-                int received = await writer.ReadAsync(remoteEndPoint, transmissionBuffer);
+                int received = writer.Read(ref remoteEndPoint, transmissionBuffer);
 
                 lock (typeof(Console))
                 {
@@ -52,10 +52,12 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
                 }
             }
 
-            await writer.DisconnectAsync(false);
+            writer.Disconnect(false);
 
             rawSocket.Close();
             rawSocket.Dispose();
+
+            return Task.CompletedTask;
         }
     }
 }

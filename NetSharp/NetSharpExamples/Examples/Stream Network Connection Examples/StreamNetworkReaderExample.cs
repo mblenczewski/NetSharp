@@ -8,7 +8,7 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 {
-    public class VariablePacketStreamNetworkReaderExample : INetSharpExample
+    public class StreamNetworkReaderExample : INetSharpExample
     {
         private const int PacketSize = 8192, ExpectedClientCount = 8;
         public static readonly Encoding ServerEncoding = Encoding.UTF8;
@@ -39,7 +39,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             rawSocket.Bind(ServerEndPoint);
             rawSocket.Listen(ExpectedClientCount);
 
-            using RawStreamNetworkReader reader = new VariablePacketRawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
             reader.Start(ExpectedClientCount);
 
             Console.WriteLine($"Started stream server at {ServerEndPoint}! Enter any key to stop the server...");
