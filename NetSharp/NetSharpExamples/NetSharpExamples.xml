@@ -22,40 +22,22 @@
         <member name="M:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkWriterSyncBenchmark.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkReaderBenchmark.Name">
+        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkReaderBenchmark.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkReaderBenchmark.RunAsync">
+        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkReaderBenchmark.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkWriterAsyncBenchmark.Name">
+        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterAsyncBenchmark.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkWriterAsyncBenchmark.RunAsync">
+        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterAsyncBenchmark.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkWriterSyncBenchmark.Name">
+        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.FixedPacketStreamNetworkWriterSyncBenchmark.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkReaderBenchmark.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkReaderBenchmark.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkWriterAsyncBenchmark.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkWriterAsyncBenchmark.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkWriterSyncBenchmark.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.VariablePacketStreamNetworkWriterSyncBenchmark.RunAsync">
+        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.RunAsync">
             <inheritdoc />
         </member>
         <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.Name">
@@ -76,40 +58,22 @@
         <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkReaderExample.Name">
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkReaderExample.RunAsync">
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkWriterAsyncExample.Name">
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkWriterAsyncExample.RunAsync">
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkWriterSyncExample.Name">
+        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.FixedPacketStreamNetworkWriterSyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkReaderExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkReaderExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkWriterAsyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkWriterAsyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkWriterSyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.VariablePacketStreamNetworkWriterSyncExample.RunAsync">
+        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.RunAsync">
             <inheritdoc />
         </member>
         <member name="T:NetSharpExamples.INetSharpExample">

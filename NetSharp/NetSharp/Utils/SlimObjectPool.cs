@@ -9,7 +9,7 @@ namespace NetSharp.Utils
     /// <typeparam name="T">
     /// The type of item stored in the pool.
     /// </typeparam>
-    public readonly struct SlimObjectPool<T> : IDisposable where T : class
+    public sealed class SlimObjectPool<T> : IDisposable where T : class
     {
         private readonly CanRebufferObjectPredicate canObjectBeRebufferedPredicate;
 

@@ -67,20 +67,20 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteReceive(SocketAsyncEventArgs args)
         {
-            void CompleteReceiveHeader(SocketAsyncEventArgs args)
+            RequestReadToken readToken = (RequestReadToken) args.UserToken;
+
+            void CompleteReceiveHeader(SocketAsyncEventArgs args, in RequestReadToken readToken)
             {
                 Memory<byte> headerBuffer = args.Buffer;
 
                 int receivedBytes = args.BytesTransferred,
                     previousReceivedBytes = args.Offset,
                     totalReceivedBytes = previousReceivedBytes + receivedBytes,
-                    expectedBytes = args.Buffer.Length;
+                    expectedBytes = readToken.BytesToTransfer;
 
                 if (totalReceivedBytes == expectedBytes)  // transmission complete
                 {
                     RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
-
-                    args.UserToken = header;  // allow the header to be used in the CompleteReceiveData method
 
                     ConfigureReceiveData(args, in header);
                     StartReceive(args);
@@ -97,26 +97,26 @@ namespace NetSharp.Raw.Stream
                 }
             }
 
-            void CompleteReceiveData(SocketAsyncEventArgs args)
+            void CompleteReceiveData(SocketAsyncEventArgs args, in RequestReadToken readToken)
             {
                 Memory<byte> dataBuffer = args.Buffer;
-                RawStreamPacketHeader requestPacketHeader = (RawStreamPacketHeader) args.UserToken;
 
                 int receivedBytes = args.BytesTransferred,
                     previousReceivedBytes = args.Offset,
                     totalReceivedBytes = previousReceivedBytes + receivedBytes,
-                    expectedBytes = args.Buffer.Length;
+                    expectedBytes = readToken.BytesToTransfer;
 
                 if (totalReceivedBytes == expectedBytes)  // transmission complete
                 {
                     EndPoint clientEndPoint = args.AcceptSocket.RemoteEndPoint;
 
                     // TODO use user-supplied delegate to get response packet size
-                    int responseBufferSize = RawStreamPacket.TotalPacketSize(expectedBytes);
+                    int responseBufferDataSize = expectedBytes;
+                    int responseBufferSize = RawStreamPacket.TotalPacketSize(responseBufferDataSize);
 
                     byte[] responseBuffer = BufferPool.Rent(responseBufferSize);
 
-                    Memory<byte> responseBufferMemory = responseBuffer[RawStreamPacketHeader.TotalSize..expectedBytes];
+                    Memory<byte> responseBufferMemory = responseBuffer.AsMemory(RawStreamPacketHeader.TotalSize, responseBufferDataSize);
 
                     // TODO rework request handler
                     bool responseExists = RequestHandler(clientEndPoint, dataBuffer, totalReceivedBytes, responseBufferMemory);
@@ -124,7 +124,7 @@ namespace NetSharp.Raw.Stream
                     switch (responseExists)
                     {
                         case true:
-                            RawStreamPacket response = new RawStreamPacket(in responseBufferMemory);
+                            RawStreamPacket response = new RawStreamPacket(in responseBufferMemory, responseBufferDataSize);
 
                             ConfigureSendResponse(args, ref responseBuffer, in response);
                             StartSend(args);
@@ -152,7 +152,7 @@ namespace NetSharp.Raw.Stream
                 }
             }
 
-            bool receivingHeader = args.Buffer.Length == RawStreamPacketHeader.TotalSize;
+            bool receivingHeader = readToken.BytesToTransfer == RawStreamPacketHeader.TotalSize;
 
             switch (args.SocketError)
             {
@@ -160,11 +160,11 @@ namespace NetSharp.Raw.Stream
                     switch (receivingHeader)
                     {
                         case true:
-                            CompleteReceiveHeader(args);
+                            CompleteReceiveHeader(args, in readToken);
                             break;
 
                         case false:
-                            CompleteReceiveData(args);
+                            CompleteReceiveData(args, in readToken);
                             break;
                     }
                     break;
@@ -177,10 +177,12 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteSend(SocketAsyncEventArgs args)
         {
+            ResponseWriteToken writeToken = (ResponseWriteToken) args.UserToken;
+
             int sentBytes = args.BytesTransferred,
                 previousSentBytes = args.Offset,
                 totalSentBytes = previousSentBytes + sentBytes,
-                expectedBytes = args.Buffer.Length;
+                expectedBytes = writeToken.BytesToTransfer;
 
             switch (args.SocketError)
             {
@@ -214,7 +216,8 @@ namespace NetSharp.Raw.Stream
 
             byte[] pendingPacketDataBuffer = BufferPool.Rent(receivedPacketHeader.DataSize);
 
-            args.SetBuffer(pendingPacketDataBuffer, 0, pendingPacketDataBuffer.Length);
+            args.SetBuffer(pendingPacketDataBuffer, 0, receivedPacketHeader.DataSize);
+            args.UserToken = new RequestReadToken(receivedPacketHeader.DataSize, receivedPacketHeader);
         }
 
         private void ConfigureReceiveHeader(SocketAsyncEventArgs args)
@@ -223,7 +226,8 @@ namespace NetSharp.Raw.Stream
 
             byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
 
-            args.SetBuffer(pendingPacketHeaderBuffer, 0, pendingPacketHeaderBuffer.Length);
+            args.SetBuffer(pendingPacketHeaderBuffer, 0, RawStreamPacketHeader.TotalSize);
+            args.UserToken = new RequestReadToken(RawStreamPacketHeader.TotalSize, null);
         }
 
         private void ConfigureSendResponse(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacket pendingPacket)
@@ -232,7 +236,8 @@ namespace NetSharp.Raw.Stream
 
             pendingPacket.Serialise(pendingPacketBuffer);
 
-            args.SetBuffer(pendingPacketBuffer, 0, pendingPacketBuffer.Length);
+            args.SetBuffer(pendingPacketBuffer, 0, pendingPacket.TotalSize);
+            args.UserToken = new ResponseWriteToken(pendingPacket.TotalSize);
         }
 
         private void ContinueReceive(SocketAsyncEventArgs args)
@@ -387,6 +392,29 @@ namespace NetSharp.Raw.Stream
             for (ushort i = 0; i < concurrentReadTasks; i++)
             {
                 StartDefaultAccept();
+            }
+        }
+
+        private readonly struct RequestReadToken
+        {
+            public readonly int BytesToTransfer;
+            public readonly RawStreamPacketHeader? Header;
+
+            public RequestReadToken(int bytesToTransfer, in RawStreamPacketHeader? header)
+            {
+                BytesToTransfer = bytesToTransfer;
+
+                Header = header;
+            }
+        }
+
+        private readonly struct ResponseWriteToken
+        {
+            public readonly int BytesToTransfer;
+
+            public ResponseWriteToken(int bytesToTransfer)
+            {
+                BytesToTransfer = bytesToTransfer;
             }
         }
     }

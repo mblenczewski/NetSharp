@@ -17,12 +17,14 @@ namespace NetSharp.Raw.Stream
             Data = packetData;
         }
 
-        public RawStreamPacket(in Memory<byte> packetData)
+        public RawStreamPacket(in Memory<byte> packetData, int packetDataSize)
         {
-            Header = new RawStreamPacketHeader(packetData.Length);
+            Header = new RawStreamPacketHeader(packetDataSize);
 
             Data = packetData;
         }
+
+        public int TotalSize => RawStreamPacketHeader.TotalSize + Data.Length;
 
         public static RawStreamPacket Deserialise(in Memory<byte> buffer)
         {

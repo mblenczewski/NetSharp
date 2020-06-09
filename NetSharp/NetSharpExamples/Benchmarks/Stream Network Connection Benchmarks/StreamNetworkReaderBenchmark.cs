@@ -60,7 +60,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             {
                 ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
 
-                RawStreamPacket streamPacket = new RawStreamPacket(packetBuffer);
+                RawStreamPacket streamPacket = new RawStreamPacket(packetBuffer, PacketSize);
                 streamPacket.Serialise(sendBuffer);
 
                 benchmarkHelper.StartStopwatch();

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace NetSharp.Raw.Stream
 {
-    public abstract class RawStreamNetworkWriter : RawNetworkWriterBase
+    public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
-        protected RawStreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxMessageSize, int pooledBuffersPerBucket = 50,
+        public RawStreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxMessageSize, int pooledBuffersPerBucket = 50,
             uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxMessageSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             if (maxMessageSize <= 0)
@@ -65,6 +65,14 @@ namespace NetSharp.Raw.Stream
             ArgsPool.Return(args);
         }
 
+        private void CompleteReceive(SocketAsyncEventArgs args)
+        {
+        }
+
+        private void CompleteSend(SocketAsyncEventArgs args)
+        {
+        }
+
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
         {
             switch (args.LastOperation)
@@ -88,14 +96,10 @@ namespace NetSharp.Raw.Stream
         }
 
         /// <inheritdoc />
-        protected sealed override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
         {
             return true;
         }
-
-        protected abstract void CompleteReceive(SocketAsyncEventArgs args);
-
-        protected abstract void CompleteSend(SocketAsyncEventArgs args);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void ContinueReceive(SocketAsyncEventArgs args)
@@ -120,7 +124,7 @@ namespace NetSharp.Raw.Stream
         }
 
         /// <inheritdoc />
-        protected sealed override SocketAsyncEventArgs CreateStateObject()
+        protected override SocketAsyncEventArgs CreateStateObject()
         {
             SocketAsyncEventArgs args = new SocketAsyncEventArgs();
             args.Completed += HandleIoCompleted;
@@ -129,25 +133,25 @@ namespace NetSharp.Raw.Stream
         }
 
         /// <inheritdoc />
-        protected sealed override void DestroyStateObject(SocketAsyncEventArgs instance)
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
         {
             instance.Completed -= HandleIoCompleted;
             instance.Dispose();
         }
 
         /// <inheritdoc />
-        protected sealed override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
         }
 
         /// <inheritdoc />
-        public sealed override void Connect(EndPoint remoteEndPoint)
+        public override void Connect(EndPoint remoteEndPoint)
         {
             Connection.Connect(remoteEndPoint);
         }
 
         /// <inheritdoc />
-        public sealed override ValueTask ConnectAsync(EndPoint remoteEndPoint)
+        public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
         {
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             SocketAsyncEventArgs args = ArgsPool.Rent();
@@ -190,6 +194,26 @@ namespace NetSharp.Raw.Stream
             ArgsPool.Return(args);
 
             return new ValueTask();
+        }
+
+        public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            throw new NotImplementedException();
         }
     }
 }
