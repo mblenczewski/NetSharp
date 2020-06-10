@@ -1,0 +1,54 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+    feedsToUse: 'select'
+    vstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration Release'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: '**/NetSharp.csproj'
+    includesymbols: true
+    includesource: true
+    versioningScheme: 'byPrereleaseNumber'
+    majorVersion: '$(LibMajor)'
+    minorVersion: '$(LibMinor)'
+    patchVersion: '$(LibPatch)'
+
+- task: NuGetAuthenticate@0
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;$(Build.ArtifactStagingDirectory)/**/*.snupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    nuGetFeedType: 'internal'
+    noCache: true
+    disableParallelProcessing: true
+    publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
