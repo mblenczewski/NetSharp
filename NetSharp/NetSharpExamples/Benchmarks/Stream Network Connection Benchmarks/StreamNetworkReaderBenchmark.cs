@@ -23,7 +23,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Reader Benchmark";
+        public string Name { get; } = "Raw Stream Network Reader Benchmark";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
@@ -60,8 +60,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             {
                 ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
 
-                RawStreamPacket streamPacket = new RawStreamPacket(packetBuffer, PacketSize);
-                streamPacket.Serialise(sendBuffer);
+                RawStreamPacketHeader streamPacketHeader = new RawStreamPacketHeader(PacketSize);
+                RawStreamPacket.Serialise(sendBuffer, in streamPacketHeader, packetBuffer);
 
                 benchmarkHelper.StartStopwatch();
 

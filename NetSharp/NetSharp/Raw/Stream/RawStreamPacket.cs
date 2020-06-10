@@ -7,44 +7,25 @@ namespace NetSharp.Raw.Stream
 {
     public readonly struct RawStreamPacket
     {
-        public readonly Memory<byte> Data;
-        public readonly RawStreamPacketHeader Header;
-
-        private RawStreamPacket(in RawStreamPacketHeader packetHeader, in Memory<byte> packetData)
-        {
-            Header = packetHeader;
-
-            Data = packetData;
-        }
-
-        public RawStreamPacket(in Memory<byte> packetData, int packetDataSize)
-        {
-            Header = new RawStreamPacketHeader(packetDataSize);
-
-            Data = packetData;
-        }
-
-        public int TotalSize => RawStreamPacketHeader.TotalSize + Data.Length;
-
-        public static RawStreamPacket Deserialise(in Memory<byte> buffer)
+        public static (RawStreamPacketHeader packetHeader, ReadOnlyMemory<byte> packetData) Deserialise(in Memory<byte> buffer)
         {
             Memory<byte> serialisedHeader = buffer.Slice(0, RawStreamPacketHeader.TotalSize);
             RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in serialisedHeader);
 
-            return new RawStreamPacket(in header, in buffer);
+            return (header, buffer.Slice(RawStreamPacketHeader.TotalSize));
+        }
+
+        public static void Serialise(in Memory<byte> buffer, in RawStreamPacketHeader packetHeader, in ReadOnlyMemory<byte> packetData)
+        {
+            packetHeader.Serialise(buffer.Slice(0, RawStreamPacketHeader.TotalSize));
+
+            packetData.CopyTo(buffer.Slice(RawStreamPacketHeader.TotalSize, packetData.Length));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TotalPacketSize(int packetDataSize)
+        public static int TotalPacketSize(in RawStreamPacketHeader packetHeader)
         {
-            return RawStreamPacketHeader.TotalSize + packetDataSize;
-        }
-
-        public void Serialise(in Memory<byte> buffer)
-        {
-            Header.Serialise(buffer.Slice(0, RawStreamPacketHeader.TotalSize));
-
-            Data.CopyTo(buffer.Slice(RawStreamPacketHeader.TotalSize, Data.Length));
+            return RawStreamPacketHeader.TotalSize + packetHeader.DataSize;
         }
     }
 
@@ -71,6 +52,11 @@ namespace NetSharp.Raw.Stream
         {
             Span<byte> serialisedDataSize = EndianAwareBitConverter.GetBytes(DataSize);
             serialisedDataSize.CopyTo(buffer.Slice(0, sizeof(int)).Span);
+        }
+
+        public override string ToString()
+        {
+            return $"[Data Segment Size: {DataSize}]";
         }
     }
 }

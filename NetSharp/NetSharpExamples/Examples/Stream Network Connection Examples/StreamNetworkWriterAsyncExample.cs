@@ -18,7 +18,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
         public static readonly EndPoint ServerEndPoint = StreamNetworkReaderExample.ServerEndPoint;
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Writer Example (Asynchronous)";
+        public string Name { get; } = "Raw Stream Network Writer Example (Asynchronous)";
 
         /// <inheritdoc />
         public async Task RunAsync()

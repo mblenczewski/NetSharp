@@ -35,11 +35,11 @@ namespace NetSharp.Raw
         public abstract ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
             SocketFlags flags = SocketFlags.None);
 
-        protected readonly struct AsyncOperationToken
+        protected readonly struct OperationToken
         {
             public readonly TaskCompletionSource<bool> CompletionSource;
 
-            public AsyncOperationToken(TaskCompletionSource<bool> completionSource)
+            public OperationToken(TaskCompletionSource<bool> completionSource)
             {
                 CompletionSource = completionSource;
             }

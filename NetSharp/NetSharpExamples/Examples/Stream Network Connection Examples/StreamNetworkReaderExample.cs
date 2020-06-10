@@ -15,7 +15,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
         public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12377);
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Reader Example";
+        public string Name { get; } = "Raw Stream Network Reader Example";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)

@@ -21,7 +21,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Writer Benchmark (Asynchronous)";
+        public string Name { get; } = "Raw Stream Network Writer Benchmark (Asynchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -30,7 +30,8 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             server.Bind(ServerEndPoint);
             ServerReadyEvent.Set();
 
-            byte[] transmissionBuffer = new byte[PacketSize];
+            RawStreamPacketHeader archetypalHeader = new RawStreamPacketHeader(PacketSize);
+            byte[] transmissionBuffer = new byte[RawStreamPacket.TotalPacketSize(in archetypalHeader)];
 
             server.Listen(1);
             Socket clientSocket = server.Accept();

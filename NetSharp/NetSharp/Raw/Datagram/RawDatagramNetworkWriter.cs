@@ -26,7 +26,7 @@ namespace NetSharp.Raw.Datagram
 
         private void CompleteConnect(SocketAsyncEventArgs args)
         {
-            AsyncOperationToken token = (AsyncOperationToken) args.UserToken;
+            OperationToken token = (OperationToken) args.UserToken;
 
             switch (args.SocketError)
             {
@@ -39,8 +39,7 @@ namespace NetSharp.Raw.Datagram
                     break;
 
                 default:
-                    int errorCode = (int) args.SocketError;
-                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
                     break;
             }
 
@@ -49,7 +48,7 @@ namespace NetSharp.Raw.Datagram
 
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
-            AsyncDatagramReadToken token = (AsyncDatagramReadToken) args.UserToken;
+            PacketReadToken token = (PacketReadToken) args.UserToken;
 
             byte[] receiveBuffer = args.Buffer;
 
@@ -65,8 +64,7 @@ namespace NetSharp.Raw.Datagram
                     break;
 
                 default:
-                    int errorCode = (int) args.SocketError;
-                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
                     break;
             }
 
@@ -76,7 +74,7 @@ namespace NetSharp.Raw.Datagram
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
         {
-            AsyncDatagramWriteToken token = (AsyncDatagramWriteToken) args.UserToken;
+            PacketWriteToken token = (PacketWriteToken) args.UserToken;
 
             byte[] sendBuffer = args.Buffer;
 
@@ -91,8 +89,7 @@ namespace NetSharp.Raw.Datagram
                     break;
 
                 default:
-                    int errorCode = (int) args.SocketError;
-                    token.CompletionSource.SetException(new SocketException(errorCode));
+                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
                     break;
             }
 
@@ -159,7 +156,7 @@ namespace NetSharp.Raw.Datagram
 
             args.RemoteEndPoint = remoteEndPoint;
 
-            AsyncOperationToken token = new AsyncOperationToken(tcs);
+            OperationToken token = new OperationToken(tcs);
             args.UserToken = token;
 
             if (Connection.ConnectAsync(args))
@@ -216,7 +213,7 @@ namespace NetSharp.Raw.Datagram
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
 
-            AsyncDatagramReadToken token = new AsyncDatagramReadToken(tcs, in readBuffer);
+            PacketReadToken token = new PacketReadToken(tcs, in readBuffer);
             args.UserToken = token;
 
             if (Connection.ReceiveFromAsync(args))
@@ -229,8 +226,7 @@ namespace NetSharp.Raw.Datagram
 
             transmissionBuffer.CopyTo(readBuffer);
 
-            BufferPool.Return(transmissionBuffer, true);
-            ArgsPool.Return(args);
+            CleanupTransmissionBufferAndState(args);  // transmissionBuffer was assigned to args.Buffer earlier, so this call is safe
 
             return new ValueTask<int>(result);
         }
@@ -281,7 +277,7 @@ namespace NetSharp.Raw.Datagram
             args.RemoteEndPoint = remoteEndPoint;
             args.SocketFlags = flags;
 
-            AsyncDatagramWriteToken token = new AsyncDatagramWriteToken(tcs);
+            PacketWriteToken token = new PacketWriteToken(tcs);
             args.UserToken = token;
 
             if (Connection.SendToAsync(args))
@@ -292,18 +288,17 @@ namespace NetSharp.Raw.Datagram
             // inlining CompleteSendTo(SocketAsyncEventArgs) for performance
             int result = args.BytesTransferred;
 
-            BufferPool.Return(transmissionBuffer, true);
-            ArgsPool.Return(args);
+            CleanupTransmissionBufferAndState(args);  // transmissionBuffer was assigned to args.Buffer earlier, so this call is safe
 
             return new ValueTask<int>(result);
         }
 
-        private readonly struct AsyncDatagramReadToken
+        private readonly struct PacketReadToken
         {
             public readonly TaskCompletionSource<int> CompletionSource;
             public readonly Memory<byte> UserBuffer;
 
-            public AsyncDatagramReadToken(TaskCompletionSource<int> completionSource, in Memory<byte> userBuffer)
+            public PacketReadToken(TaskCompletionSource<int> completionSource, in Memory<byte> userBuffer)
             {
                 CompletionSource = completionSource;
 
@@ -311,11 +306,11 @@ namespace NetSharp.Raw.Datagram
             }
         }
 
-        private readonly struct AsyncDatagramWriteToken
+        private readonly struct PacketWriteToken
         {
             public readonly TaskCompletionSource<int> CompletionSource;
 
-            public AsyncDatagramWriteToken(TaskCompletionSource<int> completionSource)
+            public PacketWriteToken(TaskCompletionSource<int> completionSource)
             {
                 CompletionSource = completionSource;
             }

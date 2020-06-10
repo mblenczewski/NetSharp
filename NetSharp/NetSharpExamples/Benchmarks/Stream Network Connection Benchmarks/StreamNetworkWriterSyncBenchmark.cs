@@ -21,7 +21,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Variable Packet-size Stream Network Writer Benchmark (Synchronous)";
+        public string Name { get; } = "Raw Stream Network Writer Benchmark (Synchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -30,7 +30,9 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
             server.Bind(ServerEndPoint);
             ServerReadyEvent.Set();
 
-            byte[] transmissionBuffer = new byte[PacketSize];
+            // all the headers should have the same packet size, so will fit in the transmission buffer
+            RawStreamPacketHeader archetypalHeader = new RawStreamPacketHeader(PacketSize);
+            byte[] transmissionBuffer = new byte[RawStreamPacket.TotalPacketSize(in archetypalHeader)];
 
             server.Listen(1);
             Socket clientSocket = server.Accept();
@@ -43,7 +45,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
                 do
                 {
                     receivedBytes += clientSocket.Receive(transmissionBuffer, receivedBytes, expectedBytes - receivedBytes, SocketFlags.None);
-                } while (receivedBytes != 0 && receivedBytes < expectedBytes);
+                } while (receivedBytes < expectedBytes && receivedBytes > 0);
 
                 if (receivedBytes == 0)
                 {
@@ -54,7 +56,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
                 do
                 {
                     sentBytes += clientSocket.Send(transmissionBuffer, sentBytes, expectedBytes - sentBytes, SocketFlags.None);
-                } while (sentBytes != 0 && sentBytes < expectedBytes);
+                } while (sentBytes < expectedBytes && sentBytes > 0);
 
                 if (sentBytes == 0)
                 {

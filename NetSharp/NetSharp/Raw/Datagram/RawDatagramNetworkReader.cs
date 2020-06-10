@@ -17,17 +17,17 @@ namespace NetSharp.Raw.Datagram
         private readonly RawDatagramRequestHandler requestHandler;
 
         /// <inheritdoc />
-        public RawDatagramNetworkReader(ref Socket rawConnection, RawDatagramRequestHandler? requestHandler, EndPoint defaultEndPoint, int messageSize,
-            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, messageSize,
+        public RawDatagramNetworkReader(ref Socket rawConnection, RawDatagramRequestHandler? requestHandler, EndPoint defaultEndPoint, int datagramSize,
+            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, datagramSize,
             pooledBuffersPerBucket, preallocatedStateObjects)
         {
-            if (messageSize <= 0 || MaxDatagramSize < messageSize)
+            if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(messageSize), messageSize,
+                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize,
                     $"The datagram size must be greater than 0 and less than {MaxDatagramSize}");
             }
 
-            this.messageSize = messageSize;
+            messageSize = datagramSize;
 
             this.requestHandler = requestHandler ?? DefaultRequestHandler;
         }
@@ -62,18 +62,14 @@ namespace NetSharp.Raw.Datagram
                     break;
 
                 default:
-                    BufferPool.Return(receiveBuffer, true);
-                    ArgsPool.Return(args);
+                    CleanupTransmissionBufferAndState(args);
                     break;
             }
         }
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
         {
-            byte[] sendBuffer = args.Buffer;
-            BufferPool.Return(sendBuffer, true);
-
-            ArgsPool.Return(args);
+            CleanupTransmissionBufferAndState(args);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,11 +116,7 @@ namespace NetSharp.Raw.Datagram
         {
             if (ShutdownToken.IsCancellationRequested)
             {
-                byte[] sendBuffer = args.Buffer;
-                BufferPool.Return(sendBuffer, true);
-
-                ArgsPool.Return(args);
-
+                CleanupTransmissionBufferAndState(args);
                 return;
             }
 

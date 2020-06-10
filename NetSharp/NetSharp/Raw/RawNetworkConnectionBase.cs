@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 
 using NetSharp.Utils;
 
@@ -39,6 +40,13 @@ namespace NetSharp.Raw
         }
 
         protected abstract bool CanReuseStateObject(ref SocketAsyncEventArgs instance);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected void CleanupTransmissionBufferAndState(SocketAsyncEventArgs args)
+        {
+            BufferPool.Return(args.Buffer, true);
+            ArgsPool.Return(args);
+        }
 
         protected abstract SocketAsyncEventArgs CreateStateObject();
 
