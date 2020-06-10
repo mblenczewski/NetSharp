@@ -38,7 +38,7 @@ steps:
     versioningScheme: 'byPrereleaseNumber'
     majorVersion: '$(LibVersionMajor)'
     minorVersion: '$(LibVersionMinor)'
-    patchVersion: '$(BUILD_BUILDNUMBER)'
+    patchVersion: '$(LibVersionPatch)'
 
 - task: NuGetAuthenticate@0
   inputs:
