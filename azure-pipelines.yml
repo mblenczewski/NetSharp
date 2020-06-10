@@ -42,6 +42,8 @@ steps:
     command: 'test'
     projects: '**/*.csproj'
 
+## We only want to build the NetSharp project, not the NetSharpExamples project.
+## Users should clone the repo to run the examples.
 - task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
@@ -53,10 +55,11 @@ steps:
     minorVersion: '$(minor)'
     patchVersion: '$(patch)'
 
+## Publishing to Azure Artifacts
 - task: NuGetAuthenticate@0
   inputs:
     forceReinstallCredentialProvider: true
-
+    
 - task: NuGetCommand@2
   inputs:
     command: 'push'
@@ -66,6 +69,11 @@ steps:
     disableParallelProcessing: true
     publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
 
+## Publishing to NuGet
+- task: NuGetAuthenticate@0
+  inputs:
+    forceReinstallCredentialProvider: true
+
 - task: NuGetCommand@2
   inputs:
     command: 'push'
@@ -73,3 +81,9 @@ steps:
     nuGetFeedType: 'external'
     publishFeedCredentials: '$(nugetConnName)'
 
+- task: PublishSymbols@2
+  inputs:
+    SearchPattern: '**/bin/**/*.pdb'
+    SymbolServerType: 'TeamServices'
+    TreatNotIndexedAsWarning: true
+    SymbolsVersion: '2.\*'
