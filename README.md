@@ -39,17 +39,21 @@ The RTT values measured are the very extremes of what you would get. When printi
 ### Datagram Network Reader & Writer Benchmarks
 
 The following is the datagram network listener (UDP) benchmark:
+
 ![Datagram Network Reader Benchmark][datagram-network-reader-benchmark]
 
 The following are the synchronous and asynchronous datagram network writer (UDP) benchmarks. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
+
 ![Datagram Network Writer Benchmark][datagram-network-writer-benchmark]
 
 ### Stream Network Reader & Writer Benchmarks
 
 The following is the stream network listener (TCP) benchmark:
+
 ![Stream Network Reader Benchmark][stream-network-reader-benchmark]
 
 The following are the synchronous and asynchronous stream network writer (TCP) benchmarks. Worse performance is expected when compared to the synchronous benchmark, due to the increased overhead of async operations:
+
 ![Stream Network Writer Benchmark][stream-network-writer-benchmark]
 
 [discord-server-badge]: https://img.shields.io/discord/703255900600795196.svg?style=flat-square&logo=discord&color=blue
