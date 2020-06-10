@@ -14,6 +14,7 @@ variables:
   minor: '1'
   patch: '0'
   nugetConnName: 'NetSharp NuGet Connection'
+  nugetApiKey: $(NetSharp_NuGet_Api_Key)
 
 steps:
 
@@ -65,10 +66,6 @@ steps:
     disableParallelProcessing: true
     publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
 
-- task: NuGetAuthenticate@0
-  inputs:
-    nuGetServiceConnections: '$(nugetConnName)'
-
 - task: NuGetCommand@2
   inputs:
     command: 'push'
@@ -76,3 +73,4 @@ steps:
     nuGetFeedType: 'external'
     noCache: true
     disableParallelProcessing: true
+    arguments: '-ApiKey $(nugetApiKey)'
