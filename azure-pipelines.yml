@@ -9,6 +9,11 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  major: '0'
+  minor: '1'
+  patch: '0'
+
 steps:
 
 - task: DotNetCoreCLI@2
@@ -42,9 +47,9 @@ steps:
     includesymbols: true
     includesource: true
     versioningScheme: 'byPrereleaseNumber'
-    majorVersion: '$(LibMajor)'
-    minorVersion: '$(LibMinor)'
-    patchVersion: '$(LibPatch)'
+    majorVersion: '$(major)'
+    minorVersion: '$(minor)'
+    patchVersion: '$(patch)'
 
 - task: NuGetAuthenticate@0
   inputs:
