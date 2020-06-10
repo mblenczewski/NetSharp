@@ -83,7 +83,7 @@ steps:
 
 - task: PublishSymbols@2
   inputs:
-    SearchPattern: '**/bin/**/*.pdb'
+    SearchPattern: '**/bin/Release/*.pdb'
     SymbolServerType: 'TeamServices'
     TreatNotIndexedAsWarning: true
     SymbolsVersion: '2.\*'
