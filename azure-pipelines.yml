@@ -35,10 +35,8 @@ steps:
     packagesToPack: '**/NetSharp.csproj'
     includesymbols: true
     includesource: true
-    versioningScheme: 'byPrereleaseNumber'
-    majorVersion: '$(LibVersionMajor)'
-    minorVersion: '$(LibVersionMinor)'
-    patchVersion: '$(LibVersionPatch)'
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'BUILD_BUILDNUMBER'
 
 - task: NuGetAuthenticate@0
   inputs:
