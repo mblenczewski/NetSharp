@@ -8,6 +8,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Authors>Mikołaj Lenczewski</Authors>
     <Company>NetSharp</Company>
+    <Version>0.1.0</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/EnderRifter/NetSharp</PackageProjectUrl>
     <Description>A networking library for C#, focusing on performance and built on top of SocketAsyncEventArgs.</Description>
