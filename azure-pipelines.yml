@@ -13,6 +13,7 @@ variables:
   major: '0'
   minor: '1'
   patch: '0'
+  nugetConnName: 'NetSharp NuGet Connection'
 
 steps:
 
@@ -53,6 +54,7 @@ steps:
 
 - task: NuGetAuthenticate@0
   inputs:
+    nuGetServiceConnections: '$(nugetConnName)'
     forceReinstallCredentialProvider: true
 
 - task: NuGetCommand@2
