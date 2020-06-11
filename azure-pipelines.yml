@@ -69,18 +69,6 @@ steps:
     disableParallelProcessing: true
     publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
 
-## Publishing to NuGet
-- task: NuGetAuthenticate@0
-  inputs:
-    forceReinstallCredentialProvider: true
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'external'
-    publishFeedCredentials: '$(nugetConnName)'
-
 - task: PublishSymbols@2
   inputs:
     SearchPattern: '**/bin/**/*.pdb'
