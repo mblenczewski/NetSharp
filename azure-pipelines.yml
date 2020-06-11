@@ -37,32 +37,10 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration Release'
 
-- task: InvokeRESTAPI@1
-  inputs:
-    connectionType: 'connectedServiceName'
-    serviceConnection: 'Discord Webhook Service Connection'
-    method: 'POST'
-    body: |
-      {
-      "content": "Debug and Release build $(BUILD_BUILDNUMBER) succeeded."
-      }
-    waitForCompletion: 'false'
-
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
     projects: '**/*.csproj'
-
-- task: InvokeRESTAPI@1
-  inputs:
-    connectionType: 'connectedServiceName'
-    serviceConnection: 'Discord Webhook Service Connection'
-    method: 'POST'
-    body: |
-      {
-      "content": "Tests for build $(BUILD_BUILDNUMBER) succeeded."
-      }
-    waitForCompletion: 'false'
 
 ## We only want to build the NetSharp project, not the NetSharpExamples project.
 ## Users should clone the repo to run the examples.
