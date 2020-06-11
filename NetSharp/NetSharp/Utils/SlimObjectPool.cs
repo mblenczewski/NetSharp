@@ -9,7 +9,7 @@ namespace NetSharp.Utils
     /// <typeparam name="T">
     /// The type of item stored in the pool.
     /// </typeparam>
-    public sealed class SlimObjectPool<T> : IDisposable where T : class
+    internal sealed class SlimObjectPool<T> : IDisposable
     {
         private readonly CanRebufferObjectPredicate canObjectBeRebufferedPredicate;
 
@@ -39,7 +39,7 @@ namespace NetSharp.Utils
         /// <param name="baseCollection">
         /// The underlying pooled object buffer to use.
         /// </param>
-        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
+        internal SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
             in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate,
             in IProducerConsumerCollection<T> baseCollection)
         {
@@ -69,7 +69,7 @@ namespace NetSharp.Utils
         /// <param name="rebufferPredicate">
         /// The delegate method to use to decide whether an instance can be reused.
         /// </param>
-        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
+        internal SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
             in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate)
             : this(in createDelegate, in resetDelegate, in destroyDelegate, in rebufferPredicate, new ConcurrentBag<T>())
         {
@@ -85,7 +85,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// Whether the given instance should be placed back into the pool.
         /// </returns>
-        public delegate bool CanRebufferObjectPredicate(ref T instance);
+        internal delegate bool CanRebufferObjectPredicate(ref T instance);
 
         /// <summary>
         /// Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.
@@ -93,7 +93,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// A configured <typeparamref name="T" /> instance.
         /// </returns>
-        public delegate T CreateObjectDelegate();
+        internal delegate T CreateObjectDelegate();
 
         /// <summary>
         /// Delegate method to destroy a used <paramref name="instance" /> which cannot be reused.
@@ -101,7 +101,7 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The instance to destroy.
         /// </param>
-        public delegate void DestroyObjectDelegate(T instance);
+        internal delegate void DestroyObjectDelegate(T instance);
 
         /// <summary>
         /// Delegate method to reset a used <paramref name="instance" /> before placing it back into the pool.
@@ -109,16 +109,7 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The instance which should be reset.
         /// </param>
-        public delegate void ResetObjectDelegate(ref T instance);
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            foreach (T pooledObject in objectBuffer)
-            {
-                destroyObjectDelegate(pooledObject);
-            }
-        }
+        internal delegate void ResetObjectDelegate(ref T instance);
 
         /// <summary>
         /// Leases a new <typeparamref name="T" /> instance from the pool, and returns it.
@@ -126,7 +117,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// The <typeparamref name="T" /> instance which was fetched from the pool.
         /// </returns>
-        public T Rent()
+        internal T Rent()
         {
             return objectBuffer.TryTake(out T result) ? result : createObjectDelegate();
         }
@@ -137,7 +128,7 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The previously leased instance which should be returned.
         /// </param>
-        public void Return(T instance)
+        internal void Return(T instance)
         {
             if (canObjectBeRebufferedPredicate(ref instance))
             {
@@ -148,6 +139,15 @@ namespace NetSharp.Utils
             else
             {
                 destroyObjectDelegate(instance);
+            }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            foreach (T pooledObject in objectBuffer)
+            {
+                destroyObjectDelegate(pooledObject);
             }
         }
     }

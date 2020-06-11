@@ -3,19 +3,12 @@ using System.Runtime.CompilerServices;
 
 using NetSharp.Utils.Conversion;
 
-namespace NetSharp.Raw.Stream
+namespace NetSharp.Packets
 {
-    public readonly struct RawStreamPacket
+    internal readonly struct RawStreamPacket
     {
-        public static (RawStreamPacketHeader packetHeader, ReadOnlyMemory<byte> packetData) Deserialise(in Memory<byte> buffer)
-        {
-            Memory<byte> serialisedHeader = buffer.Slice(0, RawStreamPacketHeader.TotalSize);
-            RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in serialisedHeader);
-
-            return (header, buffer.Slice(RawStreamPacketHeader.TotalSize));
-        }
-
-        public static void Serialise(in Memory<byte> buffer, in RawStreamPacketHeader packetHeader, in ReadOnlyMemory<byte> packetData)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void Serialise(in Memory<byte> buffer, in RawStreamPacketHeader packetHeader, in ReadOnlyMemory<byte> packetData)
         {
             packetHeader.Serialise(buffer.Slice(0, RawStreamPacketHeader.TotalSize));
 
@@ -23,24 +16,24 @@ namespace NetSharp.Raw.Stream
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TotalPacketSize(in RawStreamPacketHeader packetHeader)
+        internal static int TotalPacketSize(in RawStreamPacketHeader packetHeader)
         {
             return RawStreamPacketHeader.TotalSize + packetHeader.DataSize;
         }
     }
 
-    public readonly struct RawStreamPacketHeader
+    internal readonly struct RawStreamPacketHeader
     {
-        public const int TotalSize = sizeof(int);
+        internal const int TotalSize = sizeof(int);
 
-        public readonly int DataSize;
+        internal readonly int DataSize;
 
         internal RawStreamPacketHeader(int dataSize)
         {
             DataSize = dataSize;
         }
 
-        public static RawStreamPacketHeader Deserialise(in Memory<byte> buffer)
+        internal static RawStreamPacketHeader Deserialise(in Memory<byte> buffer)
         {
             Span<byte> serialisedDataSize = buffer.Slice(0, sizeof(int)).Span;
             int dataSize = EndianAwareBitConverter.ToInt32(serialisedDataSize);
@@ -48,7 +41,7 @@ namespace NetSharp.Raw.Stream
             return new RawStreamPacketHeader(dataSize);
         }
 
-        public void Serialise(in Memory<byte> buffer)
+        internal void Serialise(in Memory<byte> buffer)
         {
             Span<byte> serialisedDataSize = EndianAwareBitConverter.GetBytes(DataSize);
             serialisedDataSize.CopyTo(buffer.Slice(0, sizeof(int)).Span);

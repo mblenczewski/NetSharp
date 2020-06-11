@@ -13,14 +13,11 @@ namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
     internal class DatagramNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
-
+        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
+        private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
         private double[] ClientBandwidths;
-
-        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
-
-        public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Datagram Network Reader Benchmark";

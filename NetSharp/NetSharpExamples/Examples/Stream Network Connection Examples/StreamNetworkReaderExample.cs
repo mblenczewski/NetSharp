@@ -11,9 +11,8 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
     internal class StreamNetworkReaderExample : INetSharpExample
     {
         private const int PacketSize = 8192, ExpectedClientCount = 8;
-
-        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
+        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Stream Network Reader Example";

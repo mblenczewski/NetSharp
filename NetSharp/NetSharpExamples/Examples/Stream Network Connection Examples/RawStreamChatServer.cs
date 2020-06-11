@@ -12,14 +12,12 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
     internal class RawStreamChatServer : INetSharpExample
     {
         private static readonly int ChatPacketSize = 8192;
+        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
         private static readonly EndPoint DefaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
         private static readonly ushort InitialClientCount = 4;
-
+        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
         private static readonly ManualResetEventSlim serverStartedEvent = new ManualResetEventSlim(false);
-
-        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         public string Name => "Raw Stream Chat Server";
 

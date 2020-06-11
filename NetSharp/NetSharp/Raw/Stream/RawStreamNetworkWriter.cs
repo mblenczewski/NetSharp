@@ -3,9 +3,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
+using NetSharp.Packets;
+
 namespace NetSharp.Raw.Stream
 {
-    // TODO finish off implementation
     public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
@@ -22,66 +23,6 @@ namespace NetSharp.Raw.Stream
         private void CompleteReceive(SocketAsyncEventArgs args)
         {
             PacketReadToken readToken = (PacketReadToken) args.UserToken;
-
-            void CompleteReceiveHeader(SocketAsyncEventArgs args, in PacketReadToken readToken)
-            {
-                int receivedBytes = args.BytesTransferred,
-                    previousReceivedBytes = args.Offset,
-                    totalReceivedBytes = previousReceivedBytes + receivedBytes,
-                    expectedBytes = readToken.BytesToTransfer;
-
-                if (totalReceivedBytes == expectedBytes)  // transmission complete
-                {
-                    Memory<byte> headerBuffer = args.Buffer.AsMemory(0, RawStreamPacketHeader.TotalSize);
-                    RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
-
-                    ConfigureAsyncReceiveData(args, in header, in readToken.UserDataBuffer, readToken.CompletionSource);
-
-                    StartReceive(args);
-                }
-                else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
-                {
-                    args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
-
-                    ContinueReceive(args);
-                }
-                else if (receivedBytes == 0)  // connection is dead
-                {
-                    readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
-
-                    CleanupTransmissionBufferAndState(args);
-                }
-            }
-
-            void CompleteReceiveData(SocketAsyncEventArgs args, in PacketReadToken readToken)
-            {
-                int receivedBytes = args.BytesTransferred,
-                    previousReceivedBytes = args.Offset,
-                    totalReceivedBytes = previousReceivedBytes + receivedBytes,
-                    expectedBytes = readToken.BytesToTransfer;
-
-                if (totalReceivedBytes == expectedBytes)  // transmission complete
-                {
-                    args.Buffer.AsMemory(0, readToken.UserDataBuffer.Length).CopyTo(readToken.UserDataBuffer);
-
-                    // we only return the number of bytes of user data that were read
-                    readToken.CompletionSource.SetResult(totalReceivedBytes);
-
-                    CleanupTransmissionBufferAndState(args);
-                }
-                else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
-                {
-                    args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
-
-                    ContinueReceive(args);
-                }
-                else if (receivedBytes == 0)  // connection is dead
-                {
-                    readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
-
-                    CleanupTransmissionBufferAndState(args);
-                }
-            }
 
             bool receivingHeader = readToken.BytesToTransfer == RawStreamPacketHeader.TotalSize;
 
@@ -111,6 +52,66 @@ namespace NetSharp.Raw.Stream
 
                     CleanupTransmissionBufferAndState(args);
                     break;
+            }
+        }
+
+        private void CompleteReceiveData(SocketAsyncEventArgs args, in PacketReadToken readToken)
+        {
+            int receivedBytes = args.BytesTransferred,
+                previousReceivedBytes = args.Offset,
+                totalReceivedBytes = previousReceivedBytes + receivedBytes,
+                expectedBytes = readToken.BytesToTransfer;
+
+            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            {
+                args.Buffer.AsMemory(0, readToken.UserDataBuffer.Length).CopyTo(readToken.UserDataBuffer);
+
+                // we only return the number of bytes of user data that were read
+                readToken.CompletionSource.SetResult(totalReceivedBytes);
+
+                CleanupTransmissionBufferAndState(args);
+            }
+            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            {
+                args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
+
+                ContinueReceive(args);
+            }
+            else if (receivedBytes == 0)  // connection is dead
+            {
+                readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
+
+                CleanupTransmissionBufferAndState(args);
+            }
+        }
+
+        private void CompleteReceiveHeader(SocketAsyncEventArgs args, in PacketReadToken readToken)
+        {
+            int receivedBytes = args.BytesTransferred,
+                previousReceivedBytes = args.Offset,
+                totalReceivedBytes = previousReceivedBytes + receivedBytes,
+                expectedBytes = readToken.BytesToTransfer;
+
+            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            {
+                Memory<byte> headerBuffer = args.Buffer.AsMemory(0, RawStreamPacketHeader.TotalSize);
+                RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
+
+                ConfigureAsyncReceiveData(args, in header, in readToken.UserDataBuffer, readToken.CompletionSource);
+
+                StartReceive(args);
+            }
+            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            {
+                args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
+
+                ContinueReceive(args);
+            }
+            else if (receivedBytes == 0)  // connection is dead
+            {
+                readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
+
+                CleanupTransmissionBufferAndState(args);
             }
         }
 
@@ -366,12 +367,12 @@ namespace NetSharp.Raw.Stream
 
         private readonly struct PacketReadToken
         {
-            public readonly int BytesToTransfer;
-            public readonly TaskCompletionSource<int> CompletionSource;
-            public readonly RawStreamPacketHeader? Header;
-            public readonly Memory<byte> UserDataBuffer;
+            internal readonly int BytesToTransfer;
+            internal readonly TaskCompletionSource<int> CompletionSource;
+            internal readonly RawStreamPacketHeader? Header;
+            internal readonly Memory<byte> UserDataBuffer;
 
-            public PacketReadToken(int bytesToTransfer, in RawStreamPacketHeader? header, in Memory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
+            internal PacketReadToken(int bytesToTransfer, in RawStreamPacketHeader? header, in Memory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
             {
                 BytesToTransfer = bytesToTransfer;
 
@@ -385,10 +386,10 @@ namespace NetSharp.Raw.Stream
 
         private readonly struct PacketWriteToken
         {
-            public readonly int BytesToTransfer;
-            public readonly TaskCompletionSource<int> CompletionSource;
+            internal readonly int BytesToTransfer;
+            internal readonly TaskCompletionSource<int> CompletionSource;
 
-            public PacketWriteToken(int bytesToTransfer, TaskCompletionSource<int> tcs)
+            internal PacketWriteToken(int bytesToTransfer, TaskCompletionSource<int> tcs)
             {
                 BytesToTransfer = bytesToTransfer;
 

@@ -2,6 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 
+using NetSharp.Packets;
+
 namespace NetSharp.Raw.Stream
 {
     public delegate bool RawStreamRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,

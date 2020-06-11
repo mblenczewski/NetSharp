@@ -31,12 +31,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.5" />
+    <None Remove="Utils\Conversion\EndianAwareBitConverter.cs~RF33e825.TMP" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Packets\" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.5" />
   </ItemGroup>
 
   <ItemGroup>

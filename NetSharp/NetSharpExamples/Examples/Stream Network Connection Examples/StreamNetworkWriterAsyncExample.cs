@@ -11,10 +11,9 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
     internal class StreamNetworkWriterAsyncExample : INetSharpExample
     {
         private const int PacketSize = 8192;
-
-        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
+        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Stream Network Writer Example (Asynchronous)";
@@ -38,6 +37,8 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             {
                 while (true)
                 {
+                    // TODO add user input
+
                     int sent = await writer.WriteAsync(remoteEndPoint, transmissionBuffer);
 
                     lock (typeof(Console))
