@@ -75,3 +75,4 @@ steps:
     SymbolServerType: 'TeamServices'
     TreatNotIndexedAsWarning: true
     SymbolsVersion: '2.\*'
+
