@@ -79,7 +79,7 @@ namespace NetSharpExamples
                     string rawInput = Console.ReadLine();
                     int choice = int.Parse(rawInput ?? "x");
 
-                    if (0 > choice || choice >= Examples.Count)
+                    if (choice < 0 || choice >= Examples.Count)
                     {
                         Console.WriteLine("Option does not exist. Please try again!");
                         continue;
