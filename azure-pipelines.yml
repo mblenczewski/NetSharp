@@ -7,7 +7,14 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
+
+variables:
+  major: '0'
+  minor: '1'
+  patch: '0'
+  nugetConnName: 'NetSharp NuGet Connection'
+  nugetApiKey: $(NetSharp_NuGet_Api_Key)
 
 steps:
 
@@ -35,6 +42,8 @@ steps:
     command: 'test'
     projects: '**/*.csproj'
 
+## We only want to build the NetSharp project, not the NetSharpExamples project.
+## Users should clone the repo to run the examples.
 - task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
@@ -42,14 +51,15 @@ steps:
     includesymbols: true
     includesource: true
     versioningScheme: 'byPrereleaseNumber'
-    majorVersion: '$(LibMajor)'
-    minorVersion: '$(LibMinor)'
-    patchVersion: '$(LibPatch)'
+    majorVersion: '$(major)'
+    minorVersion: '$(minor)'
+    patchVersion: '$(patch)'
 
+## Publishing to Azure Artifacts
 - task: NuGetAuthenticate@0
   inputs:
     forceReinstallCredentialProvider: true
-
+    
 - task: NuGetCommand@2
   inputs:
     command: 'push'
@@ -58,3 +68,10 @@ steps:
     noCache: true
     disableParallelProcessing: true
     publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
+
+- task: PublishSymbols@2
+  inputs:
+    SearchPattern: '**/bin/**/*.pdb'
+    SymbolServerType: 'TeamServices'
+    TreatNotIndexedAsWarning: true
+    SymbolsVersion: '2.\*'
