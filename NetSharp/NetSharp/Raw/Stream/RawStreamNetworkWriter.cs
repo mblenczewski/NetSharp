@@ -16,8 +16,18 @@ namespace NetSharp.Raw.Stream
             if (maxPooledMessageSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxPooledMessageSize), maxPooledMessageSize,
-                    $"The message size must be greater than 0");
+                    "The message size must be greater than 0");
             }
+        }
+
+        private static void ConfigureAsyncSendPacket(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacketHeader pendingPacketHeader,
+            in ReadOnlyMemory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
+        {
+            RawStreamPacket.Serialise(pendingPacketBuffer, in pendingPacketHeader, in userDataBuffer);
+
+            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
+            args.SetBuffer(pendingPacketBuffer, 0, totalPacketSize);
+            args.UserToken = new PacketWriteToken(totalPacketSize, tcs);
         }
 
         private void CompleteReceive(SocketAsyncEventArgs args)
@@ -181,16 +191,6 @@ namespace NetSharp.Raw.Stream
 
             args.SetBuffer(pendingPacketHeaderBuffer, 0, RawStreamPacketHeader.TotalSize);
             args.UserToken = new PacketReadToken(RawStreamPacketHeader.TotalSize, null, in userDataBuffer, tcs);
-        }
-
-        private void ConfigureAsyncSendPacket(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacketHeader pendingPacketHeader,
-            in ReadOnlyMemory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
-        {
-            RawStreamPacket.Serialise(pendingPacketBuffer, in pendingPacketHeader, in userDataBuffer);
-
-            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
-            args.SetBuffer(pendingPacketBuffer, 0, totalPacketSize);
-            args.UserToken = new PacketWriteToken(totalPacketSize, tcs);
         }
 
         private void ContinueReceive(SocketAsyncEventArgs args)

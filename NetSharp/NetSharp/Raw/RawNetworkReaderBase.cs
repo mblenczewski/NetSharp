@@ -6,17 +6,18 @@ namespace NetSharp.Raw
 {
     public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, INetworkReader
     {
+        private readonly CancellationToken shutdownToken;
         private readonly CancellationTokenSource shutdownTokenSource;
-
-        protected readonly CancellationToken ShutdownToken;
 
         /// <inheritdoc />
         private protected RawNetworkReaderBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize, int pooledBuffersPerBucket = 50,
             uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             shutdownTokenSource = new CancellationTokenSource();
-            ShutdownToken = shutdownTokenSource.Token;
+            shutdownToken = shutdownTokenSource.Token;
         }
+
+        protected ref readonly CancellationToken ShutdownToken => ref shutdownToken;
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
@@ -36,7 +37,7 @@ namespace NetSharp.Raw
         public abstract void Start(ushort concurrentReadTasks);
 
         /// <inheritdoc />
-        public void Stop()
+        public void Shutdown()
         {
             shutdownTokenSource.Cancel();
         }

@@ -45,7 +45,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             Console.WriteLine($"Started stream server at {ServerEndPoint}! Enter any key to stop the server...");
             Console.ReadLine();
 
-            reader.Stop();
+            reader.Shutdown();
 
             rawSocket.Close();
             rawSocket.Dispose();

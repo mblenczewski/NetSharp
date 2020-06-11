@@ -124,7 +124,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
-                    nameof(readBuffer.Length)
+                    nameof(readBuffer)
                 );
             }
 
@@ -146,7 +146,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
-                    nameof(readBuffer.Length)
+                    nameof(readBuffer)
                 );
             }
 
@@ -187,7 +187,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
-                    nameof(writeBuffer.Length)
+                    nameof(writeBuffer)
                 );
             }
 
@@ -209,7 +209,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
-                    nameof(writeBuffer.Length)
+                    nameof(writeBuffer)
                 );
             }
 

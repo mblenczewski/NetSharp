@@ -133,7 +133,7 @@ namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 
             Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
 
-            reader.Stop();
+            reader.Shutdown();
 
             rawSocket.Close();
             rawSocket.Dispose();

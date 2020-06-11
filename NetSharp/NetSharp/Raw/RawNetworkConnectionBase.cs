@@ -10,42 +10,55 @@ namespace NetSharp.Raw
 {
     public abstract class RawNetworkConnectionBase : IDisposable
     {
+        private readonly SlimObjectPool<SocketAsyncEventArgs> argsPool;
+
+        private readonly ArrayPool<byte> bufferPool;
+
+        private readonly Socket connection;
+
+        private readonly EndPoint defaultEndPoint;
+
         // https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
         protected const int DefaultMaxPooledBufferSize = 1024 * 1024, DefaultMaxPooledBuffersPerBucket = 50;
-
-        protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
-        protected readonly ArrayPool<byte> BufferPool;
-        protected readonly Socket Connection;
-        protected readonly EndPoint DefaultEndPoint;
 
         protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
             int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0)
         {
-            Connection = rawConnection;
+            connection = rawConnection;
 
-            BufferPool = maxPooledBufferSize <= DefaultMaxPooledBufferSize && pooledBuffersPerBucket <= DefaultMaxPooledBuffersPerBucket
+            bufferPool = maxPooledBufferSize <= DefaultMaxPooledBufferSize && pooledBuffersPerBucket <= DefaultMaxPooledBuffersPerBucket
                 ? ArrayPool<byte>.Shared
-                : BufferPool = ArrayPool<byte>.Create(maxPooledBufferSize, pooledBuffersPerBucket);
+                : ArrayPool<byte>.Create(maxPooledBufferSize, pooledBuffersPerBucket);
 
-            DefaultEndPoint = defaultEndPoint;
+            this.defaultEndPoint = defaultEndPoint;
 
-            ArgsPool =
-                new SlimObjectPool<SocketAsyncEventArgs>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
+            argsPool = new SlimObjectPool<SocketAsyncEventArgs>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
 
             // TODO implement pooling in better way
             for (uint i = 0; i < preallocatedStateObjects; i++)
             {
-                ArgsPool.Return(CreateStateObject());
+                argsPool.Return(CreateStateObject());
             }
         }
+
+        protected ref readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool => ref argsPool;
+
+        protected ref readonly ArrayPool<byte> BufferPool => ref bufferPool;
+
+        protected ref readonly Socket Connection => ref connection;
+
+        protected ref readonly EndPoint DefaultEndPoint => ref defaultEndPoint;
 
         protected abstract bool CanReuseStateObject(ref SocketAsyncEventArgs instance);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CleanupTransmissionBufferAndState(SocketAsyncEventArgs args)
         {
-            BufferPool.Return(args.Buffer, true);
-            ArgsPool.Return(args);
+            if (args != default)
+            {
+                bufferPool.Return(args.Buffer, true);
+                argsPool.Return(args);
+            }
         }
 
         protected abstract SocketAsyncEventArgs CreateStateObject();
@@ -62,7 +75,7 @@ namespace NetSharp.Raw
                 return;
             }
 
-            ArgsPool.Dispose();
+            argsPool.Dispose();
         }
 
         protected abstract void ResetStateObject(ref SocketAsyncEventArgs instance);

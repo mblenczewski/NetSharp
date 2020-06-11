@@ -66,7 +66,7 @@
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Start(System.UInt16)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Stop">
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Shutdown">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">

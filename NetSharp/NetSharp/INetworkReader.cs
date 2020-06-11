@@ -2,8 +2,8 @@
 {
     public interface INetworkReader
     {
-        public void Start(ushort concurrentReadTasks);
+        public void Shutdown();
 
-        public void Stop();
+        public void Start(ushort concurrentTasks);
     }
 }

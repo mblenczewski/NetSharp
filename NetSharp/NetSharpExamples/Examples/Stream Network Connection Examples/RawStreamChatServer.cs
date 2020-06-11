@@ -102,7 +102,7 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             {
             }
 
-            server.Stop();
+            server.Shutdown();
 
             return Task.CompletedTask;
         }

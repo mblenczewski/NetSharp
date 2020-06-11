@@ -21,7 +21,7 @@ namespace NetSharp.Raw.Stream
             if (maxPooledMessageSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxPooledMessageSize), maxPooledMessageSize,
-                    $"The maximum message size must be greater than 0");
+                    "The maximum message size must be greater than 0");
             }
 
             RequestHandler = requestHandler ?? DefaultRequestHandler;
