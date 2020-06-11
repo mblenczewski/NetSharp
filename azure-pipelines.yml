@@ -59,7 +59,7 @@ steps:
 - task: NuGetAuthenticate@0
   inputs:
     forceReinstallCredentialProvider: true
-    
+
 - task: NuGetCommand@2
   inputs:
     command: 'push'
