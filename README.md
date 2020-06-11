@@ -1,14 +1,31 @@
 # NetSharp
 
-A (somewhat) performant network library for TCP and UDP written over raw sockets and SocketAsyncEventArgs in C#, geared towards asynchronous and concurrent applications.
+A networking library written in C#, focusing on performance and built on top of SocketAsyncEventArgs.
 
-For help with the library, feel free to visit our Discord and ask your questions [here](https://discord.gg/DKQhxuY).
+It is geared towards asynchronous and highly concurrent applications, which aim for maximum bandwidth.
+
+For help with the library, feel free to visit our Discord and ask any questions [here](https://discord.gg/DKQhxuY).
 
 | Service | Status Badge |
 | ------- | ------------ |
 | Discord | [![Discord Server][discord-server-badge]](https://discord.gg/DKQhxuY) |
 | Code Quality | [![CodeFactor](https://www.codefactor.io/repository/github/enderrifter/netsharp/badge/master)](https://www.codefactor.io/repository/github/enderrifter/netsharp/overview/master) |
 | CI Build | [![Build Status](https://quartzstudios.visualstudio.com/NetSharp/_apis/build/status/EnderRifter.NetSharp?branchName=master)](https://quartzstudios.visualstudio.com/NetSharp/_build/latest?definitionId=7&branchName=master) |
+
+The latest release build can be used by searching for NetSharp in the NuGet package manager.
+
+The latest unstable build, built from master at the time of the last commit, can be used either by adding the following XML snippet to your nuget.config (in the same folder as your .csproj or .sln) and restoring the package index:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="NetSharpFeed" value="https://quartzstudios.pkgs.visualstudio.com/NetSharp/_packaging/NetSharpFeed/nuget/v3/index.json" />
+  </packageSources>
+</configuration>
+```
+
+Or by adding the following package source in Visual Studio, with the source name 'NetSharpFeed' and source url 'https://quartzstudios.pkgs.visualstudio.com/NetSharp/_packaging/NetSharpFeed/nuget/v3/index.json', under Tools > Options > NuGet Package Manager > Package Sources.
 
 ## License
 
