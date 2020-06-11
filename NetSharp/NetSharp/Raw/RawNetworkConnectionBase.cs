@@ -11,7 +11,7 @@ namespace NetSharp.Raw
     public abstract class RawNetworkConnectionBase : IDisposable
     {
         // https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
-        private const int DefaultMaxPooledBufferSize = 1024 * 1024, DefaultMaxPooledBuffersPerBucket = 50;
+        protected const int DefaultMaxPooledBufferSize = 1024 * 1024, DefaultMaxPooledBuffersPerBucket = 50;
 
         protected readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool;
         protected readonly ArrayPool<byte> BufferPool;

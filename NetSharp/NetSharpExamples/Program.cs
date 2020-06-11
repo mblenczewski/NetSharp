@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NetSharpExamples
@@ -8,7 +10,13 @@ namespace NetSharpExamples
     internal class Program
     {
         private static readonly List<INetSharpBenchmark> Benchmarks;
+        private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
+        private static readonly int DefaultExamplePort = 44230;
         private static readonly List<INetSharpExample> Examples;
+
+        public static readonly EndPoint DefaultClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
+        public static readonly Encoding DefaultEncoding = Encoding.UTF8;
+        public static readonly EndPoint DefaultServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
 
         static Program()
         {

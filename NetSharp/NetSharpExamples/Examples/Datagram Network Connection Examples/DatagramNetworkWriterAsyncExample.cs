@@ -8,14 +8,13 @@ using NetSharp.Raw.Datagram;
 
 namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
 {
-    public class DatagramNetworkWriterAsyncExample : INetSharpExample
+    internal class DatagramNetworkWriterAsyncExample : INetSharpExample
     {
         private const int PacketSize = 8192;
 
-        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
-
-        public static readonly Encoding ServerEncoding = DatagramNetworkReaderExample.ServerEncoding;
-        public static readonly EndPoint ServerEndPoint = DatagramNetworkReaderExample.ServerEndPoint;
+        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Datagram Network Writer Example (Asynchronous)";

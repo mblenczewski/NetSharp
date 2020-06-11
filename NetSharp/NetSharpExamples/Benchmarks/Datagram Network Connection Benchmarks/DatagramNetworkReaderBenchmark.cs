@@ -10,15 +10,15 @@ using NetSharp.Raw.Datagram;
 
 namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    public class DatagramNetworkReaderBenchmark : INetSharpBenchmark
+    internal class DatagramNetworkReaderBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 12;
 
         private double[] ClientBandwidths;
-        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
 
-        public static readonly Encoding ServerEncoding = Encoding.UTF8;
-        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12370);
+        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 

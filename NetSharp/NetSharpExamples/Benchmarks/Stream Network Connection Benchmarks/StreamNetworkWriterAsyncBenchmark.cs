@@ -9,14 +9,13 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    public class StreamNetworkWriterAsyncBenchmark : INetSharpBenchmark
+    internal class StreamNetworkWriterAsyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
 
-        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
-
-        public static readonly Encoding ServerEncoding = StreamNetworkReaderBenchmark.ServerEncoding;
-        public static readonly EndPoint ServerEndPoint = StreamNetworkReaderBenchmark.ServerEndPoint;
+        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         public static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 

@@ -37,12 +37,6 @@
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Connect(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ConnectAsync(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
@@ -96,12 +90,6 @@
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.RawNetworkWriterBase.Connect(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.RawNetworkWriterBase.ConnectAsync(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
@@ -145,12 +133,6 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Connect(System.Net.EndPoint)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ConnectAsync(System.Net.EndPoint)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.BiDictionary`2">

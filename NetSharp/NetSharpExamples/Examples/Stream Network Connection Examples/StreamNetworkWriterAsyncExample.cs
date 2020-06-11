@@ -8,14 +8,13 @@ using NetSharp.Raw.Stream;
 
 namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 {
-    public class StreamNetworkWriterAsyncExample : INetSharpExample
+    internal class StreamNetworkWriterAsyncExample : INetSharpExample
     {
         private const int PacketSize = 8192;
 
-        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
-
-        public static readonly Encoding ServerEncoding = StreamNetworkReaderExample.ServerEncoding;
-        public static readonly EndPoint ServerEndPoint = StreamNetworkReaderExample.ServerEndPoint;
+        public static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
+        public static readonly Encoding ServerEncoding = Program.DefaultEncoding;
+        public static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Stream Network Writer Example (Asynchronous)";
@@ -27,35 +26,45 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.Bind(ClientEndPoint);
+            rawSocket.Connect(ServerEndPoint);
 
             using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
-            await writer.ConnectAsync(ServerEndPoint);
 
             byte[] transmissionBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = ServerEndPoint;
 
-            while (true)
+            try
             {
-                int sent = await writer.WriteAsync(remoteEndPoint, transmissionBuffer);
-
-                lock (typeof(Console))
+                while (true)
                 {
-                    Console.WriteLine($"Sent {sent} bytes to {remoteEndPoint}!");
-                }
+                    int sent = await writer.WriteAsync(remoteEndPoint, transmissionBuffer);
 
-                int received = await writer.ReadAsync(remoteEndPoint, transmissionBuffer);
+                    lock (typeof(Console))
+                    {
+                        Console.WriteLine($"Sent {sent} bytes to {remoteEndPoint}!");
+                    }
 
-                lock (typeof(Console))
-                {
-                    Console.WriteLine($"Received {received} bytes from {remoteEndPoint}!");
+                    int received = await writer.ReadAsync(remoteEndPoint, transmissionBuffer);
+
+                    lock (typeof(Console))
+                    {
+                        Console.WriteLine($"Received {received} bytes from {remoteEndPoint}!");
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            finally
+            {
+                rawSocket.Shutdown(SocketShutdown.Both);
+                rawSocket.Disconnect(true);
 
-            await writer.DisconnectAsync(false);
-
-            rawSocket.Close();
-            rawSocket.Dispose();
+                rawSocket.Close();
+                rawSocket.Dispose();
+            }
         }
     }
 }

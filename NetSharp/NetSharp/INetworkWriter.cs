@@ -7,10 +7,6 @@ namespace NetSharp
 {
     public interface INetworkWriter
     {
-        public void Connect(EndPoint remoteEndPoint);
-
-        public ValueTask ConnectAsync(EndPoint remoteEndPoint);
-
         public int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer,
             SocketFlags flags = SocketFlags.None);
 

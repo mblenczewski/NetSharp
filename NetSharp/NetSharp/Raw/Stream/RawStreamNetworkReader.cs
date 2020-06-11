@@ -382,6 +382,8 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
+            instance.SetBuffer(null, 0, 0);
+
             instance.AcceptSocket = null;
         }
 

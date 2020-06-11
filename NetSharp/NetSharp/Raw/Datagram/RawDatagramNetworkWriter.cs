@@ -24,28 +24,6 @@ namespace NetSharp.Raw.Datagram
             this.datagramSize = datagramSize;
         }
 
-        private void CompleteConnect(SocketAsyncEventArgs args)
-        {
-            OperationToken token = (OperationToken) args.UserToken;
-
-            switch (args.SocketError)
-            {
-                case SocketError.Success:
-                    token.CompletionSource.SetResult(true);
-                    break;
-
-                case SocketError.OperationAborted:
-                    token.CompletionSource.SetCanceled();
-                    break;
-
-                default:
-                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
-                    break;
-            }
-
-            ArgsPool.Return(args);
-        }
-
         private void CompleteReceiveFrom(SocketAsyncEventArgs args)
         {
             PacketReadToken token = (PacketReadToken) args.UserToken;
@@ -101,10 +79,6 @@ namespace NetSharp.Raw.Datagram
         {
             switch (args.LastOperation)
             {
-                case SocketAsyncOperation.Connect:
-                    CompleteConnect(args);
-                    break;
-
                 case SocketAsyncOperation.SendTo:
                     CompleteSendTo(args);
                     break;
@@ -140,33 +114,6 @@ namespace NetSharp.Raw.Datagram
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
-        }
-
-        /// <inheritdoc />
-        public override void Connect(EndPoint remoteEndPoint)
-        {
-            Connection.Connect(remoteEndPoint);
-        }
-
-        /// <inheritdoc />
-        public override ValueTask ConnectAsync(EndPoint remoteEndPoint)
-        {
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            SocketAsyncEventArgs args = ArgsPool.Rent();
-
-            args.RemoteEndPoint = remoteEndPoint;
-
-            OperationToken token = new OperationToken(tcs);
-            args.UserToken = token;
-
-            if (Connection.ConnectAsync(args))
-            {
-                return new ValueTask(tcs.Task);
-            }
-
-            ArgsPool.Return(args);
-
-            return new ValueTask();
         }
 
         /// <inheritdoc />
