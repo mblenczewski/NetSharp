@@ -9,8 +9,8 @@ For help with the library, feel free to visit our Discord and ask any questions 
 | Service | Status Badge |
 | ------- | ------------ |
 | Discord | [![Discord Server][discord-server-badge]](https://discord.gg/DKQhxuY) |
-| Code Quality | [![CodeFactor](https://www.codefactor.io/repository/github/enderrifter/netsharp/badge/master)](https://www.codefactor.io/repository/github/enderrifter/netsharp/overview/master) |
-| CI Build | [![Build Status](https://quartzstudios.visualstudio.com/NetSharp/_apis/build/status/EnderRifter.NetSharp?branchName=master)](https://quartzstudios.visualstudio.com/NetSharp/_build/latest?definitionId=7&branchName=master) |
+| Code Quality | [![CodeFactor](https://www.codefactor.io/repository/github/mblenczewski/netsharp/badge/master)](https://www.codefactor.io/repository/github/mblenczewski/netsharp/overview/master) |
+| CI Build | [![Build Status](https://quartzstudios.visualstudio.com/NetSharp/_apis/build/status/mblenczewski.NetSharp?branchName=master)](https://quartzstudios.visualstudio.com/NetSharp/_build/latest?definitionId=7&branchName=master) |
 
 The latest release build can be used by searching for NetSharp in the NuGet package manager.
 
