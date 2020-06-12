@@ -37,28 +37,10 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration Release'
 
-- task: ado-discord-webhook@1
-  inputs:
-    channelId: '720999005181575198'
-    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
-    name: 'Azure Pipelines'
-    avatar: 'https://cdn.vsassets.io/content/icons/favicon.ico'
-    messageType: 'content'
-    content: 'Builds succeeded!'
-
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
     projects: '**/*.csproj'
-
-- task: ado-discord-webhook@1
-  inputs:
-    channelId: '720999005181575198'
-    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
-    name: 'Azure Pipelines'
-    avatar: 'https://cdn.vsassets.io/content/icons/favicon.ico'
-    messageType: 'content'
-    content: 'Tests succeeded!'
 
 ## We only want to build the NetSharp project, not the NetSharpExamples project.
 ## Users should clone the repo to run the examples.
@@ -94,3 +76,10 @@ steps:
     TreatNotIndexedAsWarning: true
     SymbolsVersion: '2.\*'
 
+## Discord webhook to report job status
+- task: ado-discord-webhook@1
+  inputs:
+    channelId: '720999005181575198'
+    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
+    messageType: 'content'
+    content: '$(Build.BuildId) Build **$(Agent.JobStatus)**!'
