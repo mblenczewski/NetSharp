@@ -84,4 +84,4 @@ steps:
     name: 'Azure Pipelines Status'
     avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
     messageType: 'content'
-    content: '![Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
+    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
