@@ -74,10 +74,13 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
 
         private static bool ServerPacketHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes, in Memory<byte> responseBuffer)
         {
-            string request = ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
+            lock (typeof(Console))
+            {
+                string request = ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
 
-            Console.WriteLine($"[Server] Received request \'{request}\' from {remoteEndPoint}");
-            Console.WriteLine($"[Server] Sending response \'{request}\' to {remoteEndPoint}");
+                Console.WriteLine($"[Server] Received request \'{request}\' ({receivedRequestBytes} bytes) from {remoteEndPoint}");
+                Console.WriteLine($"[Server] Sending response \'{request}\' ({receivedRequestBytes} bytes) to {remoteEndPoint}");
+            }
 
             return requestBuffer.TryCopyTo(responseBuffer);
         }
@@ -101,10 +104,6 @@ namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
             while (true)
             {
             }
-
-            server.Shutdown();
-
-            return Task.CompletedTask;
         }
 
         public async Task RunAsync()

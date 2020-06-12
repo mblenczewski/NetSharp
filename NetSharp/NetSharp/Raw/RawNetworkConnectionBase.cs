@@ -21,6 +21,8 @@ namespace NetSharp.Raw
         // https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
         protected const int DefaultMaxPooledBufferSize = 1024 * 1024, DefaultMaxPooledBuffersPerBucket = 50;
 
+        protected const int MaxDatagramSize = ushort.MaxValue - 28;  // 65535 - 28 = 65507
+
         protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
             int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0)
         {

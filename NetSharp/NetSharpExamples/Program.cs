@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
+
+[assembly: NeutralResourcesLanguage("en")]
 
 namespace NetSharpExamples
 {
@@ -96,6 +99,10 @@ namespace NetSharpExamples
                 catch (FormatException)
                 {
                     Console.WriteLine("Invalid option selected. Please try again!");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
 

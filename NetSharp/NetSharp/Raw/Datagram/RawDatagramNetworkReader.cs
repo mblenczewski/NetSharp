@@ -10,9 +10,7 @@ namespace NetSharp.Raw.Datagram
 
     public sealed class RawDatagramNetworkReader : RawNetworkReaderBase
     {
-        private const int MaxDatagramSize = ushort.MaxValue - 28;
-
-        private readonly int messageSize;
+        private readonly int datagramSize;
 
         private readonly RawDatagramRequestHandler requestHandler;
 
@@ -23,11 +21,10 @@ namespace NetSharp.Raw.Datagram
         {
             if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize,
-                    $"The datagram size must be greater than 0 and less than {MaxDatagramSize}");
+                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Properties.Resources.RawDatagramSizeError);
             }
 
-            messageSize = datagramSize;
+            this.datagramSize = datagramSize;
 
             this.requestHandler = requestHandler ?? DefaultRequestHandler;
         }
@@ -45,14 +42,14 @@ namespace NetSharp.Raw.Datagram
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    byte[] responseBuffer = BufferPool.Rent(messageSize);
+                    byte[] responseBuffer = BufferPool.Rent(datagramSize);
 
                     bool responseExists = requestHandler(args.RemoteEndPoint, receiveBuffer, args.BytesTransferred, responseBuffer);
                     BufferPool.Return(receiveBuffer, true);
 
                     if (responseExists)
                     {
-                        args.SetBuffer(responseBuffer, 0, messageSize);
+                        args.SetBuffer(responseBuffer, 0, datagramSize);
 
                         SendTo(args);
                         return;
@@ -75,8 +72,8 @@ namespace NetSharp.Raw.Datagram
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ConfigureReceiveFrom(SocketAsyncEventArgs args)
         {
-            byte[] receiveBuffer = BufferPool.Rent(messageSize);
-            args.SetBuffer(receiveBuffer, 0, messageSize);
+            byte[] receiveBuffer = BufferPool.Rent(datagramSize);
+            args.SetBuffer(receiveBuffer, 0, datagramSize);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)

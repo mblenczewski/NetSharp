@@ -15,8 +15,7 @@ namespace NetSharp.Raw.Stream
         {
             if (maxPooledMessageSize <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxPooledMessageSize), maxPooledMessageSize,
-                    "The message size must be greater than 0");
+                throw new ArgumentOutOfRangeException(nameof(maxPooledMessageSize), maxPooledMessageSize, Properties.Resources.RawStreamMessageSizeUnderflow);
             }
         }
 

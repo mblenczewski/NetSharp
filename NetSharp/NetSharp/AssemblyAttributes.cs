@@ -1,10 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Resources;
+using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("NetSharpExamples", AllInternalsVisible = true)]
-
-namespace NetSharp
-{
-    internal static class AssemblyAttributes
-    {
-    }
-}
+[assembly: NeutralResourcesLanguage("en")]

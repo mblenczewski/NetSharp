@@ -36,7 +36,14 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
             {
                 while (true)
                 {
-                    // TODO add user input
+                    Console.Write("Input to send to server: ");
+                    string userInput = Console.ReadLine();
+
+                    if (!ServerEncoding.GetBytes(userInput).AsMemory().TryCopyTo(transmissionBuffer))
+                    {
+                        Console.WriteLine("Given input is too large. Please try again!");
+                        continue;
+                    }
 
                     int sent = writer.Write(remoteEndPoint, transmissionBuffer);
 
@@ -45,11 +52,14 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
                         Console.WriteLine($"Sent {sent} bytes to {remoteEndPoint}!");
                     }
 
+                    Array.Clear(transmissionBuffer, 0, transmissionBuffer.Length);
+
                     int received = writer.Read(ref remoteEndPoint, transmissionBuffer);
 
                     lock (typeof(Console))
                     {
                         Console.WriteLine($"Received {received} bytes from {remoteEndPoint}!");
+                        Console.WriteLine(ServerEncoding.GetString(transmissionBuffer));
                     }
                 }
             }
@@ -58,8 +68,6 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
                 rawSocket.Close();
                 rawSocket.Dispose();
             }
-
-            return Task.CompletedTask;
         }
     }
 }

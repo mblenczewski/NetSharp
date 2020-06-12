@@ -4,6 +4,32 @@
         <name>NetSharp</name>
     </assembly>
     <members>
+        <member name="T:NetSharp.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.RawDatagramSizeError">
+            <summary>
+              Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.RawStreamMessageSizeUnderflow">
+            <summary>
+              Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
+            </summary>
+        </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Datagram.RawDatagramRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>

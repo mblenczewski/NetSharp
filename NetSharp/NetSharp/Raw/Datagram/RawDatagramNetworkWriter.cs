@@ -7,8 +7,6 @@ namespace NetSharp.Raw.Datagram
 {
     public sealed class RawDatagramNetworkWriter : RawNetworkWriterBase
     {
-        private const int MaxDatagramSize = ushort.MaxValue - 28;
-
         private readonly int datagramSize;
 
         /// <inheritdoc />
@@ -17,8 +15,7 @@ namespace NetSharp.Raw.Datagram
         {
             if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize,
-                    $"The datagram size must be greater than 0 and less than {MaxDatagramSize}");
+                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Properties.Resources.RawDatagramSizeError);
             }
 
             this.datagramSize = datagramSize;

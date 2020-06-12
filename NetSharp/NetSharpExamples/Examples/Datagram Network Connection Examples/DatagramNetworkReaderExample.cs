@@ -20,14 +20,15 @@ namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
         {
-            requestBuffer.CopyTo(responseBuffer);
-
             lock (typeof(Console))
             {
-                Console.WriteLine($"Received {receivedRequestBytes} bytes from {remoteEndPoint}! Echoing back...");
+                string request = ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
+
+                Console.WriteLine($"[Server] Received request \'{request}\' ({receivedRequestBytes} bytes) from {remoteEndPoint}");
+                Console.WriteLine($"[Server] Sending response \'{request}\' ({receivedRequestBytes} bytes) to {remoteEndPoint}");
             }
 
-            return true;
+            return requestBuffer.TryCopyTo(responseBuffer);
         }
 
         /// <inheritdoc />
