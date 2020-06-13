@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using NetSharp.Raw.Stream;
 
-namespace NetSharpExamples.Examples.Stream_Network_Connection_Examples
+namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
 {
     internal class StreamNetworkWriterSyncExample : INetSharpExample
     {

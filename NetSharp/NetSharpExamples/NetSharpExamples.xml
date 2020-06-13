@@ -1,92 +1,56 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>NetSharpExamples</name>
+        <name>NetSharp.Examples</name>
     </assembly>
     <members>
-        <member name="P:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkReaderBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkReaderBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkWriterAsyncBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkWriterAsyncBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkWriterSyncBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks.DatagramNetworkWriterSyncBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkReaderBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkReaderBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterAsyncBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterAsyncBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.Name">
+        <member name="P:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.Name">
             <inheritdoc />
         </member>
-        <member name="M:NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks.StreamNetworkWriterSyncBenchmark.RunAsync">
+        <member name="M:NetSharp.Examples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.RunAsync">
             <inheritdoc />
         </member>
-        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkReaderExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterAsyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Datagram_Network_Connection_Examples.DatagramNetworkWriterSyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkReaderExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterAsyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="P:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.Name">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharpExamples.Examples.Stream_Network_Connection_Examples.StreamNetworkWriterSyncExample.RunAsync">
-            <inheritdoc />
-        </member>
-        <member name="T:NetSharpExamples.INetSharpExample">
+        <member name="T:NetSharp.Examples.INetSharpExample">
             <summary>
             Defines an example program.
             </summary>
         </member>
-        <member name="P:NetSharpExamples.INetSharpExample.Name">
+        <member name="P:NetSharp.Examples.INetSharpExample.Name">
             <summary>
             The name of the example.
             </summary>
         </member>
-        <member name="M:NetSharpExamples.INetSharpExample.RunAsync">
+        <member name="M:NetSharp.Examples.INetSharpExample.RunAsync">
             <summary>
             Runs the example asynchronously.
             </summary>

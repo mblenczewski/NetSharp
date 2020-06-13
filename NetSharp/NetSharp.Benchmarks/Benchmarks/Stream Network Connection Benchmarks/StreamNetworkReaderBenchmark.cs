@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using NetSharp.Packets;
 using NetSharp.Raw.Stream;
 
-namespace NetSharpExamples.Benchmarks.Stream_Network_Connection_Benchmarks
+namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 {
     internal class StreamNetworkReaderBenchmark : INetSharpBenchmark
     {

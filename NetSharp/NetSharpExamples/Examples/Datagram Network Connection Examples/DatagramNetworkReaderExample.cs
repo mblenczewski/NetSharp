@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using NetSharp.Raw.Datagram;
 
-namespace NetSharpExamples.Examples.Datagram_Network_Connection_Examples
+namespace NetSharp.Examples.Examples.Datagram_Network_Connection_Examples
 {
     internal class DatagramNetworkReaderExample : INetSharpExample
     {

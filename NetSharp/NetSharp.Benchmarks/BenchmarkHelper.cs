@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace NetSharpExamples
+namespace NetSharp.Benchmarks
 {
     public sealed class BenchmarkHelper
     {

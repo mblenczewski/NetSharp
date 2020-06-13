@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using NetSharp.Raw.Datagram;
 
-namespace NetSharpExamples.Benchmarks.Datagram_Network_Connection_Benchmarks
+namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
     internal class DatagramNetworkWriterSyncBenchmark : INetSharpBenchmark
     {

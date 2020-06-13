@@ -1,4 +1,4 @@
-﻿namespace NetSharp
+﻿namespace NetSharp.Interfaces
 {
     public interface INetworkReader
     {

@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 using System.Threading;
 
+using NetSharp.Interfaces;
+
 namespace NetSharp.Raw
 {
     public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, INetworkReader

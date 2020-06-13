@@ -1,19 +1,19 @@
 ﻿using System.Threading.Tasks;
 
-namespace NetSharp.Examples
+namespace NetSharp.Benchmarks
 {
     /// <summary>
-    /// Defines an example program.
+    /// Defines a benchmark program.
     /// </summary>
-    public interface INetSharpExample
+    public interface INetSharpBenchmark
     {
         /// <summary>
-        /// The name of the example.
+        /// The name of the benchmark.
         /// </summary>
         string Name { get; }
 
         /// <summary>
-        /// Runs the example asynchronously.
+        /// Runs the benchmark asynchronously.
         /// </summary>
         Task RunAsync();
     }

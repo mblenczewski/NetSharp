@@ -5,13 +5,17 @@ VisualStudioVersion = 16.0.29324.140
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetSharp", "NetSharp\NetSharp.csproj", "{424A38DB-7CA0-4C94-90B4-EF246CB4BDC4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetSharpExamples", "NetSharpExamples\NetSharpExamples.csproj", "{5861E518-E712-4031-9AA1-0313736FF957}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetSharp.Examples", "NetSharpExamples\NetSharp.Examples.csproj", "{5861E518-E712-4031-9AA1-0313736FF957}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DD66A23B-CB45-4AAA-818A-4081DA9C875B}"
 	ProjectSection(SolutionItems) = preProject
 		..\..\..\..\_Visual Studio Config\.editorconfig = ..\..\..\..\_Visual Studio Config\.editorconfig
 		nuget.config = nuget.config
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSharp.Tests", "NetSharp.Tests\NetSharp.Tests.csproj", "{20FCC003-4342-49E3-9F66-640458C74B02}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSharp.Benchmarks", "NetSharp.Benchmarks\NetSharp.Benchmarks.csproj", "{1C01A0C1-49C9-4B27-A4C8-7C66081982DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +31,14 @@ Global
 		{5861E518-E712-4031-9AA1-0313736FF957}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5861E518-E712-4031-9AA1-0313736FF957}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5861E518-E712-4031-9AA1-0313736FF957}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20FCC003-4342-49E3-9F66-640458C74B02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20FCC003-4342-49E3-9F66-640458C74B02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20FCC003-4342-49E3-9F66-640458C74B02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20FCC003-4342-49E3-9F66-640458C74B02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C01A0C1-49C9-4B27-A4C8-7C66081982DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C01A0C1-49C9-4B27-A4C8-7C66081982DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C01A0C1-49C9-4B27-A4C8-7C66081982DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C01A0C1-49C9-4B27-A4C8-7C66081982DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

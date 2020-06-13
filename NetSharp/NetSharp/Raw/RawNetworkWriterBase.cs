@@ -3,6 +3,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
+using NetSharp.Interfaces;
+
 namespace NetSharp.Raw
 {
     public abstract class RawNetworkWriterBase : RawNetworkConnectionBase, INetworkWriter
