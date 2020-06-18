@@ -15,16 +15,15 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
     public class DatagramNetworkReaderBenchmark : INetSharpBenchmark
     {
-        private const int ClientCount = 12;
-        private const int MaxPacketCount = 1_000_000, MinPacketCount = 100_000, PacketCountInterval = 100_000;
-        private const int MaxPacketSize = 65535 / 2, MinPacketSize = 8192;
         private static readonly EndPoint ServerDefaultListenEndpoint = new IPEndPoint(IPAddress.Any, 0);
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private Task[] _clientTasks;
         private Socket _serverSocket;
         private double[] ClientMegabyteBandwidths;
 
-        public ushort BenchmarkClientCount { get; set; } = ClientCount;
+        public static IEnumerable<int> PacketCountParamsSource { get; } = Program.Constants.PacketCountParamsSource;
+        public static IEnumerable<int> PacketSizeParamsSource { get; } = Program.Constants.PacketSizeParamsSource;
+        public ushort BenchmarkClientCount { get; set; } = Program.Constants.ClientCount;
 
         [ParamsSource(nameof(PacketCountParamsSource))]
         public int BenchmarkPacketCount { get; set; }
@@ -78,22 +77,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
             clientSocket.Dispose();
 
             return Task.CompletedTask;
-        }
-
-        public static IEnumerable<int> PacketCountParamsSource()
-        {
-            for (int i = MinPacketCount; i <= MaxPacketCount; i += PacketCountInterval)
-            {
-                yield return i;
-            }
-        }
-
-        public static IEnumerable<int> PacketSizeParamsSource()
-        {
-            for (int i = MinPacketSize; i < MaxPacketSize; i *= 2)
-            {
-                yield return i;
-            }
         }
 
         [Benchmark(Description = "Measures performance of a Datagram Network Reader with multiple clients")]

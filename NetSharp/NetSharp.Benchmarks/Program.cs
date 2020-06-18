@@ -107,9 +107,14 @@ namespace NetSharp.Benchmarks
         {
             private const int DefaultExamplePort = 44231;
             private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
+
+            public const int ClientCount = 12;
             public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
             public static readonly Encoding ServerEncoding = Encoding.UTF8;
             public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
+
+            public static IEnumerable<int> PacketCountParamsSource { get; } = new int[] { 10_000, 100_000, 1_000_000 };
+            public static IEnumerable<int> PacketSizeParamsSource { get; } = new int[] { 4096, 8192, 16384, 32768 };
         }
     }
 }
