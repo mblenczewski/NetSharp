@@ -19,6 +19,14 @@ namespace NetSharp.Benchmarks
 
         public long RttTicks => stopwatch.ElapsedTicks;
 
+        public static double CalcBandwidth(long elapsedMilliseconds, long sentPacketCount, long sentPacketSize, long bandwidthDownscalingFactor = 1_000_000)
+        {
+            double bytes = sentPacketCount * sentPacketSize / bandwidthDownscalingFactor;
+            double bandwidth = bytes / (elapsedMilliseconds / 1000.0);
+
+            return bandwidth;
+        }
+
         public double CalcBandwidth(long sentPacketCount, long packetSize)
         {
             long millis = stopwatch.ElapsedMilliseconds;

@@ -15,7 +15,7 @@ namespace NetSharp.Tests
         public static readonly Encoding DefaultEncoding = Encoding.UTF8;
         public static readonly EndPoint DefaultServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             Console.WriteLine("Hello World!");
         }

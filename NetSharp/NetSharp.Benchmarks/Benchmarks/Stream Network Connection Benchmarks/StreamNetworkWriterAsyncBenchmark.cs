@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +12,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
     internal class StreamNetworkWriterAsyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
-        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
 
         /// <inheritdoc />
@@ -25,7 +21,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         {
             using Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            server.Bind(ServerEndPoint);
+            server.Bind(Program.Constants.ServerEndPoint);
             ServerReadyEvent.Set();
 
             RawStreamPacketHeader archetypalHeader = new RawStreamPacketHeader(PacketSize);
@@ -78,7 +74,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            rawSocket.Bind(ClientEndPoint);
+            rawSocket.Bind(Program.Constants.ClientEndPoint);
 
             using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
 
@@ -86,7 +82,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
 
             ServerReadyEvent.Wait();
-            rawSocket.Connect(ServerEndPoint);
+            rawSocket.Connect(Program.Constants.ServerEndPoint);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
@@ -95,13 +91,13 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             for (int i = 0; i < PacketCount; i++)
             {
-                byte[] packetBuffer = ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
+                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sendResult = await writer.WriteAsync(ServerEndPoint, sendBuffer);
+                int sendResult = await writer.WriteAsync(Program.Constants.ServerEndPoint, sendBuffer);
 
-                int receiveResult = await writer.ReadAsync(ServerEndPoint, receiveBuffer);
+                int receiveResult = await writer.ReadAsync(Program.Constants.ServerEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
 
                 benchmarkHelper.SnapshotRttStats();
