@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - master
 
@@ -19,6 +14,7 @@ variables:
 steps:
 
 - task: DotNetCoreCLI@2
+  displayName: 'NuGet Restore'
   inputs:
     command: 'restore'
     projects: '**/*.csproj'
@@ -26,20 +22,55 @@ steps:
     vstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Debug Build'
+  continueOnError: true
   inputs:
     command: 'build'
     projects: '**/*.csproj'
     arguments: '--configuration Debug'
 
 - task: DotNetCoreCLI@2
+  displayName: 'Release Build'
+  continueOnError: true
   inputs:
     command: 'build'
     projects: '**/*.csproj'
     arguments: '--configuration Release'
 
+## Discord webhook to report build status
+- task: ado-discord-webhook@1
+  displayName: 'Discord Build Webhook'
+  inputs:
+    channelId: '720999005181575198'
+    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
+    name: 'Azure Pipelines'
+    avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
+    messageType: 'content'
+    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Tests'
+  continueOnError: true
+  inputs:
+    command: 'test'
+    projects: '**/NetSharp.Tests.csproj'
+
+## Discord webhook to report test status
+- task: ado-discord-webhook@1
+  displayName: 'Discord Test Webhook'
+  inputs:
+    channelId: '720999005181575198'
+    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
+    name: 'Azure Pipelines'
+    avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
+    messageType: 'content'
+    content: '[Test $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
+
+
 ## We only want to build the NetSharp project, not the NetSharpExamples project.
 ## Users should clone the repo to run the examples.
 - task: DotNetCoreCLI@2
+  displayName: 'NuGet Pack'
   inputs:
     command: 'pack'
     packagesToPack: '**/NetSharp.csproj'
@@ -52,10 +83,12 @@ steps:
 
 ## Publishing to Azure Artifacts
 - task: NuGetAuthenticate@0
+  displayName: 'NuGet Publish Authentication'
   inputs:
     forceReinstallCredentialProvider: true
 
 - task: NuGetCommand@2
+  displayName: 'NuGet Push'
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;$(Build.ArtifactStagingDirectory)/**/*.snupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
@@ -65,18 +98,9 @@ steps:
     publishVstsFeed: 'f9dc36eb-1775-45c6-a7f2-64cb96034463/ddde3a7f-a830-43ac-a25a-3fde3da1abcf'
 
 - task: PublishSymbols@2
+  displayName: 'NuGet Push Symbols'
   inputs:
     SearchPattern: '**/bin/**/*.pdb'
     SymbolServerType: 'TeamServices'
     TreatNotIndexedAsWarning: true
     SymbolsVersion: '2.\*'
-
-## Discord webhook to report job status
-- task: ado-discord-webhook@1
-  inputs:
-    channelId: '720999005181575198'
-    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
-    name: 'Azure Pipelines Status'
-    avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
-    messageType: 'content'
-    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
