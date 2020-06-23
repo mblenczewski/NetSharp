@@ -1,17 +1,19 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Resources;
 using System.Text;
+
+using Xunit;
 
 [assembly: NeutralResourcesLanguage("en")]
 
 namespace NetSharp.Tests
 {
-    internal class Program
+    public class Program
     {
-        private static void Main()
+        [Fact]
+        public void HelloTests()
         {
-            Console.WriteLine("Hello World!");
+            Assert.True(true);
         }
 
         public static class Constants
