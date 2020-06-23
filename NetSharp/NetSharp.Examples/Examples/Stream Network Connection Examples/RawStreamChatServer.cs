@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,11 +11,7 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
     internal class RawStreamChatServer : INetSharpExample
     {
         private static readonly int ChatPacketSize = 8192;
-        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        private static readonly EndPoint DefaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
         private static readonly ushort InitialClientCount = 4;
-        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
         private static readonly ManualResetEventSlim serverStartedEvent = new ManualResetEventSlim(false);
 
         public string Name => "Raw Stream Chat Server";
@@ -24,10 +19,11 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
         private static async Task ClientTask()
         {
             Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket.Bind(ClientEndPoint);
-            clientSocket.Connect(ServerEndPoint);
+            clientSocket.Bind(Program.Constants.ClientEndPoint);
+            clientSocket.Connect(Program.Constants.ServerEndPoint);
 
-            using RawStreamNetworkWriter client = new RawStreamNetworkWriter(ref clientSocket, DefaultEndPoint, ChatPacketSize);
+            EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            using RawStreamNetworkWriter client = new RawStreamNetworkWriter(ref clientSocket, defaultEndPoint, ChatPacketSize);
 
             byte[] transmissionBuffer = new byte[ChatPacketSize];
 
@@ -37,22 +33,22 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
                 {
                     Console.Write("Enter string to send to the server: ");
                     string request = Console.ReadLine();
-                    if (!ServerEncoding.GetBytes(request).AsMemory().TryCopyTo(transmissionBuffer))
+                    if (!Program.Constants.ServerEncoding.GetBytes(request).AsMemory().TryCopyTo(transmissionBuffer))
                     {
                         Console.WriteLine("Could not copy message to transmission buffer. Please try again!");
                         continue;
                     }
 
-                    int sentBytes = await client.WriteAsync(ServerEndPoint, transmissionBuffer);
+                    int sentBytes = await client.WriteAsync(Program.Constants.ServerEndPoint, transmissionBuffer);
 
                     Console.WriteLine($"[{clientSocket.LocalEndPoint}] Sent {sentBytes} bytes to server:");
                     Console.WriteLine($"\t{request}");
 
                     Array.Clear(transmissionBuffer, 0, transmissionBuffer.Length);
 
-                    int receivedBytes = await client.ReadAsync(ServerEndPoint, transmissionBuffer);
+                    int receivedBytes = await client.ReadAsync(Program.Constants.ServerEndPoint, transmissionBuffer);
 
-                    string response = ServerEncoding.GetString(transmissionBuffer);
+                    string response = Program.Constants.ServerEncoding.GetString(transmissionBuffer);
 
                     Console.WriteLine($"[{clientSocket.LocalEndPoint}] Received {receivedBytes} bytes from server!");
                     Console.WriteLine($"\t{response}");
@@ -76,7 +72,7 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
         {
             lock (typeof(Console))
             {
-                string request = ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
+                string request = Program.Constants.ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
 
                 Console.WriteLine($"[Server] Received request \'{request}\' ({receivedRequestBytes} bytes) from {remoteEndPoint}");
                 Console.WriteLine($"[Server] Sending response \'{request}\' ({receivedRequestBytes} bytes) to {remoteEndPoint}");
@@ -89,16 +85,17 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
         {
             Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            serverSocket.Bind(ServerEndPoint);
+            serverSocket.Bind(Program.Constants.ServerEndPoint);
             serverSocket.Listen(InitialClientCount);
 
-            using RawStreamNetworkReader server = new RawStreamNetworkReader(ref serverSocket, ServerPacketHandler, DefaultEndPoint, ChatPacketSize);
+            EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            using RawStreamNetworkReader server = new RawStreamNetworkReader(ref serverSocket, ServerPacketHandler, defaultEndPoint, ChatPacketSize);
 
             Console.WriteLine("[Server] Starting server...");
 
             server.Start(InitialClientCount);
 
-            Console.WriteLine($"[Server] Started up on {ServerEndPoint}!");
+            Console.WriteLine($"[Server] Started up on {Program.Constants.ServerEndPoint}!");
             serverStartedEvent.Set();
 
             while (true)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 using NetSharp.Raw.Stream;
@@ -11,9 +10,6 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
     internal class StreamNetworkWriterAsyncExample : INetSharpExample
     {
         private const int PacketSize = 8192;
-        private static readonly EndPoint ClientEndPoint = Program.DefaultClientEndPoint;
-        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Stream Network Writer Example (Asynchronous)";
@@ -24,14 +20,14 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
             EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            rawSocket.Bind(ClientEndPoint);
-            rawSocket.Connect(ServerEndPoint);
+            rawSocket.Bind(Program.Constants.ClientEndPoint);
+            rawSocket.Connect(Program.Constants.ServerEndPoint);
 
             using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultEndPoint, PacketSize);
 
             byte[] transmissionBuffer = new byte[PacketSize];
 
-            EndPoint remoteEndPoint = ServerEndPoint;
+            EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             try
             {
@@ -40,7 +36,7 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
                     Console.Write("Input to send to server: ");
                     string userInput = Console.ReadLine();
 
-                    if (!ServerEncoding.GetBytes(userInput).AsMemory().TryCopyTo(transmissionBuffer))
+                    if (!Program.Constants.ServerEncoding.GetBytes(userInput).AsMemory().TryCopyTo(transmissionBuffer))
                     {
                         Console.WriteLine("Given input is too large. Please try again!");
                         continue;
@@ -60,7 +56,7 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
                     lock (typeof(Console))
                     {
                         Console.WriteLine($"Received {received} bytes from {remoteEndPoint}!");
-                        Console.WriteLine(ServerEncoding.GetString(transmissionBuffer));
+                        Console.WriteLine(Program.Constants.ServerEncoding.GetString(transmissionBuffer));
                     }
                 }
             }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 using NetSharp.Raw.Stream;
@@ -11,8 +10,6 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
     internal class StreamNetworkReaderExample : INetSharpExample
     {
         private const int PacketSize = 8192, ExpectedClientCount = 8;
-        private static readonly Encoding ServerEncoding = Program.DefaultEncoding;
-        private static readonly EndPoint ServerEndPoint = Program.DefaultServerEndPoint;
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Stream Network Reader Example";
@@ -22,7 +19,7 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
         {
             lock (typeof(Console))
             {
-                string request = ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
+                string request = Program.Constants.ServerEncoding.GetString(requestBuffer.Span).Trim('\0');
 
                 Console.WriteLine($"[Server] Received request \'{request}\' ({receivedRequestBytes} bytes) from {remoteEndPoint}");
                 Console.WriteLine($"[Server] Sending response \'{request}\' ({receivedRequestBytes} bytes) to {remoteEndPoint}");
@@ -37,13 +34,13 @@ namespace NetSharp.Examples.Examples.Stream_Network_Connection_Examples
             EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            rawSocket.Bind(ServerEndPoint);
+            rawSocket.Bind(Program.Constants.ServerEndPoint);
             rawSocket.Listen(ExpectedClientCount);
 
             using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize, 100);
             reader.Start(ExpectedClientCount);
 
-            Console.WriteLine($"Started stream server at {ServerEndPoint}! Enter any key to stop the server...");
+            Console.WriteLine($"Started stream server at {Program.Constants.ServerEndPoint}! Enter any key to stop the server...");
             Console.ReadLine();
 
             reader.Shutdown();

@@ -11,12 +11,7 @@ namespace NetSharp.Examples
 {
     internal class Program
     {
-        private const int DefaultExamplePort = 44230;
-        private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
         private static readonly List<INetSharpExample> Examples;
-        public static readonly EndPoint DefaultClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
-        public static readonly Encoding DefaultEncoding = Encoding.UTF8;
-        public static readonly EndPoint DefaultServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
 
         static Program()
         {
@@ -91,6 +86,17 @@ namespace NetSharp.Examples
             }
 
             Console.WriteLine();
+        }
+
+        public static class Constants
+        {
+            private const int DefaultExamplePort = 44232;
+            private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
+
+            public const int ClientCount = 12;
+            public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
+            public static readonly Encoding ServerEncoding = Encoding.UTF8;
+            public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
         }
     }
 }
