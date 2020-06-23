@@ -37,11 +37,6 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration Release'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    projects: '**/NetSharp.Tests.csproj'
-
 ## We only want to build the NetSharp project, not the NetSharpExamples project.
 ## Users should clone the repo to run the examples.
 - task: DotNetCoreCLI@2
