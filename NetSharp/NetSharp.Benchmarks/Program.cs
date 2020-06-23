@@ -93,6 +93,7 @@ namespace NetSharp.Benchmarks
         private static void RunAllBenchmarks()
         {
             Console.WriteLine("Run all benchmarks? (y/n)");
+            Console.Write("> ");
             string input = Console.ReadLine()?.ToLowerInvariant() ?? "n";
 
             if (input == "y")
