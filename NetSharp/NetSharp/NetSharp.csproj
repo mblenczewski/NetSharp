@@ -12,11 +12,11 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <Authors>Mikołaj Lenczewski</Authors>
     <Company>NetSharp</Company>
-    <Version>0.1.6</Version>
+    <Version>0.1.7</Version>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/EnderRifter/NetSharp</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/mblenczewski/NetSharp</PackageProjectUrl>
     <Description>A networking library for C#, focusing on performance and built on top of SocketAsyncEventArgs.</Description>
-    <RepositoryUrl>https://github.com/EnderRifter/NetSharp.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/mblenczewski/NetSharp.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>networking</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
