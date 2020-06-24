@@ -39,14 +39,26 @@ steps:
 
 ## Discord webhook to report build status
 - task: ado-discord-webhook@1
-  displayName: 'Discord Build Webhook'
+  displayName: 'Discord Successful Build Webhook'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     channelId: '720999005181575198'
     webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
     name: 'Azure Pipelines'
     avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
     messageType: 'content'
-    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
+    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**Success**'
+
+- task: ado-discord-webhook@1
+  displayName: 'Discord Failed Build Webhook'
+  condition: eq(variables['Agent.JobStatus'], 'SucceededWithIssues')
+  inputs:
+    channelId: '720999005181575198'
+    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
+    name: 'Azure Pipelines'
+    avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
+    messageType: 'content'
+    content: '[Build $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**Failure**'
 
 - task: DotNetCoreCLI@2
   displayName: 'Tests'
@@ -57,20 +69,32 @@ steps:
 
 ## Discord webhook to report test status
 - task: ado-discord-webhook@1
-  displayName: 'Discord Test Webhook'
+  displayName: 'Discord Successful Test Webhook'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     channelId: '720999005181575198'
     webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
     name: 'Azure Pipelines'
     avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
     messageType: 'content'
-    content: '[Test $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**$(Agent.JobStatus)**'
+    content: '[Test $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**Success**'
 
+- task: ado-discord-webhook@1
+  displayName: 'Discord Failed Test Webhook'
+  condition: eq(variables['Agent.JobStatus'], 'SucceededWithIssues')
+  inputs:
+    channelId: '720999005181575198'
+    webhookKey: 'SlpZzjgTkvvl5dL4Ih_woGvPZj4qc2dTp1Oey9FMKkbjq2mrKMpkzqvGk8TtPzba2iMn'
+    name: 'Azure Pipelines'
+    avatar: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Favatars.slack-edge.com%2F2019-01-17%2F528389819366_e7a0672f0480b3e98d21_512.png&f=1&nofb=1'
+    messageType: 'content'
+    content: '[Test $(Build.BuildId)](https://github.com/mblenczewski/NetSharp/commit/$(Build.SourceVersion)) OS=$(Agent.OS), Arch=$(Agent.OSArchitecture), Status=**Failure**'
 
 ## We only want to build the NetSharp project, not the NetSharpExamples project.
 ## Users should clone the repo to run the examples.
 - task: DotNetCoreCLI@2
   displayName: 'NuGet Pack'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     command: 'pack'
     packagesToPack: '**/NetSharp.csproj'
@@ -84,11 +108,13 @@ steps:
 ## Publishing to Azure Artifacts
 - task: NuGetAuthenticate@0
   displayName: 'NuGet Publish Authentication'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     forceReinstallCredentialProvider: true
 
 - task: NuGetCommand@2
   displayName: 'NuGet Push'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;$(Build.ArtifactStagingDirectory)/**/*.snupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
@@ -99,6 +125,7 @@ steps:
 
 - task: PublishSymbols@2
   displayName: 'NuGet Push Symbols'
+  condition: eq(variables['Agent.JobStatus'], 'Succeeded')
   inputs:
     SearchPattern: '**/bin/**/*.pdb'
     SymbolServerType: 'TeamServices'
