@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="RawDatagramNetworkReaderRentedBufferSizeError" xml:space="preserve">
+    <value>Nie można wypożyczyć bufor o wielkości {0} bajtów. Maksymalna wielkość buforu to {1} bajtów.</value>
+  </data>
   <data name="RawDatagramSizeError" xml:space="preserve">
     <value>Wielkość datagramu powinna być pomiędzy 0 a 65507 bajtów</value>
   </data>

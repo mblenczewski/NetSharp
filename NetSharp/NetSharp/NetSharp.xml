@@ -4,6 +4,173 @@
         <name>NetSharp</name>
     </assembly>
     <members>
+        <member name="T:NetSharp.Interfaces.IRawNetworkReader">
+            <summary>
+            Describes the methods and properties that a raw network reader (i.e. binary server) must implement.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkReader.Shutdown">
+            <summary>
+            Stops queuing up new asynchronous read operations. Does not terminate existing asynchronous operations; the underlying socket must be
+            terminated to cancel all current 'in-flight' asynchronous operations.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkReader.Start(System.UInt16)">
+            <summary>
+            Queues up <paramref name="concurrentTasks" /> new asynchronous read operations.
+            </summary>
+            <param name="concurrentTasks">
+            The number of asynchronous read operation to queue up.
+            </param>
+        </member>
+        <member name="T:NetSharp.Interfaces.IRawNetworkWriter">
+            <summary>
+            Describes the methods and properties that a raw network writer (i.e. binary client) must implement.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <summary>
+            Reads bytes from the network until either the given <paramref name="readBuffer" /> is filled, or a single datagram has been received.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which to receive bytes. Ignored for stream connections, where the connected socket's remote endpoint is used instead.
+            </param>
+            <param name="readBuffer">
+            The buffer into which to place any received bytes.
+            </param>
+            <param name="flags">
+            The <see cref="T:System.Net.Sockets.SocketFlags" /> associated with the network operation.
+            </param>
+            <returns>
+            The number of bytes of data read from the remote connection.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <summary>
+            Asynchronously reads bytes from the network until either the given <paramref name="readBuffer" /> is filled, or a single datagram has been received.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which to receive bytes. Ignored for stream connections, where the connected socket's remote endpoint is used instead.
+            </param>
+            <param name="readBuffer">
+            The buffer into which to place any received bytes.
+            </param>
+            <param name="flags">
+            The <see cref="T:System.Net.Sockets.SocketFlags" /> associated with the network operation.
+            </param>
+            <returns>
+            The number of bytes of data read from the remote connection.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <summary>
+            Writes bytes in the given <paramref name="writeBuffer" /> to the network. If using a datagram connection, make sure that the
+            <paramref name="writeBuffer" /> size doesn't exceed the max datagram size for that transport.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint to which to send bytes. Ignored for stream connections, where the connected socket's remote endpoint is used instead.
+            </param>
+            <param name="writeBuffer">
+            The buffer whose contents to send.
+            </param>
+            <param name="flags">
+            The <see cref="T:System.Net.Sockets.SocketFlags" /> associated with the network operation.
+            </param>
+            <returns>
+            The number of bytes of data sent to the remote endpoint.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Interfaces.IRawNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <summary>
+            Asynchronously writes bytes in the given <paramref name="writeBuffer" /> to the network. If using a datagram connection, make sure that
+            the <paramref name="writeBuffer" /> size doesn't exceed the max datagram size for that transport.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint to which to send bytes. Ignored for stream connections, where the connected socket's remote endpoint is used instead.
+            </param>
+            <param name="writeBuffer">
+            The buffer whose contents to send.
+            </param>
+            <param name="flags">
+            The <see cref="T:System.Net.Sockets.SocketFlags" /> associated with the network operation.
+            </param>
+            <returns>
+            The number of bytes of data sent to the remote endpoint.
+            </returns>
+        </member>
+        <member name="T:NetSharp.Packets.RawStreamPacketHeader">
+            <summary>
+            Holds metadata about a raw stream packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize">
+            <summary>
+            The total size of the header in bytes.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Packets.RawStreamPacketHeader.DataSize">
+            <summary>
+            The size of the user supplied data segment in bytes.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Packets.RawStreamPacketHeader.#ctor(System.Int32)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> struct.
+            </summary>
+            <param name="dataSize">
+            The size of the user supplied data segment.
+            </param>
+        </member>
+        <member name="M:NetSharp.Packets.RawStreamPacketHeader.Deserialise(System.Memory{System.Byte}@)">
+            <summary>
+            Deserialises a <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance from the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            A buffer containing a serialised <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" />.
+            </param>
+            <returns>
+            The deserialised instance.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Packets.RawStreamPacketHeader.Serialise(System.Memory{System.Byte}@)">
+            <summary>
+            Serialises the current <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance into the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" />.
+            </param>
+        </member>
+        <member name="T:NetSharp.Packets.RawStreamPacket">
+            <summary>
+            Provides helper methods to manipulate the binary packet format used by stream network handlers.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Packets.RawStreamPacket.Serialise(System.Memory{System.Byte}@,NetSharp.Packets.RawStreamPacketHeader@,System.ReadOnlyMemory{System.Byte}@)">
+            <summary>
+            Serialises the given <paramref name="packetHeader" /> and <paramref name="packetData" /> into the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            The buffer into which the packet should be serialised. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" /> + the size
+            of the user data given by <paramref name="packetHeader" />.
+            </param>
+            <param name="packetHeader">
+            The header containing metatdata abut the raw stream packet.
+            </param>
+            <param name="packetData">
+            The user data held in the raw stream packet.
+            </param>
+        </member>
+        <member name="M:NetSharp.Packets.RawStreamPacket.TotalPacketSize(NetSharp.Packets.RawStreamPacketHeader@)">
+            <summary>
+            Calculates the total size of a raw stream packet, using the packet data size in the given <paramref name="packetHeader" />.
+            </summary>
+            <param name="packetHeader">
+            The header for which to calculate the total packet size.
+            </param>
+            <returns>
+            The total size of a raw stream packet with the given <paramref name="packetHeader" />.
+            </returns>
+        </member>
         <member name="T:NetSharp.Properties.Resources">
             <summary>
               A strongly-typed resource class, for looking up localized strings, etc.
@@ -30,6 +197,31 @@
               Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
             </summary>
         </member>
+        <member name="T:NetSharp.Raw.Datagram.RawDatagramRequestHandler">
+            <summary>
+            Represents a method that handles a request received by a <see cref="T:NetSharp.Raw.Datagram.RawDatagramNetworkReader" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which the request was received.
+            </param>
+            <param name="requestBuffer">
+            The buffer containing the received request.
+            </param>
+            <param name="receivedRequestBytes">
+            The number of bytes of user data received in the request.
+            </param>
+            <param name="responseBuffer">
+            The buffer into which the response should be written.
+            </param>
+            <returns>
+            Whether there exists a response to be sent back to the remote endpoint.
+            </returns>
+        </member>
+        <member name="T:NetSharp.Raw.Datagram.RawDatagramNetworkReader">
+            <summary>
+            Implements a raw network reader using a datagram-based protocol.
+            </summary>
+        </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Datagram.RawDatagramRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
@@ -47,6 +239,11 @@
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.Start(System.UInt16)">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Raw.Datagram.RawDatagramNetworkWriter">
+            <summary>
+            Implements a raw network writer using a datagram-based protocol.
+            </summary>
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
@@ -75,25 +272,122 @@
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
+        <member name="T:NetSharp.Raw.RawNetworkConnectionBase">
+            <summary>
+            Defines fields and methods common to all network connections.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.RawNetworkConnectionBase.DefaultMaxPooledBufferSize">
+            <summary>
+            The maximum size of a pooled buffer that can be used with the <see cref="P:System.Buffers.ArrayPool`1.Shared" /> property, before a new custom pool must
+            be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.RawNetworkConnectionBase.DefaultMaxPooledBuffersPerBucket">
+            <summary>
+            The maximum number of pooled buffers per bucket that can be used with the <see cref="P:System.Buffers.ArrayPool`1.Shared" /> property, before a new custom
+            pool must be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.RawNetworkConnectionBase.MaxDatagramSize">
+            <summary>
+            The maximum size that a user supplied data buffer can be to fit into a UDP datagram.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Raw.RawNetworkConnectionBase" /> class.
+            </summary>
+            <param name="rawConnection">
+            The underlying <see cref="T:System.Net.Sockets.Socket" /> to use for the connection.
+            </param>
+            <param name="defaultEndPoint">
+            The default endpoint to use to represent remote clients.
+            </param>
+            <param name="maxPooledBufferSize">
+            The maximum size of a pooled buffer.
+            </param>
+            <param name="pooledBuffersPerBucket">
+            The number of pooled buffers to hold in a single pool bucket.
+            </param>
+            <param name="preallocatedStateObjects">
+            The number of state objects to preallocate.
+            </param>
+        </member>
+        <member name="P:NetSharp.Raw.RawNetworkConnectionBase.ArgsPool">
+            <summary>
+            The object pool to use to pool <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> instances.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Raw.RawNetworkConnectionBase.BufferPool">
+            <summary>
+            The object pool to use to pool byte buffer instance
+            </summary>
+        </member>
+        <member name="P:NetSharp.Raw.RawNetworkConnectionBase.Connection">
+            <summary>
+            The underlying connection socket.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Raw.RawNetworkConnectionBase.DefaultEndPoint">
+            <summary>
+            The default endpoint to use to represent remote clients.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.CanReuseObjectPredicate" />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.CleanupTransmissionBufferAndState(System.Net.Sockets.SocketAsyncEventArgs)">
+            <summary>
+            Performs cleanup on the given <paramref name="args" /> instance.
+            </summary>
+            <param name="args">
+            The used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> that can be cleaned up to be reused.
+            </param>
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.CreateStateObject">
+            <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.CreateObjectDelegate" />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.DestroyObjectDelegate" />
+        </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose(System.Boolean)">
             <summary>
             Allows for inheritors to dispose of their own resources.
             </summary>
         </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.ResetObjectDelegate" />
+        </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Raw.RawNetworkReaderBase">
+            <summary>
+            Provides fields and methods common to all network reader connections.
+            </summary>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
+        <member name="P:NetSharp.Raw.RawNetworkReaderBase.ShutdownToken">
+            <summary>
+            The <see cref="T:System.Threading.CancellationToken" /> for the network reader.
+            </summary>
+        </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Dispose(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Shutdown">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Start(System.UInt16)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Shutdown">
-            <inheritdoc />
+        <member name="T:NetSharp.Raw.RawNetworkWriterBase">
+            <summary>
+            Provides fields and methods common to all network writer connections.
+            </summary>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
@@ -109,6 +403,31 @@
         </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamRequestHandler">
+            <summary>
+            Represents a method that handles a request received by a <see cref="!:R" />.
+            </summary>
+            <param name="remoteEndPoint">
+            The remote endpoint from which the request was received.
+            </param>
+            <param name="requestBuffer">
+            The buffer containing the received request.
+            </param>
+            <param name="receivedRequestBytes">
+            The number of bytes of user data received in the request.
+            </param>
+            <param name="responseBuffer">
+            The buffer into which the response should be written.
+            </param>
+            <returns>
+            Whether there exists a response to be sent back to the remote endpoint.
+            </returns>
+        </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamNetworkReader">
+            <summary>
+            Implements a raw network reader using a stream-based protocol.
+            </summary>
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
@@ -128,6 +447,11 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamNetworkWriter">
+            <summary>
+            Implements a raw network writer using a stream-based protocol.
+            </summary>
+        </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <inheritdoc />
         </member>
@@ -141,6 +465,18 @@
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
@@ -221,7 +557,7 @@
             The type of item stored in the pool.
             </typeparam>
         </member>
-        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanRebufferObjectPredicate@,System.Collections.Concurrent.IProducerConsumerCollection{`0}@)">
+        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanReuseObjectPredicate@,System.Collections.Concurrent.IProducerConsumerCollection{`0}@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
             </summary>
@@ -241,7 +577,7 @@
             The underlying pooled object buffer to use.
             </param>
         </member>
-        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanRebufferObjectPredicate@)">
+        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanReuseObjectPredicate@)">
             <summary>
             Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
             </summary>
@@ -258,7 +594,7 @@
             The delegate method to use to decide whether an instance can be reused.
             </param>
         </member>
-        <member name="T:NetSharp.Utils.SlimObjectPool`1.CanRebufferObjectPredicate">
+        <member name="T:NetSharp.Utils.SlimObjectPool`1.CanReuseObjectPredicate">
             <summary>
             Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is
             returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.

@@ -11,7 +11,7 @@ namespace NetSharp.Utils
     /// </typeparam>
     public sealed class SlimObjectPool<T> : IDisposable
     {
-        private readonly CanRebufferObjectPredicate canObjectBeRebufferedPredicate;
+        private readonly CanReuseObjectPredicate canObjectBeRebufferedPredicate;
         private readonly CreateObjectDelegate createObjectDelegate;
         private readonly DestroyObjectDelegate destroyObjectDelegate;
         private readonly IProducerConsumerCollection<T> objectBuffer;
@@ -36,7 +36,7 @@ namespace NetSharp.Utils
         /// The underlying pooled object buffer to use.
         /// </param>
         public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
-            in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate,
+            in DestroyObjectDelegate destroyDelegate, in CanReuseObjectPredicate rebufferPredicate,
             in IProducerConsumerCollection<T> baseCollection)
         {
             createObjectDelegate = createDelegate;
@@ -66,7 +66,7 @@ namespace NetSharp.Utils
         /// The delegate method to use to decide whether an instance can be reused.
         /// </param>
         public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
-            in DestroyObjectDelegate destroyDelegate, in CanRebufferObjectPredicate rebufferPredicate)
+            in DestroyObjectDelegate destroyDelegate, in CanReuseObjectPredicate rebufferPredicate)
             : this(in createDelegate, in resetDelegate, in destroyDelegate, in rebufferPredicate, new ConcurrentBag<T>())
         {
         }
@@ -81,7 +81,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// Whether the given instance should be placed back into the pool.
         /// </returns>
-        public delegate bool CanRebufferObjectPredicate(ref T instance);
+        public delegate bool CanReuseObjectPredicate(ref T instance);
 
         /// <summary>
         /// Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.

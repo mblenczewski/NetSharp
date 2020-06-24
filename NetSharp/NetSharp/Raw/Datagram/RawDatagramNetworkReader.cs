@@ -5,9 +5,31 @@ using System.Runtime.CompilerServices;
 
 namespace NetSharp.Raw.Datagram
 {
+    /// <summary>
+    /// Represents a method that handles a request received by a <see cref="RawDatagramNetworkReader" />.
+    /// </summary>
+    /// <param name="remoteEndPoint">
+    /// The remote endpoint from which the request was received.
+    /// </param>
+    /// <param name="requestBuffer">
+    /// The buffer containing the received request.
+    /// </param>
+    /// <param name="receivedRequestBytes">
+    /// The number of bytes of user data received in the request.
+    /// </param>
+    /// <param name="responseBuffer">
+    /// The buffer into which the response should be written.
+    /// </param>
+    /// <returns>
+    /// Whether there exists a response to be sent back to the remote endpoint.
+    /// </returns>
+    // TODO implement this in a better, more robust and extensible way
     public delegate bool RawDatagramRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
         in Memory<byte> responseBuffer);
 
+    /// <summary>
+    /// Implements a raw network reader using a datagram-based protocol.
+    /// </summary>
     public sealed class RawDatagramNetworkReader : RawNetworkReaderBase
     {
         private readonly int datagramSize;

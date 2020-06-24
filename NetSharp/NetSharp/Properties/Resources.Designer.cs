@@ -61,6 +61,15 @@ namespace NetSharp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes.
+        /// </summary>
+        internal static string RawDatagramNetworkReaderRentedBufferSizeError {
+            get {
+                return ResourceManager.GetString("RawDatagramNetworkReaderRentedBufferSizeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
         /// </summary>
         internal static string RawDatagramSizeError {

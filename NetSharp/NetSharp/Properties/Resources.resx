@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="RawDatagramNetworkReaderRentedBufferSizeError" xml:space="preserve">
+    <value>Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes</value>
+  </data>
   <data name="RawDatagramSizeError" xml:space="preserve">
     <value>The datagram size must be between 0 and 65507 bytes</value>
   </data>

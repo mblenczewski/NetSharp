@@ -6,7 +6,10 @@ using NetSharp.Interfaces;
 
 namespace NetSharp.Raw
 {
-    public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, INetworkReader
+    /// <summary>
+    /// Provides fields and methods common to all network reader connections.
+    /// </summary>
+    public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, IRawNetworkReader
     {
         private readonly CancellationToken shutdownToken;
         private readonly CancellationTokenSource shutdownTokenSource;
@@ -19,6 +22,9 @@ namespace NetSharp.Raw
             shutdownToken = shutdownTokenSource.Token;
         }
 
+        /// <summary>
+        /// The <see cref="CancellationToken" /> for the network reader.
+        /// </summary>
         protected ref readonly CancellationToken ShutdownToken => ref shutdownToken;
 
         /// <inheritdoc />
@@ -36,12 +42,12 @@ namespace NetSharp.Raw
         }
 
         /// <inheritdoc />
-        public abstract void Start(ushort concurrentReadTasks);
-
-        /// <inheritdoc />
         public void Shutdown()
         {
             shutdownTokenSource.Cancel();
         }
+
+        /// <inheritdoc />
+        public abstract void Start(ushort concurrentReadTasks);
     }
 }

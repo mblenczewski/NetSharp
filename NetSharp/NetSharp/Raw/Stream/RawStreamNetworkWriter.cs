@@ -7,6 +7,9 @@ using NetSharp.Packets;
 
 namespace NetSharp.Raw.Stream
 {
+    /// <summary>
+    /// Implements a raw network writer using a stream-based protocol.
+    /// </summary>
     public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
         /// <inheritdoc />
@@ -273,6 +276,7 @@ namespace NetSharp.Raw.Stream
         {
         }
 
+        /// <inheritdoc />
         public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             static int ReadBytesIntoBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
@@ -304,6 +308,7 @@ namespace NetSharp.Raw.Stream
             return bodyBytes;  // we only return the number of bytes of user data that were read
         }
 
+        /// <inheritdoc />
         public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
         {
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
@@ -319,6 +324,7 @@ namespace NetSharp.Raw.Stream
             return new ValueTask<int>(tcs.Task);
         }
 
+        /// <inheritdoc />
         public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             static int WriteBytesFromBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
@@ -345,6 +351,7 @@ namespace NetSharp.Raw.Stream
             return pendingPacketHeader.DataSize;  // we only return the number of bytes of user data that were written
         }
 
+        /// <inheritdoc />
         public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();

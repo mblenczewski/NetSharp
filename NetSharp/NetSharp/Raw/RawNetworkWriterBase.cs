@@ -7,7 +7,10 @@ using NetSharp.Interfaces;
 
 namespace NetSharp.Raw
 {
-    public abstract class RawNetworkWriterBase : RawNetworkConnectionBase, INetworkWriter
+    /// <summary>
+    /// Provides fields and methods common to all network writer connections.
+    /// </summary>
+    public abstract class RawNetworkWriterBase : RawNetworkConnectionBase, IRawNetworkWriter
     {
         /// <inheritdoc />
         protected RawNetworkWriterBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize = DefaultMaxPooledBufferSize, int pooledBuffersPerBucket = 50,

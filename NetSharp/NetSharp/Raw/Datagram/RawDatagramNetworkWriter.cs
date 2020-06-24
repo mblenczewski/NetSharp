@@ -3,8 +3,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
+using NetSharp.Properties;
+
 namespace NetSharp.Raw.Datagram
 {
+    /// <summary>
+    /// Implements a raw network writer using a datagram-based protocol.
+    /// </summary>
     public sealed class RawDatagramNetworkWriter : RawNetworkWriterBase
     {
         private readonly int datagramSize;
@@ -15,7 +20,7 @@ namespace NetSharp.Raw.Datagram
         {
             if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
             {
-                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Properties.Resources.RawDatagramSizeError);
+                throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Resources.RawDatagramSizeError);
             }
 
             this.datagramSize = datagramSize;
@@ -120,7 +125,7 @@ namespace NetSharp.Raw.Datagram
             if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
+                    string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
                     nameof(readBuffer)
                 );
             }
@@ -142,7 +147,7 @@ namespace NetSharp.Raw.Datagram
             if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
+                    string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
                     nameof(readBuffer)
                 );
             }
@@ -183,7 +188,7 @@ namespace NetSharp.Raw.Datagram
             if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
+                    string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
                     nameof(writeBuffer)
                 );
             }
@@ -205,7 +210,7 @@ namespace NetSharp.Raw.Datagram
             if (totalBytes > datagramSize)
             {
                 throw new ArgumentException(
-                    $"Cannot rent a temporary buffer of size: {totalBytes} bytes; maximum temporary buffer size: {datagramSize} bytes",
+                    string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
                     nameof(writeBuffer)
                 );
             }
