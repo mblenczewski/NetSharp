@@ -187,6 +187,11 @@
               resource lookups using this strongly typed resource class.
             </summary>
         </member>
+        <member name="P:NetSharp.Properties.Resources.RawDatagramNetworkReaderRentedBufferSizeError">
+            <summary>
+              Looks up a localized string similar to Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes.
+            </summary>
+        </member>
         <member name="P:NetSharp.Properties.Resources.RawDatagramSizeError">
             <summary>
               Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
@@ -406,7 +411,7 @@
         </member>
         <member name="T:NetSharp.Raw.Stream.RawStreamRequestHandler">
             <summary>
-            Represents a method that handles a request received by a <see cref="!:R" />.
+            Represents a method that handles a request received by a <see cref="T:NetSharp.Raw.Stream.RawStreamNetworkReader" />.
             </summary>
             <param name="remoteEndPoint">
             The remote endpoint from which the request was received.
