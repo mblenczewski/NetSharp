@@ -115,6 +115,8 @@ namespace NetSharp.Benchmarks
             private const int DefaultExamplePort = 44231;
             private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
 
+            public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 8;
+
             public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
             public static readonly Encoding ServerEncoding = Encoding.UTF8;
             public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);

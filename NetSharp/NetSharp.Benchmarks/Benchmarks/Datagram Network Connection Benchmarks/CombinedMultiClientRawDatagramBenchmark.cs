@@ -9,13 +9,12 @@ using NetSharp.Raw.Datagram;
 
 namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    internal class RawDatagramNetworkReaderMultiClientBenchmark : INetSharpBenchmark
+    internal class CombinedMultiClientRawDatagramBenchmark : INetSharpBenchmark
     {
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private double[] ClientBandwidths;
 
-        /// <inheritdoc />
-        public string Name => "Raw Datagram Network Reader (Multiple Clients) Benchmark";
+        public string Name => "Combined Raw Datagram Network Reader/Writer (Multiple Clients) Benchmark";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
@@ -27,7 +26,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
-            int id = (int) idObj;
+            EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
@@ -36,28 +35,25 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
-            using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            clientSocket.Bind(Program.Constants.ClientEndPoint);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            rawSocket.Bind(Program.Constants.ClientEndPoint);
 
-            lock (typeof(Console))
-            {
-                Console.WriteLine($"[Client {id}] Starting client; sending messages to {remoteEndPoint}");
-            }
-
-            benchmarkHelper.ResetStopwatch();
+            using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
 
             ServerReadyEvent.Wait();
 
+            benchmarkHelper.ResetStopwatch();
+
             for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
-                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
+                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
+                int sendResult = writer.Write(Program.Constants.ServerEndPoint, sendBuffer);
 
-                int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
+                int receiveResult = writer.Read(ref remoteEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
 
                 benchmarkHelper.SnapshotRttStats();
@@ -65,18 +61,18 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             lock (typeof(Console))
             {
-                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
-                benchmarkHelper.PrintRttStats(id);
+                benchmarkHelper.PrintBandwidthStats(0, Program.Constants.PacketCount, Program.Constants.PacketSize);
+                benchmarkHelper.PrintRttStats((int) idObj);
             }
 
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+            ClientBandwidths[(int) idObj] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
 
-            clientSocket.Close();
+            rawSocket.Close();
+            rawSocket.Dispose();
 
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc />
         public async Task RunAsync()
         {
             if (Program.Constants.PacketCount > 10_000)

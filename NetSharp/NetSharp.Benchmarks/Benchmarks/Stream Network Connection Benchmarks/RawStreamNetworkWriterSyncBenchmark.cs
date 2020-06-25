@@ -10,11 +10,10 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 {
     internal class RawStreamNetworkWriterSyncBenchmark : INetSharpBenchmark
     {
-        private const int PacketSize = 8192, PacketCount = 1_000_000;
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Stream Network Writer Benchmark (Synchronous)";
+        public string Name => "Raw Stream Network Writer Benchmark (Synchronous)";
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
@@ -23,7 +22,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             server.Bind(Program.Constants.ServerEndPoint);
 
             // all the headers should have the same packet size, so will fit in the transmission buffer
-            RawStreamPacketHeader archetypalHeader = new RawStreamPacketHeader(PacketSize);
+            RawStreamPacketHeader archetypalHeader = new RawStreamPacketHeader(Program.Constants.PacketSize);
             byte[] transmissionBuffer = new byte[RawStreamPacket.TotalPacketSize(in archetypalHeader)];
 
             server.Listen(1);
@@ -68,24 +67,25 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         /// <inheritdoc />
         public Task RunAsync()
         {
-            if (PacketCount > 10_000)
+            if (Program.Constants.PacketCount > 10_000)
             {
-                Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
+                Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            byte[] sendBuffer = new byte[PacketSize];
-            byte[] receiveBuffer = new byte[PacketSize];
+            byte[] sendBuffer = new byte[Program.Constants.PacketSize];
+            byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
 
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             rawSocket.Bind(Program.Constants.ClientEndPoint);
 
-            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, PacketSize);
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
 
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
@@ -95,7 +95,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             benchmarkHelper.ResetStopwatch();
 
-            for (int i = 0; i < PacketCount; i++)
+            for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
                 byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
@@ -109,21 +109,13 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
                 benchmarkHelper.SnapshotRttStats();
             }
 
-            benchmarkHelper.PrintBandwidthStats(0, PacketCount, PacketSize);
+            benchmarkHelper.PrintBandwidthStats(0, Program.Constants.PacketCount, Program.Constants.PacketSize);
             benchmarkHelper.PrintRttStats(0);
 
             serverCts.Cancel();
-            try
-            {
-                serverTask.Dispose();
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
 
-            rawSocket.Disconnect(false);
             rawSocket.Shutdown(SocketShutdown.Both);
+            rawSocket.Disconnect(false);
             rawSocket.Close();
             rawSocket.Dispose();
 

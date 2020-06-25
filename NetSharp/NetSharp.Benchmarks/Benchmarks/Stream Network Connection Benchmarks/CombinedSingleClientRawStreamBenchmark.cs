@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-using NetSharp.Raw.Datagram;
+using NetSharp.Raw.Stream;
 
-namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
+namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 {
-    internal class RawDatagramNetworkReaderSingleClientBenchmark : INetSharpBenchmark
+    internal class CombinedSingleClientRawStreamBenchmark : INetSharpBenchmark
     {
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private double[] ClientBandwidths;
 
-        /// <inheritdoc />
-        public string Name => "Raw Datagram Network Reader (Single Client) Benchmark";
+        public string Name => "Combined Raw Stream Network Reader/Writer (Single Client) Benchmark";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
@@ -27,7 +25,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
-            int id = (int) idObj;
+            EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
@@ -36,28 +34,26 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
-            using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            clientSocket.Bind(Program.Constants.ClientEndPoint);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            rawSocket.Bind(Program.Constants.ClientEndPoint);
 
-            lock (typeof(Console))
-            {
-                Console.WriteLine($"[Client {id}] Starting client; sending messages to {remoteEndPoint}");
-            }
+            using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
+
+            ServerReadyEvent.Wait();
+            rawSocket.Connect(Program.Constants.ServerEndPoint);
 
             benchmarkHelper.ResetStopwatch();
 
-            ServerReadyEvent.Wait();
-
             for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
-                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
+                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
+                int sendResult = writer.Write(Program.Constants.ServerEndPoint, sendBuffer);
 
-                int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
+                int receiveResult = writer.Read(ref remoteEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
 
                 benchmarkHelper.SnapshotRttStats();
@@ -65,18 +61,20 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             lock (typeof(Console))
             {
-                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
-                benchmarkHelper.PrintRttStats(id);
+                benchmarkHelper.PrintBandwidthStats(0, Program.Constants.PacketCount, Program.Constants.PacketSize);
+                benchmarkHelper.PrintRttStats((int) idObj);
             }
 
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+            ClientBandwidths[(int) idObj] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
 
-            clientSocket.Close();
+            rawSocket.Shutdown(SocketShutdown.Both);
+            rawSocket.Disconnect(false);
+            rawSocket.Close();
+            rawSocket.Dispose();
 
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc />
         public async Task RunAsync()
         {
             if (Program.Constants.PacketCount > 10_000)
@@ -87,20 +85,21 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
             ClientBandwidths = new double[1];
             Task[] clientTasks = new Task[] { Task.Factory.StartNew(BenchmarkClientTask, 0, TaskCreationOptions.LongRunning) };
 
-            EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             rawSocket.Bind(Program.Constants.ServerEndPoint);
+            rawSocket.Listen(1);
 
-            using RawDatagramNetworkReader reader = new RawDatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, Program.Constants.PacketSize);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, Program.Constants.PacketSize);
             reader.Start(1);
 
             ServerReadyEvent.Set();
 
-            await Task.WhenAll(clientTasks);
+            await clientTasks[0];
 
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
+            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths[0]:F3}");
 
             reader.Shutdown();
 

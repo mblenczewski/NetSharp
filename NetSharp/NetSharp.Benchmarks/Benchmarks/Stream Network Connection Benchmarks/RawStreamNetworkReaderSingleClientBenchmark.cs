@@ -10,12 +10,11 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 {
     internal class RawStreamNetworkReaderSingleClientBenchmark : INetSharpBenchmark
     {
-        private const int PacketSize = 8192, PacketCount = 1_000_000;
         private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private double[] ClientBandwidths;
 
         /// <inheritdoc />
-        public string Name { get; } = "Raw Stream Network Reader (Single Client) Benchmark";
+        public string Name => "Raw Stream Network Reader (Single Client) Benchmark";
 
         private static bool RequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
             in Memory<byte> responseBuffer)
@@ -31,13 +30,14 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            byte[] sendBuffer = new byte[PacketSize + RawStreamPacketHeader.TotalSize];
-            byte[] receiveBuffer = new byte[PacketSize + RawStreamPacketHeader.TotalSize];
-            byte[] packetBuffer = new byte[PacketSize];
+            byte[] sendBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
+            byte[] receiveBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
+            byte[] packetBuffer = new byte[Program.Constants.PacketSize];
 
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSocket.Bind(Program.Constants.ClientEndPoint);
 
             ServerReadyEvent.Wait();
@@ -50,11 +50,11 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             benchmarkHelper.ResetStopwatch();
 
-            for (int i = 0; i < PacketCount; i++)
+            for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
                 Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
 
-                RawStreamPacketHeader streamPacketHeader = new RawStreamPacketHeader(PacketSize);
+                RawStreamPacketHeader streamPacketHeader = new RawStreamPacketHeader(Program.Constants.PacketSize);
                 RawStreamPacket.Serialise(sendBuffer, in streamPacketHeader, packetBuffer);
 
                 benchmarkHelper.StartStopwatch();
@@ -88,16 +88,17 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
                 benchmarkHelper.SnapshotRttStats();
             }
 
-            clientSocket.Disconnect(true);
-            clientSocket.Close();
-
             lock (typeof(Console))
             {
-                benchmarkHelper.PrintBandwidthStats(id, PacketCount, PacketSize);
+                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
                 benchmarkHelper.PrintRttStats(id);
             }
 
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(PacketCount, PacketSize);
+            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+
+            clientSocket.Shutdown(SocketShutdown.Both);
+            clientSocket.Disconnect(false);
+            clientSocket.Close();
 
             return Task.CompletedTask;
         }
@@ -105,9 +106,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            if (PacketCount > 10_000)
+            if (Program.Constants.PacketCount > 10_000)
             {
-                Console.WriteLine($"{PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
+                Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
             ClientBandwidths = new double[1];
@@ -120,7 +121,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             rawSocket.Bind(Program.Constants.ServerEndPoint);
             rawSocket.Listen(1);
 
-            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, PacketSize);
+            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, Program.Constants.PacketSize);
             reader.Start(1);
 
             ServerReadyEvent.Set();
