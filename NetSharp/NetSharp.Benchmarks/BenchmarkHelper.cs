@@ -42,20 +42,14 @@ namespace NetSharp.Benchmarks
             double megabytes = sentPacketCount * packetSize / 1_000_000.0;
             double bandwidth = megabytes / (millis / 1000.0);
 
-            lock (typeof(Console))
-            {
-                Console.WriteLine($"[Client {clientId}] Sent {sentPacketCount} packets (of size {packetSize} bytes; {megabytes / 1000} gigabytes [one-way]) in {millis} milliseconds");
-                Console.WriteLine($"[Client {clientId}] Approximate bandwidth: {bandwidth:F3} MBps");
-            }
+            Console.WriteLine($"[Client {clientId}] Sent {sentPacketCount} packets (of size {packetSize} bytes; {megabytes / 1000} gigabytes [one-way]) in {millis} milliseconds");
+            Console.WriteLine($"[Client {clientId}] Approximate bandwidth: {bandwidth:F3} MBps");
         }
 
         public void PrintRttStats(int clientId)
         {
-            lock (typeof(Console))
-            {
-                Console.WriteLine($"[Client {clientId}] Min RTT: {minRttTicks} ticks, {minRttMs} ms");
-                Console.WriteLine($"[Client {clientId}] Max RTT: {maxRttTicks} ticks, {maxRttMs} ms");
-            }
+            Console.WriteLine($"[Client {clientId}] Min RTT: {minRttTicks} ticks, {minRttMs} ms");
+            Console.WriteLine($"[Client {clientId}] Max RTT: {maxRttTicks} ticks, {maxRttMs} ms");
         }
 
         public void ResetStopwatch()

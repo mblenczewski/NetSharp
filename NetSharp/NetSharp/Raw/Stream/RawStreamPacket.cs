@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 using NetSharp.Utils.Conversion;
 
-namespace NetSharp.Packets
+namespace NetSharp.Raw.Stream
 {
     /// <summary>
     /// Holds metadata about a raw stream packet.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Resources;
@@ -19,17 +20,15 @@ namespace NetSharp.Examples
 
             foreach (Type type in Assembly.GetCallingAssembly().GetTypes())
             {
-                if (!type.IsClass && !type.IsValueType)
+                if (type.IsAbstract)
                 {
                     continue;
                 }
 
                 Type[] interfaces = type.GetInterfaces();
-                object instance = Activator.CreateInstance(type);
-
-                if (type.GetInterface(nameof(INetSharpExample)) == typeof(INetSharpExample))
+                if (interfaces.Contains(typeof(INetSharpExample)))
                 {
-                    Examples.Add((INetSharpExample) instance);
+                    Examples.Add((INetSharpExample) Activator.CreateInstance(type));
                 }
             }
         }
@@ -58,8 +57,8 @@ namespace NetSharp.Examples
 
                 try
                 {
-                    string rawInput = Console.ReadLine();
-                    int choice = int.Parse(rawInput ?? "x");
+                    string rawInput = Console.ReadLine()?.ToLowerInvariant() ?? "x";
+                    int choice = int.Parse(rawInput);
 
                     if (choice < 0 || choice >= Examples.Count)
                     {

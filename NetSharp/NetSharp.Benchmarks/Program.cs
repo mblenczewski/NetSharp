@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Resources;
@@ -19,25 +20,21 @@ namespace NetSharp.Benchmarks
 
             foreach (Type type in Assembly.GetCallingAssembly().GetTypes())
             {
-                if (!type.IsClass && !type.IsValueType)
+                if (type.IsAbstract)
                 {
                     continue;
                 }
 
                 Type[] interfaces = type.GetInterfaces();
-                object instance = Activator.CreateInstance(type);
-
-                if (type.GetInterface(nameof(INetSharpBenchmark)) == typeof(INetSharpBenchmark))
+                if (interfaces.Contains(typeof(INetSharpBenchmark)))
                 {
-                    Benchmarks.Add((INetSharpBenchmark) instance);
+                    Benchmarks.Add((INetSharpBenchmark) Activator.CreateInstance(type));
                 }
             }
         }
 
         private static void Main()
         {
-            RunAllBenchmarks();
-
             while (true)
             {
                 GC.Collect();
@@ -48,20 +45,31 @@ namespace NetSharp.Benchmarks
 
         private static void PickBenchmark()
         {
-            Console.WriteLine("Available Examples:");
-            for (int i = 0; i < Benchmarks.Count; i++)
-            {
-                Console.WriteLine($"\t{i:D2} - {Benchmarks[i].Name}");
-            }
+            const string allBenchmarkIdentifier = "XX";
 
             while (true)
             {
+                Console.WriteLine("Available Examples:");
+                for (int i = 0; i < Benchmarks.Count; i++)
+                {
+                    Console.WriteLine($"\t{i:D2} - {Benchmarks[i].Name}");
+                }
+                Console.WriteLine($"\t{allBenchmarkIdentifier} - Run All Benchmarks");
+
                 Console.Write("> ");
 
                 try
                 {
-                    string rawInput = Console.ReadLine();
-                    int choice = int.Parse(rawInput ?? "x");
+                    string rawInput = Console.ReadLine()?.ToLowerInvariant() ?? "x";
+
+                    if (rawInput.Equals(allBenchmarkIdentifier.ToLowerInvariant()))
+                    {
+                        RunAllBenchmarks();
+
+                        continue;
+                    }
+
+                    int choice = int.Parse(rawInput);
 
                     if (choice < 0 || choice >= Benchmarks.Count)
                     {
@@ -92,20 +100,13 @@ namespace NetSharp.Benchmarks
 
         private static void RunAllBenchmarks()
         {
-            Console.WriteLine("Run all benchmarks? (y/n)");
-            Console.Write("> ");
-            string input = Console.ReadLine()?.ToLowerInvariant() ?? "n";
-
-            if (input == "y")
+            foreach (INetSharpBenchmark benchmark in Benchmarks)
             {
-                foreach (INetSharpBenchmark benchmark in Benchmarks)
-                {
-                    Console.WriteLine($"Starting \'{benchmark.Name}\'...");
-                    benchmark.RunAsync().GetAwaiter().GetResult();
-                    Console.WriteLine($"Finished \'{benchmark.Name}\'!");
+                Console.WriteLine($"Starting \'{benchmark.Name}\'...");
+                benchmark.RunAsync().GetAwaiter().GetResult();
+                Console.WriteLine($"Finished \'{benchmark.Name}\'!");
 
-                    Console.WriteLine();
-                }
+                Console.WriteLine();
             }
         }
 

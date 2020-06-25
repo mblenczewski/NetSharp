@@ -2,8 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 
-using NetSharp.Packets;
-
 namespace NetSharp.Raw.Stream
 {
     /// <summary>

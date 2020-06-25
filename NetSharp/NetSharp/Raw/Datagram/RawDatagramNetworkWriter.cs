@@ -181,8 +181,7 @@ namespace NetSharp.Raw.Datagram
         }
 
         /// <inheritdoc />
-        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer,
-            SocketFlags flags = SocketFlags.None)
+        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
         {
             int totalBytes = writeBuffer.Length;
             if (totalBytes > datagramSize)

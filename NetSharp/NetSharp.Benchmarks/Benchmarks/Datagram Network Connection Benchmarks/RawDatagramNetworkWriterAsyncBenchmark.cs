@@ -8,10 +8,10 @@ using NetSharp.Raw.Datagram;
 
 namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
-    internal class DatagramNetworkWriterAsyncBenchmark : INetSharpBenchmark
+    internal class RawDatagramNetworkWriterAsyncBenchmark : INetSharpBenchmark
     {
         private const int PacketSize = 8192, PacketCount = 1_000_000;
-        private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim();
+        private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
 
         /// <inheritdoc />
         public string Name { get; } = "Raw Datagram Network Writer Benchmark (Asynchronous)";
@@ -19,13 +19,14 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
         private static Task ServerTask(CancellationToken cancellationToken)
         {
             using Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
+            server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             server.Bind(Program.Constants.ServerEndPoint);
-            ServerReadyEvent.Set();
 
             byte[] transmissionBuffer = new byte[PacketSize];
 
             EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+            ServerReadyEvent.Set();
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -49,6 +50,11 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
+            BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
+
+            byte[] sendBuffer = new byte[PacketSize];
+            byte[] receiveBuffer = new byte[PacketSize];
+
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(Program.Constants.ClientEndPoint);
 
@@ -57,12 +63,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
 
+            benchmarkHelper.ResetStopwatch();
+
             ServerReadyEvent.Wait();
-
-            BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
-
-            byte[] sendBuffer = new byte[PacketSize];
-            byte[] receiveBuffer = new byte[PacketSize];
 
             for (int i = 0; i < PacketCount; i++)
             {

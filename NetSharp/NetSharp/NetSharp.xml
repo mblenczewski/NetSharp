@@ -98,79 +98,6 @@
             The number of bytes of data sent to the remote endpoint.
             </returns>
         </member>
-        <member name="T:NetSharp.Packets.RawStreamPacketHeader">
-            <summary>
-            Holds metadata about a raw stream packet.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize">
-            <summary>
-            The total size of the header in bytes.
-            </summary>
-        </member>
-        <member name="F:NetSharp.Packets.RawStreamPacketHeader.DataSize">
-            <summary>
-            The size of the user supplied data segment in bytes.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.RawStreamPacketHeader.#ctor(System.Int32)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> struct.
-            </summary>
-            <param name="dataSize">
-            The size of the user supplied data segment.
-            </param>
-        </member>
-        <member name="M:NetSharp.Packets.RawStreamPacketHeader.Deserialise(System.Memory{System.Byte}@)">
-            <summary>
-            Deserialises a <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance from the given <paramref name="buffer" />.
-            </summary>
-            <param name="buffer">
-            A buffer containing a serialised <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" />.
-            </param>
-            <returns>
-            The deserialised instance.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Packets.RawStreamPacketHeader.Serialise(System.Memory{System.Byte}@)">
-            <summary>
-            Serialises the current <see cref="T:NetSharp.Packets.RawStreamPacketHeader" /> instance into the given <paramref name="buffer" />.
-            </summary>
-            <param name="buffer">
-            The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" />.
-            </param>
-        </member>
-        <member name="T:NetSharp.Packets.RawStreamPacket">
-            <summary>
-            Provides helper methods to manipulate the binary packet format used by stream network handlers.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Packets.RawStreamPacket.Serialise(System.Memory{System.Byte}@,NetSharp.Packets.RawStreamPacketHeader@,System.ReadOnlyMemory{System.Byte}@)">
-            <summary>
-            Serialises the given <paramref name="packetHeader" /> and <paramref name="packetData" /> into the given <paramref name="buffer" />.
-            </summary>
-            <param name="buffer">
-            The buffer into which the packet should be serialised. Must be at least of size <see cref="F:NetSharp.Packets.RawStreamPacketHeader.TotalSize" /> + the size
-            of the user data given by <paramref name="packetHeader" />.
-            </param>
-            <param name="packetHeader">
-            The header containing metatdata abut the raw stream packet.
-            </param>
-            <param name="packetData">
-            The user data held in the raw stream packet.
-            </param>
-        </member>
-        <member name="M:NetSharp.Packets.RawStreamPacket.TotalPacketSize(NetSharp.Packets.RawStreamPacketHeader@)">
-            <summary>
-            Calculates the total size of a raw stream packet, using the packet data size in the given <paramref name="packetHeader" />.
-            </summary>
-            <param name="packetHeader">
-            The header for which to calculate the total packet size.
-            </param>
-            <returns>
-            The total size of a raw stream packet with the given <paramref name="packetHeader" />.
-            </returns>
-        </member>
         <member name="T:NetSharp.Properties.Resources">
             <summary>
               A strongly-typed resource class, for looking up localized strings, etc.
@@ -483,6 +410,79 @@
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
+        </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamPacketHeader">
+            <summary>
+            Holds metadata about a raw stream packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize">
+            <summary>
+            The total size of the header in bytes.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.DataSize">
+            <summary>
+            The size of the user supplied data segment in bytes.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.#ctor(System.Int32)">
+            <summary>
+            Constructs a new instance of the <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> struct.
+            </summary>
+            <param name="dataSize">
+            The size of the user supplied data segment.
+            </param>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Deserialise(System.Memory{System.Byte}@)">
+            <summary>
+            Deserialises a <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance from the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            A buffer containing a serialised <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
+            </param>
+            <returns>
+            The deserialised instance.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Serialise(System.Memory{System.Byte}@)">
+            <summary>
+            Serialises the current <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance into the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
+            </param>
+        </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamPacket">
+            <summary>
+            Provides helper methods to manipulate the binary packet format used by stream network handlers.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacket.Serialise(System.Memory{System.Byte}@,NetSharp.Raw.Stream.RawStreamPacketHeader@,System.ReadOnlyMemory{System.Byte}@)">
+            <summary>
+            Serialises the given <paramref name="packetHeader" /> and <paramref name="packetData" /> into the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            The buffer into which the packet should be serialised. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" /> + the size
+            of the user data given by <paramref name="packetHeader" />.
+            </param>
+            <param name="packetHeader">
+            The header containing metatdata abut the raw stream packet.
+            </param>
+            <param name="packetData">
+            The user data held in the raw stream packet.
+            </param>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacket.TotalPacketSize(NetSharp.Raw.Stream.RawStreamPacketHeader@)">
+            <summary>
+            Calculates the total size of a raw stream packet, using the packet data size in the given <paramref name="packetHeader" />.
+            </summary>
+            <param name="packetHeader">
+            The header for which to calculate the total packet size.
+            </param>
+            <returns>
+            The total size of a raw stream packet with the given <paramref name="packetHeader" />.
+            </returns>
         </member>
         <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
             <summary>
