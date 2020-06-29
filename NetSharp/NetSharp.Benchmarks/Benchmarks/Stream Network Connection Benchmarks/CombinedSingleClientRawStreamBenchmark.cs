@@ -25,6 +25,8 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
+            int id = (int) idObj;
+
             EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
@@ -35,23 +37,27 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             rawSocket.Bind(Program.Constants.ClientEndPoint);
 
             using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
 
-            ServerReadyEvent.Wait();
-            rawSocket.Connect(Program.Constants.ServerEndPoint);
+            lock (typeof(Console))
+            {
+                Console.WriteLine($"[Client {id}] Starting client at {rawSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
+            }
 
             benchmarkHelper.ResetStopwatch();
 
+            ServerReadyEvent.Wait();
+            rawSocket.Connect(Program.Constants.ServerEndPoint);
+
             for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
-                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client 0] Hello World! (Packet {i})");
+                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sendResult = writer.Write(Program.Constants.ServerEndPoint, sendBuffer);
+                int sendResult = writer.Write(remoteEndPoint, sendBuffer);
 
                 int receiveResult = writer.Read(ref remoteEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();
@@ -61,11 +67,11 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             lock (typeof(Console))
             {
-                benchmarkHelper.PrintBandwidthStats(0, Program.Constants.PacketCount, Program.Constants.PacketSize);
-                benchmarkHelper.PrintRttStats((int) idObj);
+                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
+                benchmarkHelper.PrintRttStats(id);
             }
 
-            ClientBandwidths[(int) idObj] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
 
             rawSocket.Shutdown(SocketShutdown.Both);
             rawSocket.Disconnect(false);

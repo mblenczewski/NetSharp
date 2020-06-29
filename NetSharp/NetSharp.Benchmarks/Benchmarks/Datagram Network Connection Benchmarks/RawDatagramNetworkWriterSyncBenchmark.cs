@@ -17,24 +17,31 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         private static Task ServerTask(CancellationToken cancellationToken)
         {
-            using Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            server.Bind(Program.Constants.ServerEndPoint);
-
-            byte[] transmissionBuffer = new byte[Program.Constants.PacketSize];
-
-            EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-            ServerReadyEvent.Set();
-
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                int received = server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
+                using Socket server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                server.Bind(Program.Constants.ServerEndPoint);
 
-                int sent = server.SendTo(transmissionBuffer, remoteEndPoint);
+                byte[] transmissionBuffer = new byte[Program.Constants.PacketSize];
+
+                EndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+                ServerReadyEvent.Set();
+
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    int received = server.ReceiveFrom(transmissionBuffer, ref remoteEndPoint);
+
+                    int sent = server.SendTo(transmissionBuffer, remoteEndPoint);
+                }
+
+                server.Close();
             }
-
-            server.Close();
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
 
             return Task.CompletedTask;
         }
@@ -57,7 +64,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             rawSocket.Bind(Program.Constants.ClientEndPoint);
 
             using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
@@ -65,9 +71,14 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
             using CancellationTokenSource serverCts = new CancellationTokenSource();
             Task serverTask = Task.Factory.StartNew(state => ServerTask((CancellationToken) state), serverCts.Token, TaskCreationOptions.LongRunning);
 
-            ServerReadyEvent.Wait();
+            lock (typeof(Console))
+            {
+                Console.WriteLine($"[Client {0}] Starting client at {rawSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
+            }
 
             benchmarkHelper.ResetStopwatch();
+
+            ServerReadyEvent.Wait();
 
             for (int i = 0; i < Program.Constants.PacketCount; i++)
             {
@@ -75,7 +86,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
                 packetBuffer.CopyTo(sendBuffer, 0);
 
                 benchmarkHelper.StartStopwatch();
-                int sendResult = writer.Write(Program.Constants.ServerEndPoint, sendBuffer);
+                int sendResult = writer.Write(remoteEndPoint, sendBuffer);
 
                 int receiveResult = writer.Read(ref remoteEndPoint, receiveBuffer);
                 benchmarkHelper.StopStopwatch();

@@ -30,8 +30,8 @@ namespace NetSharp.Benchmarks
         public double CalcBandwidth(long sentPacketCount, long packetSize)
         {
             long millis = stopwatch.ElapsedMilliseconds;
-            double megabytes = sentPacketCount * packetSize / 1_000_000.0;
-            double bandwidth = megabytes / (millis / 1000.0);
+            double bytes = sentPacketCount * packetSize;
+            double bandwidth = (bytes / 1_000_000) / (millis / 1000.0);
 
             return bandwidth;
         }

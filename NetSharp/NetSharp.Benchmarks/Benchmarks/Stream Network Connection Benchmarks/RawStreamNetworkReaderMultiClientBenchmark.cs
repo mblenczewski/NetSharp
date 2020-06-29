@@ -38,18 +38,17 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
             EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
             using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             clientSocket.Bind(Program.Constants.ClientEndPoint);
-
-            ServerReadyEvent.Wait();
-            clientSocket.Connect(Program.Constants.ServerEndPoint);
 
             lock (typeof(Console))
             {
-                Console.WriteLine($"[Client {id}] Starting client; sending messages to {remoteEndPoint}");
+                Console.WriteLine($"[Client {id}] Starting client at {clientSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
             }
 
             benchmarkHelper.ResetStopwatch();
+
+            ServerReadyEvent.Wait();
+            clientSocket.Connect(Program.Constants.ServerEndPoint);
 
             for (int i = 0; i < Program.Constants.PacketCount; i++)
             {

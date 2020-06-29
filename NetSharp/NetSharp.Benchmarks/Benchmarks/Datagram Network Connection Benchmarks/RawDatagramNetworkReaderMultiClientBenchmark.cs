@@ -27,51 +27,57 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
-            int id = (int) idObj;
-
-            BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
-
-            byte[] sendBuffer = new byte[Program.Constants.PacketSize];
-            byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
-
-            EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
-
-            using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            clientSocket.Bind(Program.Constants.ClientEndPoint);
-
-            lock (typeof(Console))
+            try
             {
-                Console.WriteLine($"[Client {id}] Starting client; sending messages to {remoteEndPoint}");
+                int id = (int) idObj;
+
+                BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
+
+                byte[] sendBuffer = new byte[Program.Constants.PacketSize];
+                byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
+
+                EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
+
+                using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                clientSocket.Bind(Program.Constants.ClientEndPoint);
+
+                lock (typeof(Console))
+                {
+                    Console.WriteLine($"[Client {id}] Starting client at {clientSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
+                }
+
+                benchmarkHelper.ResetStopwatch();
+
+                ServerReadyEvent.Wait();
+
+                for (int i = 0; i < Program.Constants.PacketCount; i++)
+                {
+                    byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
+                    packetBuffer.CopyTo(sendBuffer, 0);
+
+                    benchmarkHelper.StartStopwatch();
+                    int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
+
+                    int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
+                    benchmarkHelper.StopStopwatch();
+
+                    benchmarkHelper.SnapshotRttStats();
+                }
+
+                lock (typeof(Console))
+                {
+                    benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
+                    benchmarkHelper.PrintRttStats(id);
+                }
+
+                ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+
+                clientSocket.Close();
             }
-
-            benchmarkHelper.ResetStopwatch();
-
-            ServerReadyEvent.Wait();
-
-            for (int i = 0; i < Program.Constants.PacketCount; i++)
+            catch (Exception ex)
             {
-                byte[] packetBuffer = Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})");
-                packetBuffer.CopyTo(sendBuffer, 0);
-
-                benchmarkHelper.StartStopwatch();
-                int sentBytes = clientSocket.SendTo(sendBuffer, remoteEndPoint);
-
-                int receivedBytes = clientSocket.ReceiveFrom(receiveBuffer, ref remoteEndPoint);
-                benchmarkHelper.StopStopwatch();
-
-                benchmarkHelper.SnapshotRttStats();
+                Console.WriteLine(ex);
             }
-
-            lock (typeof(Console))
-            {
-                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
-                benchmarkHelper.PrintRttStats(id);
-            }
-
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
-
-            clientSocket.Close();
 
             return Task.CompletedTask;
         }
