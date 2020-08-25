@@ -73,7 +73,7 @@ namespace NetSharp.Raw.Datagram
                     {
                         args.SetBuffer(responseBuffer, 0, datagramSize);
 
-                        SendTo(args);
+                        StartSendTo(args);
                         return;
                     }
 
@@ -92,7 +92,7 @@ namespace NetSharp.Raw.Datagram
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ConfigureReceiveFrom(SocketAsyncEventArgs args)
+        private void ConfigureAsyncReceiveFrom(SocketAsyncEventArgs args)
         {
             byte[] receiveBuffer = BufferPool.Rent(datagramSize);
             args.SetBuffer(receiveBuffer, 0, datagramSize);
@@ -114,7 +114,21 @@ namespace NetSharp.Raw.Datagram
             }
         }
 
-        private void ReceiveFrom(SocketAsyncEventArgs args)
+        private void StartDefaultReceiveFrom()
+        {
+            if (ShutdownToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            SocketAsyncEventArgs args = ArgsPool.Rent();
+
+            ConfigureAsyncReceiveFrom(args);
+
+            StartReceiveFrom(args);
+        }
+
+        private void StartReceiveFrom(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -131,7 +145,7 @@ namespace NetSharp.Raw.Datagram
             CompleteReceiveFrom(args);
         }
 
-        private void SendTo(SocketAsyncEventArgs args)
+        private void StartSendTo(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -145,20 +159,6 @@ namespace NetSharp.Raw.Datagram
             }
 
             CompleteSendTo(args);
-        }
-
-        private void StartDefaultReceiveFrom()
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                return;
-            }
-
-            SocketAsyncEventArgs args = ArgsPool.Rent();
-
-            ConfigureReceiveFrom(args);
-
-            ReceiveFrom(args);
         }
 
         /// <inheritdoc />

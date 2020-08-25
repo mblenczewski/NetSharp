@@ -181,7 +181,6 @@ namespace NetSharp.Raw.Stream
 
             args.SetBuffer(pendingPacketDataBuffer, 0, receivedPacketHeader.DataSize);
 
-            // TODO add transmission state token
             args.UserToken = new PacketReadToken(receivedPacketHeader.DataSize, receivedPacketHeader, in userDataBuffer, tcs);
         }
 

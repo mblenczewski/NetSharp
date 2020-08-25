@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace NetSharp.Utils
 {
@@ -122,9 +123,12 @@ namespace NetSharp.Utils
         /// <returns>
         /// The <typeparamref name="T" /> instance which was fetched from the pool.
         /// </returns>
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public T Rent()
         {
-            return objectBuffer.TryTake(out T result) ? result : createObjectDelegate();
+            bool rentedInstance = objectBuffer.TryTake(out T result);
+
+            return rentedInstance ? result : createObjectDelegate();
         }
 
         /// <summary>
@@ -133,13 +137,19 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The previously leased instance which should be returned.
         /// </param>
+        [MethodImpl(MethodImplOptions.Synchronized)]
         public void Return(T instance)
         {
             if (canObjectBeRebufferedPredicate(ref instance))
             {
                 resetObjectDelegate(ref instance);
 
-                objectBuffer.TryAdd(instance);
+                bool couldRebuffer = false;
+
+                while (!couldRebuffer)
+                {
+                    couldRebuffer = objectBuffer.TryAdd(instance);
+                }
             }
             else
             {

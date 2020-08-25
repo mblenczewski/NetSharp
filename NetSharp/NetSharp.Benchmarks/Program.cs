@@ -112,14 +112,14 @@ namespace NetSharp.Benchmarks
 
         public static class Constants
         {
-            private const int DefaultExamplePort = 44231;
-            private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
+            private const int DefaultPort = 44231;
+            private static readonly IPAddress DefaultAddress = IPAddress.Loopback;
 
             public const int PacketSize = 8192, PacketCount = 100_000, ClientCount = 8;
 
-            public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
+            public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultAddress, 0);
             public static readonly Encoding ServerEncoding = Encoding.UTF8;
-            public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
+            public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultAddress, DefaultPort);
         }
     }
 }

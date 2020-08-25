@@ -26,6 +26,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
+            Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            rawSocket.Bind(Program.Constants.ClientEndPoint);
+
             try
             {
                 int id = (int) idObj;
@@ -38,9 +41,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
                 byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
 
                 EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
-
-                Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                rawSocket.Bind(Program.Constants.ClientEndPoint);
 
                 using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
 
@@ -74,14 +74,14 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
                 }
 
                 ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
-
-                rawSocket.Close();
-                rawSocket.Dispose();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Console.WriteLine("Client exception: {0}", ex);
             }
+
+            rawSocket.Close();
+            rawSocket.Dispose();
 
             return Task.CompletedTask;
         }
@@ -93,25 +93,31 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
                 Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
-            ClientBandwidths = new double[1];
-            Task[] clientTasks = new Task[] { Task.Factory.StartNew(BenchmarkClientTask, 0, TaskCreationOptions.LongRunning) };
-
-            EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             rawSocket.Bind(Program.Constants.ServerEndPoint);
 
-            using RawDatagramNetworkReader reader = new RawDatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, Program.Constants.PacketSize);
-            reader.Start(1);
+            try
+            {
+                ClientBandwidths = new double[1];
+                Task[] clientTasks = new Task[] { Task.Factory.StartNew(BenchmarkClientTask, 0, TaskCreationOptions.LongRunning) };
 
-            ServerReadyEvent.Set();
+                EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-            await Task.WhenAll(clientTasks);
+                using RawDatagramNetworkReader reader = new RawDatagramNetworkReader(ref rawSocket, RequestHandler, defaultRemoteEndPoint, Program.Constants.PacketSize);
+                reader.Start(1);
 
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
+                ServerReadyEvent.Set();
 
-            reader.Shutdown();
+                await Task.WhenAll(clientTasks);
+
+                Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
+
+                reader.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Server exception: {0}", ex);
+            }
 
             rawSocket.Close();
             rawSocket.Dispose();

@@ -27,77 +27,85 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
         private Task BenchmarkClientTask(object idObj)
         {
-            int id = (int) idObj;
-
-            BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
-
-            byte[] sendBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
-            byte[] receiveBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
-            byte[] packetBuffer = new byte[Program.Constants.PacketSize];
-
-            EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
-
             using Socket clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            clientSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
             clientSocket.Bind(Program.Constants.ClientEndPoint);
 
-            lock (typeof(Console))
+            try
             {
-                Console.WriteLine($"[Client {id}] Starting client at {clientSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
-            }
+                int id = (int) idObj;
 
-            benchmarkHelper.ResetStopwatch();
+                BenchmarkHelper benchmarkHelper = new BenchmarkHelper();
 
-            ServerReadyEvent.Wait();
-            clientSocket.Connect(Program.Constants.ServerEndPoint);
+                byte[] sendBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
+                byte[] receiveBuffer = new byte[Program.Constants.PacketSize + RawStreamPacketHeader.TotalSize];
+                byte[] packetBuffer = new byte[Program.Constants.PacketSize];
 
-            for (int i = 0; i < Program.Constants.PacketCount; i++)
-            {
-                Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
+                EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
 
-                RawStreamPacketHeader streamPacketHeader = new RawStreamPacketHeader(Program.Constants.PacketSize);
-                RawStreamPacket.Serialise(sendBuffer, in streamPacketHeader, packetBuffer);
-
-                benchmarkHelper.StartStopwatch();
-
-                int totalSent = 0;
-                do
+                lock (typeof(Console))
                 {
-                    totalSent += clientSocket.Send(sendBuffer, totalSent, sendBuffer.Length - totalSent,
-                        SocketFlags.None);
-                } while (totalSent != 0 && totalSent < sendBuffer.Length);
-
-                if (totalSent == 0)
-                {
-                    break;
+                    Console.WriteLine($"[Client {id}] Starting client at {clientSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
                 }
 
-                int totalReceived = 0;
-                do
-                {
-                    totalReceived += clientSocket.Receive(receiveBuffer, totalReceived, receiveBuffer.Length - totalReceived,
-                        SocketFlags.None);
-                } while (totalReceived != 0 && totalReceived < receiveBuffer.Length);
+                benchmarkHelper.ResetStopwatch();
 
-                if (totalReceived == 0)
+                ServerReadyEvent.Wait();
+                clientSocket.Connect(Program.Constants.ServerEndPoint);
+
+                for (int i = 0; i < Program.Constants.PacketCount; i++)
                 {
-                    break;
+                    Program.Constants.ServerEncoding.GetBytes($"[Client {id}] Hello World! (Packet {i})").CopyTo(packetBuffer, 0);
+
+                    RawStreamPacketHeader streamPacketHeader = new RawStreamPacketHeader(Program.Constants.PacketSize);
+                    RawStreamPacket.Serialise(sendBuffer, in streamPacketHeader, packetBuffer);
+
+                    benchmarkHelper.StartStopwatch();
+
+                    int totalSent = 0;
+                    do
+                    {
+                        totalSent += clientSocket.Send(sendBuffer, totalSent, sendBuffer.Length - totalSent,
+                            SocketFlags.None);
+                    } while (totalSent != 0 && totalSent < sendBuffer.Length);
+
+                    if (totalSent == 0)
+                    {
+                        break;
+                    }
+
+                    int totalReceived = 0;
+                    do
+                    {
+                        totalReceived += clientSocket.Receive(receiveBuffer, totalReceived, receiveBuffer.Length - totalReceived,
+                            SocketFlags.None);
+                    } while (totalReceived != 0 && totalReceived < receiveBuffer.Length);
+
+                    if (totalReceived == 0)
+                    {
+                        break;
+                    }
+
+                    benchmarkHelper.StopStopwatch();
+
+                    benchmarkHelper.SnapshotRttStats();
                 }
 
-                benchmarkHelper.StopStopwatch();
+                lock (typeof(Console))
+                {
+                    benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
+                    benchmarkHelper.PrintRttStats(id);
+                }
 
-                benchmarkHelper.SnapshotRttStats();
+                ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
+
+                clientSocket.Shutdown(SocketShutdown.Both);
             }
-
-            lock (typeof(Console))
+            catch (Exception ex)
             {
-                benchmarkHelper.PrintBandwidthStats(id, Program.Constants.PacketCount, Program.Constants.PacketSize);
-                benchmarkHelper.PrintRttStats(id);
+                Console.WriteLine("Client exception: {0}", ex);
             }
 
-            ClientBandwidths[id] = benchmarkHelper.CalcBandwidth(Program.Constants.PacketCount, Program.Constants.PacketSize);
-
-            clientSocket.Shutdown(SocketShutdown.Both);
-            clientSocket.Disconnect(false);
             clientSocket.Close();
 
             return Task.CompletedTask;
@@ -111,30 +119,39 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
                 Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
             }
 
-            ClientBandwidths = new double[Program.Constants.ClientCount];
-            Task[] clientTasks = new Task[Program.Constants.ClientCount];
-            for (int i = 0; i < clientTasks.Length; i++)
-            {
-                clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
-            }
-
-            EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
             rawSocket.Bind(Program.Constants.ServerEndPoint);
-            rawSocket.Listen(Program.Constants.ClientCount);
 
-            using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, Program.Constants.PacketSize);
-            reader.Start(Program.Constants.ClientCount);
+            try
+            {
+                ClientBandwidths = new double[Program.Constants.ClientCount];
+                Task[] clientTasks = new Task[Program.Constants.ClientCount];
+                for (int i = 0; i < clientTasks.Length; i++)
+                {
+                    clientTasks[i] = Task.Factory.StartNew(BenchmarkClientTask, i, TaskCreationOptions.LongRunning);
+                }
 
-            ServerReadyEvent.Set();
+                EndPoint defaultEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
-            await Task.WhenAll(clientTasks);
+                rawSocket.Listen(Program.Constants.ClientCount);
 
-            Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
+                using RawStreamNetworkReader reader = new RawStreamNetworkReader(ref rawSocket, RequestHandler, defaultEndPoint, Program.Constants.PacketSize);
+                reader.Start(Program.Constants.ClientCount);
 
-            reader.Shutdown();
+                ServerReadyEvent.Set();
+
+                await Task.WhenAll(clientTasks);
+
+                Console.WriteLine($"Total estimated bandwidth: {ClientBandwidths.Sum():F3}");
+
+                reader.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Server exception: {0}", ex);
+                throw;
+            }
 
             rawSocket.Close();
             rawSocket.Dispose();

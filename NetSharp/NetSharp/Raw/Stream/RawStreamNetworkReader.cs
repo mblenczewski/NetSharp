@@ -56,11 +56,12 @@ namespace NetSharp.Raw.Stream
         {
             BufferPool.Return(args.Buffer, true);
 
-            Socket clientSocket = args.AcceptSocket;
+            Socket serversideClient = args.AcceptSocket;
 
-            clientSocket.Shutdown(SocketShutdown.Both);
-            clientSocket.Close();
-            clientSocket.Dispose();
+            serversideClient.Disconnect(false);
+            serversideClient.Shutdown(SocketShutdown.Both);
+            serversideClient.Close();
+            serversideClient.Dispose();
 
             ArgsPool.Return(args);
         }
@@ -70,13 +71,16 @@ namespace NetSharp.Raw.Stream
             switch (args.SocketError)
             {
                 case SocketError.Success:
+                    // ensure that the serverside client socket will be successfully, gracefully shutdown after the conection ends
+                    args.AcceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
+
                     // the buffer is set to allow a simpler ConfigureReceiveHeader() implemetation. Since returning an empty buffer is ignored in the
                     // array pool, this allows us to just return the last assigned buffer in the ConfigureXXX() method to the pool (this means that
                     // usually we will usually be returning the ResponseDataBuffer).
                     args.SetBuffer(Array.Empty<byte>(), 0, 0);
 
                     ConfigureAsyncReceiveHeader(args);
-                    StartReceive(args);
+                    StartOrContinueReceive(args);
                     break;
 
                 default:
@@ -140,7 +144,7 @@ namespace NetSharp.Raw.Stream
                 {
                     case true:
                         ConfigureAsyncSendPacket(args, ref responseBuffer, in responseHeader, responseBufferMemory);
-                        StartSend(args);
+                        StartOrContinueSend(args);
                         break;
 
                     case false:
@@ -149,7 +153,7 @@ namespace NetSharp.Raw.Stream
                         BufferPool.Return(responseBuffer, true);
 
                         ConfigureAsyncReceiveHeader(args);
-                        StartReceive(args);
+                        StartOrContinueReceive(args);
                         break;
                 }
             }
@@ -157,7 +161,7 @@ namespace NetSharp.Raw.Stream
             {
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
-                ContinueReceive(args);
+                StartOrContinueReceive(args);
             }
             else if (receivedBytes == 0)  // connection is dead
             {
@@ -179,13 +183,13 @@ namespace NetSharp.Raw.Stream
                 RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
 
                 ConfigureAsyncReceiveData(args, in header);
-                StartReceive(args);
+                StartOrContinueReceive(args);
             }
             else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
             {
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
-                ContinueReceive(args);
+                StartOrContinueReceive(args);
             }
             else if (receivedBytes == 0)  // connection is dead
             {
@@ -208,13 +212,13 @@ namespace NetSharp.Raw.Stream
                     if (totalSentBytes == expectedBytes)  // transmission complete
                     {
                         ConfigureAsyncReceiveHeader(args);
-                        StartReceive(args);
+                        StartOrContinueReceive(args);
                     }
                     else if (0 < totalSentBytes && totalSentBytes < expectedBytes)  // transmission not complete
                     {
                         args.SetBuffer(totalSentBytes, expectedBytes - totalSentBytes);
 
-                        ContinueSend(args);
+                        StartOrContinueSend(args);
                     }
                     else if (sentBytes == 0)  // connection is dead
                     {
@@ -258,42 +262,6 @@ namespace NetSharp.Raw.Stream
             int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
             args.SetBuffer(pendingPacketBuffer, 0, totalPacketSize);
             args.UserToken = new PacketWriteToken(totalPacketSize);
-        }
-
-        private void ContinueReceive(SocketAsyncEventArgs args)
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
-            Socket clientSocket = args.AcceptSocket;
-
-            if (clientSocket.ReceiveAsync(args))
-            {
-                return;
-            }
-
-            CompleteReceive(args);
-        }
-
-        private void ContinueSend(SocketAsyncEventArgs args)
-        {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
-            Socket clientSocket = args.AcceptSocket;
-
-            if (clientSocket.SendAsync(args))
-            {
-                return;
-            }
-
-            CompleteSend(args);
         }
 
         private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
@@ -342,7 +310,7 @@ namespace NetSharp.Raw.Stream
             StartAccept(args);
         }
 
-        private void StartReceive(SocketAsyncEventArgs args)
+        private void StartOrContinueReceive(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -350,9 +318,9 @@ namespace NetSharp.Raw.Stream
                 return;
             }
 
-            Socket clientSocket = args.AcceptSocket;
+            Socket serversideClient = args.AcceptSocket;
 
-            if (clientSocket.ReceiveAsync(args))
+            if (serversideClient.ReceiveAsync(args))
             {
                 return;
             }
@@ -360,7 +328,7 @@ namespace NetSharp.Raw.Stream
             CompleteReceive(args);
         }
 
-        private void StartSend(SocketAsyncEventArgs args)
+        private void StartOrContinueSend(SocketAsyncEventArgs args)
         {
             if (ShutdownToken.IsCancellationRequested)
             {
@@ -368,9 +336,9 @@ namespace NetSharp.Raw.Stream
                 return;
             }
 
-            Socket clientSocket = args.AcceptSocket;
+            Socket serversideClient = args.AcceptSocket;
 
-            if (clientSocket.SendAsync(args))
+            if (serversideClient.SendAsync(args))
             {
                 return;
             }
