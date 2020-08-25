@@ -115,7 +115,11 @@ namespace NetSharp.Benchmarks
             private const int DefaultPort = 44231;
             private static readonly IPAddress DefaultAddress = IPAddress.Loopback;
 
-            public const int PacketSize = 8192, PacketCount = 100_000, ClientCount = 8;
+#if DEBUG
+            public const int PacketSize = 4096, PacketCount = 100_000, ClientCount = 8;
+#else // RELEASE
+            public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 10;
+#endif
 
             public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultAddress, 0);
             public static readonly Encoding ServerEncoding = Encoding.UTF8;
