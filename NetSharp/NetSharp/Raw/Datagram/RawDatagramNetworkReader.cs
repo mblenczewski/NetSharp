@@ -153,7 +153,6 @@ namespace NetSharp.Raw.Datagram
             {
                 case SocketAsyncOperation.ReceiveFrom:
                     StartDefaultReceiveFrom();
-
                     CompleteReceiveFrom(args);
                     break;
 
@@ -165,16 +164,19 @@ namespace NetSharp.Raw.Datagram
 
         private void StartDefaultReceiveFrom()
         {
-            SocketAsyncEventArgs args = ArgsPool.Rent();
+            if (!ConnectionDisposed)
+            {
+                SocketAsyncEventArgs args = ArgsPool.Rent();
 
-            ConfigureAsyncReceiveFrom(args);
+                ConfigureAsyncReceiveFrom(args);
 
-            StartReceiveFrom(args);
+                StartReceiveFrom(args);
+            }
         }
 
         private void StartReceiveFrom(SocketAsyncEventArgs args)
         {
-            if (Connection.ReceiveFromAsync(args))
+            if (!ConnectionDisposed && Connection.ReceiveFromAsync(args))
             {
                 return;
             }
@@ -185,7 +187,7 @@ namespace NetSharp.Raw.Datagram
 
         private void StartSendTo(SocketAsyncEventArgs args)
         {
-            if (Connection.SendToAsync(args))
+            if (!ConnectionDisposed && Connection.SendToAsync(args))
             {
                 return;
             }

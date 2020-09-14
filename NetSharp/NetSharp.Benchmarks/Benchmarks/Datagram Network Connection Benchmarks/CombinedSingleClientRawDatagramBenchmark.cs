@@ -11,8 +11,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 {
     internal class CombinedSingleClientRawDatagramBenchmark : INetSharpBenchmark
     {
-        private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private double[] ClientBandwidths;
+        private volatile EndPoint _serverEndPoint = null;
 
         public string Name => "Combined Raw Datagram Network Reader/Writer (Single Client) Benchmark";
 
@@ -27,7 +28,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
         private Task BenchmarkClientTask(object idObj)
         {
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            rawSocket.Bind(Program.Constants.ClientEndPoint);
+            rawSocket.Bind(Program.Constants.DefaultEndPoint);
 
             try
             {
@@ -40,7 +41,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
                 byte[] sendBuffer = new byte[Program.Constants.PacketSize];
                 byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
 
-                EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
+                EndPoint remoteEndPoint = _serverEndPoint;
 
                 using RawDatagramNetworkWriter writer = new RawDatagramNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
 
@@ -89,7 +90,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
         public async Task RunAsync()
         {
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            rawSocket.Bind(Program.Constants.ServerEndPoint);
+            rawSocket.Bind(Program.Constants.DefaultEndPoint);
+
+            _serverEndPoint = rawSocket.LocalEndPoint;
 
             try
             {
@@ -116,6 +119,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             rawSocket.Close();
             rawSocket.Dispose();
+
+            ServerReadyEvent.Reset();
+            _serverEndPoint = null;
         }
     }
 }

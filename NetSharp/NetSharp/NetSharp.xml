@@ -228,7 +228,7 @@
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <summary>
-            Initialises a new instance of the <see cref="T:NetSharp.Raw.RawNetworkConnectionBase"/> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Raw.RawNetworkConnectionBase" /> class.
             </summary>
             <param name="rawConnection">
             The underlying <see cref="T:System.Net.Sockets.Socket" /> to use for the connection.
@@ -274,7 +274,8 @@
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.CleanupTransmissionBufferAndState(System.Net.Sockets.SocketAsyncEventArgs)">
             <summary>
-            Performs cleanup on the given <paramref name="args" /> instance.
+            Performs cleanup on the given <paramref name="args" /> instance. Neither the given <paramref name="args"/> instance, nor the
+            <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.Buffer" /> or <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.MemoryBuffer" /> attached to it can be used after this call.
             </summary>
             <param name="args">
             The used <see cref="T:System.Net.Sockets.SocketAsyncEventArgs" /> that can be cleaned up to be reused.
@@ -291,7 +292,7 @@
             Allows for inheritors to dispose of their own resources.
             </summary>
             <param name="disposing">
-            Whether the <see cref="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose"/> method is being called.
+            Whether the <see cref="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose" /> method is being called.
             </param>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">

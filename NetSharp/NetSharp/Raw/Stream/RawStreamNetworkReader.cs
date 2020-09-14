@@ -117,9 +117,6 @@ namespace NetSharp.Raw.Stream
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    // ensure that the serverside client socket will be successfully, gracefully shutdown after the conection ends
-                    args.AcceptSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-
                     // the buffer is set to allow a simpler ConfigureReceiveHeader() implemetation. Since returning an empty buffer is ignored in the
                     // array pool, this allows us to just return the last assigned buffer in the ConfigureXXX() method to the pool (this means that
                     // usually we will usually be returning the ResponseDataBuffer).
@@ -345,7 +342,7 @@ namespace NetSharp.Raw.Stream
 
         private void StartAccept(SocketAsyncEventArgs args)
         {
-            if (Connection.AcceptAsync(args))
+            if (!ConnectionDisposed && Connection.AcceptAsync(args))
             {
                 return;
             }
@@ -356,9 +353,12 @@ namespace NetSharp.Raw.Stream
 
         private void StartDefaultAccept()
         {
-            SocketAsyncEventArgs args = ArgsPool.Rent();
+            if (!ConnectionDisposed)
+            {
+                SocketAsyncEventArgs args = ArgsPool.Rent();
 
-            StartAccept(args);
+                StartAccept(args);
+            }
         }
 
         private void StartOrContinueReceive(SocketAsyncEventArgs args)

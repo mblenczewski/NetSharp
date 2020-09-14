@@ -11,8 +11,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 {
     internal class CombinedMultiClientRawStreamBenchmark : INetSharpBenchmark
     {
-        private static readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim ServerReadyEvent = new ManualResetEventSlim(false);
         private double[] ClientBandwidths;
+        private volatile EndPoint _serverEndPoint = null;
 
         public string Name => "Combined Raw Stream Network Reader/Writer (Multiple Clients) Benchmark";
 
@@ -28,7 +29,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         {
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            rawSocket.Bind(Program.Constants.ClientEndPoint);
+            rawSocket.Bind(Program.Constants.DefaultEndPoint);
 
             try
             {
@@ -41,19 +42,18 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
                 byte[] sendBuffer = new byte[Program.Constants.PacketSize];
                 byte[] receiveBuffer = new byte[Program.Constants.PacketSize];
 
-                EndPoint remoteEndPoint = Program.Constants.ServerEndPoint;
-
                 using RawStreamNetworkWriter writer = new RawStreamNetworkWriter(ref rawSocket, defaultRemoteEndPoint, Program.Constants.PacketSize);
+
+                benchmarkHelper.ResetStopwatch();
+
+                ServerReadyEvent.Wait();
+                EndPoint remoteEndPoint = _serverEndPoint;
+                rawSocket.Connect(_serverEndPoint);
 
                 lock (typeof(Console))
                 {
                     Console.WriteLine($"[Client {id}] Starting client at {rawSocket.LocalEndPoint}; sending messages to {remoteEndPoint}");
                 }
-
-                benchmarkHelper.ResetStopwatch();
-
-                ServerReadyEvent.Wait();
-                rawSocket.Connect(Program.Constants.ServerEndPoint);
 
                 for (int i = 0; i < Program.Constants.PacketCount; i++)
                 {
@@ -95,7 +95,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         {
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
-            rawSocket.Bind(Program.Constants.ServerEndPoint);
+            rawSocket.Bind(Program.Constants.DefaultEndPoint);
+
+            _serverEndPoint = rawSocket.LocalEndPoint;
 
             try
             {
@@ -128,6 +130,9 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
 
             rawSocket.Close();
             rawSocket.Dispose();
+
+            ServerReadyEvent.Reset();
+            _serverEndPoint = null;
         }
     }
 }

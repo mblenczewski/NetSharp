@@ -108,9 +108,14 @@ namespace NetSharp.Utils
         [MethodImpl(MethodImplOptions.Synchronized)]
         public T Rent()
         {
-            bool rentedInstance = objectBuffer.TryTake(out T result);
+            bool successfullyRentedInstance = objectBuffer.TryTake(out T instance);
 
-            return rentedInstance ? result : createObjectDelegate();
+            if (successfullyRentedInstance)
+            {
+                return instance;
+            }
+
+            return createObjectDelegate();
         }
 
         /// <summary>
@@ -126,14 +131,12 @@ namespace NetSharp.Utils
             {
                 resetObjectDelegate(ref instance);
 
-                objectBuffer.TryAdd(instance);
+                bool successfullyRebufferedInstance = objectBuffer.TryAdd(instance);
 
-                // bool couldRebuffer = false;
-
-                // while (!couldRebuffer)
-                // {
-                //    couldRebuffer = objectBuffer.TryAdd(instance);
-                // }
+                if (!successfullyRebufferedInstance)
+                {
+                    destroyObjectDelegate(instance);
+                }
             }
             else
             {

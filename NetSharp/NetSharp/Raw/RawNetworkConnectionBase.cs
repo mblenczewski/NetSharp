@@ -30,6 +30,8 @@ namespace NetSharp.Raw
         /// </summary>
         protected const int MaxDatagramSize = ushort.MaxValue - 28; // 65535 - 28 = 65507
 
+        protected volatile bool ConnectionDisposed;
+
         private readonly SlimObjectPool<SocketAsyncEventArgs> argsPool;
 
         private readonly ArrayPool<byte> bufferPool;
@@ -39,7 +41,7 @@ namespace NetSharp.Raw
         private readonly EndPoint defaultEndPoint;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="RawNetworkConnectionBase"/> class.
+        /// Initialises a new instance of the <see cref="RawNetworkConnectionBase" /> class.
         /// </summary>
         /// <param name="rawConnection">
         /// The underlying <see cref="Socket" /> to use for the connection.
@@ -113,7 +115,8 @@ namespace NetSharp.Raw
         protected abstract bool CanReuseStateObject(ref SocketAsyncEventArgs instance);
 
         /// <summary>
-        /// Performs cleanup on the given <paramref name="args" /> instance.
+        /// Performs cleanup on the given <paramref name="args" /> instance. Neither the given <paramref name="args"/> instance, nor the
+        /// <see cref="SocketAsyncEventArgs.Buffer" /> or <see cref="SocketAsyncEventArgs.MemoryBuffer" /> attached to it can be used after this call.
         /// </summary>
         /// <param name="args">
         /// The used <see cref="SocketAsyncEventArgs" /> that can be cleaned up to be reused.
@@ -143,16 +146,19 @@ namespace NetSharp.Raw
         /// Allows for inheritors to dispose of their own resources.
         /// </summary>
         /// <param name="disposing">
-        /// Whether the <see cref="Dispose()"/> method is being called.
+        /// Whether the <see cref="Dispose()" /> method is being called.
         /// </param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposing)
+            ConnectionDisposed = true;
+
+            if (disposing)
             {
-                return;
+                // dispose of managed resources
+                argsPool?.Dispose();
             }
 
-            argsPool.Dispose();
+            // dispose of unmanaged resources
         }
 
         /// <inheritdoc cref="SlimObjectPool{T}.ResetObjectDelegate" />

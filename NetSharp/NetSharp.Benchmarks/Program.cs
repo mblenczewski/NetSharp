@@ -9,11 +9,23 @@ namespace NetSharp.Benchmarks
 {
     internal class Program
     {
-        private static readonly List<INetSharpBenchmark> Benchmarks;
+        private static readonly List<INetSharpBenchmark> Benchmarks = new List<INetSharpBenchmark>();
 
-        static Program()
+        private static void Main()
         {
-            Benchmarks = new List<INetSharpBenchmark>();
+            while (true)
+            {
+                ResetBenchmarks();
+
+                GC.Collect();
+
+                PickBenchmark();
+            }
+        }
+
+        private static void ResetBenchmarks()
+        {
+            Benchmarks.Clear();
 
             foreach (Type type in Assembly.GetCallingAssembly().GetTypes())
             {
@@ -27,16 +39,6 @@ namespace NetSharp.Benchmarks
                 {
                     Benchmarks.Add((INetSharpBenchmark)Activator.CreateInstance(type));
                 }
-            }
-        }
-
-        private static void Main()
-        {
-            while (true)
-            {
-                GC.Collect();
-
-                PickBenchmark();
             }
         }
 
@@ -109,19 +111,14 @@ namespace NetSharp.Benchmarks
 
         public static class Constants
         {
-            private const int DefaultPort = 44231;
-            private static readonly IPAddress DefaultAddress = IPAddress.Loopback;
-
 #if DEBUG
             // Packet counts of over 10_000 can take a long time, depending on the packet size and number of clients
-            public const int PacketSize = 4096, PacketCount = 10_000, ClientCount = 1;
+            public const int PacketSize = 4096, PacketCount = 1_000_000, ClientCount = 10;
 #else // RELEASE
             public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 10;
 #endif
-
-            public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultAddress, 0);
             public static readonly Encoding ServerEncoding = Encoding.UTF8;
-            public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultAddress, DefaultPort);
+            public static readonly EndPoint DefaultEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
         }
     }
 }
