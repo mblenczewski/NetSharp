@@ -78,11 +78,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Stream_Network_Connection_Benchmarks
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            if (Program.Constants.PacketCount > 10_000)
-            {
-                Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
-            }
-
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             rawSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, true);
             rawSocket.Bind(Program.Constants.ClientEndPoint);

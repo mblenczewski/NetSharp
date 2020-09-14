@@ -31,7 +31,7 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
             try
             {
-                int id = (int) idObj;
+                int id = (int)idObj;
 
                 EndPoint defaultRemoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
@@ -88,11 +88,6 @@ namespace NetSharp.Benchmarks.Benchmarks.Datagram_Network_Connection_Benchmarks
 
         public async Task RunAsync()
         {
-            if (Program.Constants.PacketCount > 10_000)
-            {
-                Console.WriteLine($"{Program.Constants.PacketCount} packets will be sent per client. This could take a long time (maybe more than a minute)!");
-            }
-
             Socket rawSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             rawSocket.Bind(Program.Constants.ServerEndPoint);
 

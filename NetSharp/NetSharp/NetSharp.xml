@@ -103,11 +103,6 @@
               A strongly-typed resource class, for looking up localized strings, etc.
             </summary>
         </member>
-        <member name="P:NetSharp.Properties.Resources.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
         <member name="P:NetSharp.Properties.Resources.Culture">
             <summary>
               Overrides the current thread's CurrentUICulture property for all
@@ -127,6 +122,11 @@
         <member name="P:NetSharp.Properties.Resources.RawStreamMessageSizeUnderflow">
             <summary>
               Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
             </summary>
         </member>
         <member name="T:NetSharp.Raw.Datagram.RawDatagramRequestHandler">
@@ -155,6 +155,9 @@
             </summary>
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Datagram.RawDatagramRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)" />
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -169,15 +172,24 @@
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkReader.Start(System.UInt16)">
-            <inheritdoc />
-        </member>
         <member name="T:NetSharp.Raw.Datagram.RawDatagramNetworkWriter">
             <summary>
             Implements a raw network writer using a datagram-based protocol.
             </summary>
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)"/>
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -192,18 +204,6 @@
         <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.ReadAsync(System.Net.EndPoint,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.Write(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
-            <inheritdoc />
-        </member>
         <member name="T:NetSharp.Raw.RawNetworkConnectionBase">
             <summary>
             Defines fields and methods common to all network connections.
@@ -212,13 +212,13 @@
         <member name="F:NetSharp.Raw.RawNetworkConnectionBase.DefaultMaxPooledBufferSize">
             <summary>
             The maximum size of a pooled buffer that can be used with the <see cref="P:System.Buffers.ArrayPool`1.Shared" /> property, before a new custom pool must
-            be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
+            be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs.
             </summary>
         </member>
         <member name="F:NetSharp.Raw.RawNetworkConnectionBase.DefaultMaxPooledBuffersPerBucket">
             <summary>
             The maximum number of pooled buffers per bucket that can be used with the <see cref="P:System.Buffers.ArrayPool`1.Shared" /> property, before a new custom
-            pool must be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
+            pool must be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs.
             </summary>
         </member>
         <member name="F:NetSharp.Raw.RawNetworkConnectionBase.MaxDatagramSize">
@@ -228,7 +228,7 @@
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Raw.RawNetworkConnectionBase" /> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Raw.RawNetworkConnectionBase"/> class.
             </summary>
             <param name="rawConnection">
             The underlying <see cref="T:System.Net.Sockets.Socket" /> to use for the connection.
@@ -253,7 +253,7 @@
         </member>
         <member name="P:NetSharp.Raw.RawNetworkConnectionBase.BufferPool">
             <summary>
-            The object pool to use to pool byte buffer instance
+            The object pool to use to pool byte buffer instance.
             </summary>
         </member>
         <member name="P:NetSharp.Raw.RawNetworkConnectionBase.Connection">
@@ -265,6 +265,9 @@
             <summary>
             The default endpoint to use to represent remote clients.
             </summary>
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose">
+            <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.CanReuseObjectPredicate" />
@@ -287,12 +290,12 @@
             <summary>
             Allows for inheritors to dispose of their own resources.
             </summary>
+            <param name="disposing">
+            Whether the <see cref="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose"/> method is being called.
+            </param>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkConnectionBase.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc cref="T:NetSharp.Utils.SlimObjectPool`1.ResetObjectDelegate" />
-        </member>
-        <member name="M:NetSharp.Raw.RawNetworkConnectionBase.Dispose">
-            <inheritdoc />
         </member>
         <member name="T:NetSharp.Raw.RawNetworkReaderBase">
             <summary>
@@ -300,20 +303,20 @@
             </summary>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
-            <inheritdoc />
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)"/>
         </member>
         <member name="P:NetSharp.Raw.RawNetworkReaderBase.ShutdownToken">
             <summary>
             The <see cref="T:System.Threading.CancellationToken" /> for the network reader.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Dispose(System.Boolean)">
-            <inheritdoc />
-        </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Shutdown">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.RawNetworkReaderBase.Start(System.UInt16)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.RawNetworkReaderBase.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Raw.RawNetworkWriterBase">
@@ -322,7 +325,7 @@
             </summary>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
-            <inheritdoc />
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkConnectionBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)"/>
         </member>
         <member name="M:NetSharp.Raw.RawNetworkWriterBase.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
@@ -362,6 +365,9 @@
             </summary>
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.#ctor(System.Net.Sockets.Socket@,NetSharp.Raw.Stream.RawStreamRequestHandler,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkReaderBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)"/>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.Start(System.UInt16)">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -376,28 +382,13 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkReader.Start(System.UInt16)">
-            <inheritdoc />
-        </member>
         <member name="T:NetSharp.Raw.Stream.RawStreamNetworkWriter">
             <summary>
             Implements a raw network writer using a stream-based protocol.
             </summary>
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CreateStateObject">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
-            <inheritdoc />
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
-            <inheritdoc />
+            <inheritdoc cref="M:NetSharp.Raw.RawNetworkWriterBase.#ctor(System.Net.Sockets.Socket@,System.Net.EndPoint,System.Int32,System.Int32,System.UInt32)" />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.Read(System.Net.EndPoint@,System.Memory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
@@ -411,47 +402,17 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.WriteAsync(System.Net.EndPoint,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
             <inheritdoc />
         </member>
-        <member name="T:NetSharp.Raw.Stream.RawStreamPacketHeader">
-            <summary>
-            Holds metadata about a raw stream packet.
-            </summary>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CanReuseStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
         </member>
-        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize">
-            <summary>
-            The total size of the header in bytes.
-            </summary>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.CreateStateObject">
+            <inheritdoc />
         </member>
-        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.DataSize">
-            <summary>
-            The size of the user supplied data segment in bytes.
-            </summary>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.DestroyStateObject(System.Net.Sockets.SocketAsyncEventArgs)">
+            <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.#ctor(System.Int32)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> struct.
-            </summary>
-            <param name="dataSize">
-            The size of the user supplied data segment.
-            </param>
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Deserialise(System.Memory{System.Byte}@)">
-            <summary>
-            Deserialises a <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance from the given <paramref name="buffer" />.
-            </summary>
-            <param name="buffer">
-            A buffer containing a serialised <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
-            </param>
-            <returns>
-            The deserialised instance.
-            </returns>
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Serialise(System.Memory{System.Byte}@)">
-            <summary>
-            Serialises the current <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance into the given <paramref name="buffer" />.
-            </summary>
-            <param name="buffer">
-            The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
-            </param>
+        <member name="M:NetSharp.Raw.Stream.RawStreamNetworkWriter.ResetStateObject(System.Net.Sockets.SocketAsyncEventArgs@)">
+            <inheritdoc />
         </member>
         <member name="T:NetSharp.Raw.Stream.RawStreamPacket">
             <summary>
@@ -484,14 +445,51 @@
             The total size of a raw stream packet with the given <paramref name="packetHeader" />.
             </returns>
         </member>
+        <member name="T:NetSharp.Raw.Stream.RawStreamPacketHeader">
+            <summary>
+            Holds metadata about a raw stream packet.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize">
+            <summary>
+            The total size of the header in bytes.
+            </summary>
+        </member>
+        <member name="F:NetSharp.Raw.Stream.RawStreamPacketHeader.DataSize">
+            <summary>
+            The size of the user supplied data segment in bytes.
+            </summary>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.#ctor(System.Int32)">
+            <summary>
+            Initialises a new instance of the <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader"/> struct.
+            </summary>
+            <param name="dataSize">
+            The size of the user supplied data segment.
+            </param>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Deserialise(System.Memory{System.Byte}@)">
+            <summary>
+            Deserialises a <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance from the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            A buffer containing a serialised <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
+            </param>
+            <returns>
+            The deserialised instance.
+            </returns>
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamPacketHeader.Serialise(System.Memory{System.Byte}@)">
+            <summary>
+            Serialises the current <see cref="T:NetSharp.Raw.Stream.RawStreamPacketHeader" /> instance into the given <paramref name="buffer" />.
+            </summary>
+            <param name="buffer">
+            The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
+            </param>
+        </member>
         <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
             <summary>
             Wraps the <see cref="T:System.BitConverter" /> class to provide conversion that is endian-aware.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
-            <summary>
-            Reverses the given bytes if the endian-nes doesn't match.
             </summary>
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
@@ -554,6 +552,11 @@
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})" />
         </member>
+        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
+            <summary>
+            Reverses the given bytes if the endian-nes doesn't match.
+            </summary>
+        </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1">
             <summary>
             Provides a lightweight implementation of an object pool for classes.
@@ -562,29 +565,9 @@
             The type of item stored in the pool.
             </typeparam>
         </member>
-        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanReuseObjectPredicate@,System.Collections.Concurrent.IProducerConsumerCollection{`0}@)">
+        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate,NetSharp.Utils.SlimObjectPool{`0}.CanReuseObjectPredicate)">
             <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
-            </summary>
-            <param name="createDelegate">
-            The delegate method to use to create new pooled object instances.
-            </param>
-            <param name="resetDelegate">
-            The delegate method to use to reset used pooled object instances.
-            </param>
-            <param name="destroyDelegate">
-            The delegate method to use to destroy pooled object instances that cannot be reused.
-            </param>
-            <param name="rebufferPredicate">
-            The delegate method to use to decide whether an instance can be reused.
-            </param>
-            <param name="baseCollection">
-            The underlying pooled object buffer to use.
-            </param>
-        </member>
-        <member name="M:NetSharp.Utils.SlimObjectPool`1.#ctor(NetSharp.Utils.SlimObjectPool{`0}.CreateObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.ResetObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.DestroyObjectDelegate@,NetSharp.Utils.SlimObjectPool{`0}.CanReuseObjectPredicate@)">
-            <summary>
-            Constructs a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1" /> class.
+            Initialises a new instance of the <see cref="T:NetSharp.Utils.SlimObjectPool`1"/> class.
             </summary>
             <param name="createDelegate">
             The delegate method to use to create new pooled object instances.

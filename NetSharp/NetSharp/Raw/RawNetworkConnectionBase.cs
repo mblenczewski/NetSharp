@@ -13,6 +13,23 @@ namespace NetSharp.Raw
     /// </summary>
     public abstract class RawNetworkConnectionBase : IDisposable
     {
+        /// <summary>
+        /// The maximum size of a pooled buffer that can be used with the <see cref="ArrayPool{T}.Shared" /> property, before a new custom pool must
+        /// be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs.
+        /// </summary>
+        protected const int DefaultMaxPooledBufferSize = 1024 * 1024;
+
+        /// <summary>
+        /// The maximum number of pooled buffers per bucket that can be used with the <see cref="ArrayPool{T}.Shared" /> property, before a new custom
+        /// pool must be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs.
+        /// </summary>
+        protected const int DefaultMaxPooledBuffersPerBucket = 50;
+
+        /// <summary>
+        /// The maximum size that a user supplied data buffer can be to fit into a UDP datagram.
+        /// </summary>
+        protected const int MaxDatagramSize = ushort.MaxValue - 28; // 65535 - 28 = 65507
+
         private readonly SlimObjectPool<SocketAsyncEventArgs> argsPool;
 
         private readonly ArrayPool<byte> bufferPool;
@@ -22,24 +39,7 @@ namespace NetSharp.Raw
         private readonly EndPoint defaultEndPoint;
 
         /// <summary>
-        /// The maximum size of a pooled buffer that can be used with the <see cref="ArrayPool{T}.Shared" /> property, before a new custom pool must
-        /// be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
-        /// </summary>
-        protected const int DefaultMaxPooledBufferSize = 1024 * 1024;
-
-        /// <summary>
-        /// The maximum number of pooled buffers per bucket that can be used with the <see cref="ArrayPool{T}.Shared" /> property, before a new custom
-        /// pool must be created. Taken from: https://github.com/dotnet/coreclr/blob/master/src/System.Private.CoreLib/shared/System/Buffers/ConfigurableArrayPool.cs
-        /// </summary>
-        protected const int DefaultMaxPooledBuffersPerBucket = 50;
-
-        /// <summary>
-        /// The maximum size that a user supplied data buffer can be to fit into a UDP datagram.
-        /// </summary>
-        protected const int MaxDatagramSize = ushort.MaxValue - 28;  // 65535 - 28 = 65507
-
-        /// <summary>
-        /// Constructs a new instance of the <see cref="RawNetworkConnectionBase" /> class.
+        /// Initialises a new instance of the <see cref="RawNetworkConnectionBase"/> class.
         /// </summary>
         /// <param name="rawConnection">
         /// The underlying <see cref="Socket" /> to use for the connection.
@@ -56,8 +56,12 @@ namespace NetSharp.Raw
         /// <param name="preallocatedStateObjects">
         /// The number of state objects to preallocate.
         /// </param>
-        protected RawNetworkConnectionBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize,
-            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0)
+        protected RawNetworkConnectionBase(
+            ref Socket rawConnection,
+            EndPoint defaultEndPoint,
+            int maxPooledBufferSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
         {
             connection = rawConnection;
 
@@ -84,7 +88,7 @@ namespace NetSharp.Raw
         protected ref readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool => ref argsPool;
 
         /// <summary>
-        /// The object pool to use to pool byte buffer instance
+        /// The object pool to use to pool byte buffer instance.
         /// </summary>
         protected ref readonly ArrayPool<byte> BufferPool => ref bufferPool;
 
@@ -97,6 +101,13 @@ namespace NetSharp.Raw
         /// The default endpoint to use to represent remote clients.
         /// </summary>
         protected ref readonly EndPoint DefaultEndPoint => ref defaultEndPoint;
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <inheritdoc cref="SlimObjectPool{T}.CanReuseObjectPredicate" />
         protected abstract bool CanReuseStateObject(ref SocketAsyncEventArgs instance);
@@ -131,6 +142,9 @@ namespace NetSharp.Raw
         /// <summary>
         /// Allows for inheritors to dispose of their own resources.
         /// </summary>
+        /// <param name="disposing">
+        /// Whether the <see cref="Dispose()"/> method is being called.
+        /// </param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
@@ -143,12 +157,5 @@ namespace NetSharp.Raw
 
         /// <inheritdoc cref="SlimObjectPool{T}.ResetObjectDelegate" />
         protected abstract void ResetStateObject(ref SocketAsyncEventArgs instance);
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
     }
 }

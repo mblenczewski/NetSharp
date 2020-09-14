@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Resources;
 using System.Text;
-
-[assembly: NeutralResourcesLanguage("en")]
 
 namespace NetSharp.Examples
 {
@@ -28,7 +25,7 @@ namespace NetSharp.Examples
                 Type[] interfaces = type.GetInterfaces();
                 if (interfaces.Contains(typeof(INetSharpExample)))
                 {
-                    Examples.Add((INetSharpExample) Activator.CreateInstance(type));
+                    Examples.Add((INetSharpExample)Activator.CreateInstance(type));
                 }
             }
         }

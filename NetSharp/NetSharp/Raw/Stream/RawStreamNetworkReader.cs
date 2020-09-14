@@ -23,7 +23,10 @@ namespace NetSharp.Raw.Stream
     /// Whether there exists a response to be sent back to the remote endpoint.
     /// </returns>
     // TODO implement this in a better, more robust and extensible way
-    public delegate bool RawStreamRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+    public delegate bool RawStreamRequestHandler(
+        EndPoint remoteEndPoint,
+        in ReadOnlyMemory<byte> requestBuffer,
+        int receivedRequestBytes,
         in Memory<byte> responseBuffer);
 
     /// <summary>
@@ -31,22 +34,67 @@ namespace NetSharp.Raw.Stream
     /// </summary>
     public sealed class RawStreamNetworkReader : RawNetworkReaderBase
     {
-        private readonly RawStreamRequestHandler RequestHandler;
+        private readonly RawStreamRequestHandler requestHandler;
 
-        /// <inheritdoc />
-        public RawStreamNetworkReader(ref Socket rawConnection, RawStreamRequestHandler? requestHandler, EndPoint defaultEndPoint, int maxPooledMessageSize,
-            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledMessageSize,
-            pooledBuffersPerBucket, preallocatedStateObjects)
+        /// <inheritdoc cref="RawNetworkReaderBase(ref Socket, EndPoint, int, int, uint)"/>
+        public RawStreamNetworkReader(
+            ref Socket rawConnection,
+            RawStreamRequestHandler? requestHandler,
+            EndPoint defaultEndPoint,
+            int maxPooledMessageSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
+            : base(ref rawConnection, defaultEndPoint, maxPooledMessageSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             if (maxPooledMessageSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(maxPooledMessageSize), maxPooledMessageSize, Properties.Resources.RawStreamMessageSizeUnderflow);
             }
 
-            RequestHandler = requestHandler ?? DefaultRequestHandler;
+            this.requestHandler = requestHandler ?? DefaultRequestHandler;
         }
 
-        private static bool DefaultRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+        /// <inheritdoc />
+        public override void Start(ushort concurrentReadTasks)
+        {
+            for (ushort i = 0; i < concurrentReadTasks; i++)
+            {
+                StartDefaultAccept();
+            }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateStateObject()
+        {
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += HandleIoCompleted;
+
+            return args;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
+        {
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        {
+            instance.AcceptSocket = null;
+        }
+
+        private static bool DefaultRequestHandler(
+            EndPoint remoteEndPoint,
+            in ReadOnlyMemory<byte> requestBuffer,
+            int receivedRequestBytes,
             in Memory<byte> responseBuffer)
         {
             return requestBuffer.TryCopyTo(responseBuffer);
@@ -89,7 +137,7 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteReceive(SocketAsyncEventArgs args)
         {
-            PacketReadToken readToken = (PacketReadToken) args.UserToken;
+            PacketReadToken readToken = (PacketReadToken)args.UserToken;
 
             bool receivingHeader = readToken.BytesToTransfer == RawStreamPacketHeader.TotalSize;
 
@@ -106,6 +154,7 @@ namespace NetSharp.Raw.Stream
                             CompleteReceiveData(args, in readToken);
                             break;
                     }
+
                     break;
 
                 default:
@@ -123,8 +172,9 @@ namespace NetSharp.Raw.Stream
                 totalReceivedBytes = previousReceivedBytes + receivedBytes,
                 expectedBytes = readToken.BytesToTransfer;
 
-            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            if (totalReceivedBytes == expectedBytes)
             {
+                // transmission complete
                 EndPoint clientEndPoint = args.AcceptSocket.RemoteEndPoint;
 
                 // TODO use user-supplied delegate to generate response packet header
@@ -136,7 +186,7 @@ namespace NetSharp.Raw.Stream
                 Memory<byte> responseBufferMemory = responseBuffer.AsMemory(RawStreamPacketHeader.TotalSize, responseHeader.DataSize);
 
                 // TODO rework request handler
-                bool responseExists = RequestHandler(clientEndPoint, dataBuffer, totalReceivedBytes, responseBufferMemory);
+                bool responseExists = requestHandler(clientEndPoint, dataBuffer, totalReceivedBytes, responseBufferMemory);
 
                 switch (responseExists)
                 {
@@ -155,14 +205,16 @@ namespace NetSharp.Raw.Stream
                         break;
                 }
             }
-            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            else if (totalReceivedBytes > 0 && totalReceivedBytes < expectedBytes)
             {
+                // transmission not complete
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
                 StartOrContinueReceive(args);
             }
-            else if (receivedBytes == 0)  // connection is dead
+            else if (receivedBytes == 0)
             {
+                // connection is dead
                 CloseClientConnection(args);
             }
         }
@@ -176,28 +228,31 @@ namespace NetSharp.Raw.Stream
                 totalReceivedBytes = previousReceivedBytes + receivedBytes,
                 expectedBytes = readToken.BytesToTransfer;
 
-            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            if (totalReceivedBytes == expectedBytes)
             {
+                // transmission complete
                 RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
 
                 ConfigureAsyncReceiveData(args, in header);
                 StartOrContinueReceive(args);
             }
-            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            else if (totalReceivedBytes > 0 && totalReceivedBytes < expectedBytes)
             {
+                // transmission not complete
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
                 StartOrContinueReceive(args);
             }
-            else if (receivedBytes == 0)  // connection is dead
+            else if (receivedBytes == 0)
             {
+                // connection is dead
                 CloseClientConnection(args);
             }
         }
 
         private void CompleteSend(SocketAsyncEventArgs args)
         {
-            PacketWriteToken writeToken = (PacketWriteToken) args.UserToken;
+            PacketWriteToken writeToken = (PacketWriteToken)args.UserToken;
 
             int sentBytes = args.BytesTransferred,
                 previousSentBytes = args.Offset,
@@ -207,21 +262,25 @@ namespace NetSharp.Raw.Stream
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    if (totalSentBytes == expectedBytes)  // transmission complete
+                    if (totalSentBytes == expectedBytes)
                     {
+                        // transmission complete
                         ConfigureAsyncReceiveHeader(args);
                         StartOrContinueReceive(args);
                     }
-                    else if (0 < totalSentBytes && totalSentBytes < expectedBytes)  // transmission not complete
+                    else if (totalSentBytes > 0 && totalSentBytes < expectedBytes)
                     {
+                        // transmission not complete
                         args.SetBuffer(totalSentBytes, expectedBytes - totalSentBytes);
 
                         StartOrContinueSend(args);
                     }
-                    else if (sentBytes == 0)  // connection is dead
+                    else if (sentBytes == 0)
                     {
+                        // connection is dead
                         CloseClientConnection(args);
                     }
+
                     break;
 
                 default:
@@ -250,7 +309,10 @@ namespace NetSharp.Raw.Stream
             args.UserToken = new PacketReadToken(RawStreamPacketHeader.TotalSize, null);
         }
 
-        private void ConfigureAsyncSendPacket(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacketHeader pendingPacketHeader,
+        private void ConfigureAsyncSendPacket(
+            SocketAsyncEventArgs args,
+            ref byte[] pendingPacketBuffer,
+            in RawStreamPacketHeader pendingPacketHeader,
             in ReadOnlyMemory<byte> pendingPacketData)
         {
             BufferPool.Return(args.Buffer, true);  // return and clear the requestDataBuffer (as it was already parsed)
@@ -323,46 +385,10 @@ namespace NetSharp.Raw.Stream
             CompleteSend(args);
         }
 
-        /// <inheritdoc />
-        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        protected override SocketAsyncEventArgs CreateStateObject()
-        {
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += HandleIoCompleted;
-
-            return args;
-        }
-
-        /// <inheritdoc />
-        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
-        {
-            instance.Completed -= HandleIoCompleted;
-            instance.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
-        {
-            instance.AcceptSocket = null;
-        }
-
-        /// <inheritdoc />
-        public override void Start(ushort concurrentReadTasks)
-        {
-            for (ushort i = 0; i < concurrentReadTasks; i++)
-            {
-                StartDefaultAccept();
-            }
-        }
-
         private readonly struct PacketReadToken
         {
             public readonly int BytesToTransfer;
+
             public readonly RawStreamPacketHeader? Header;
 
             public PacketReadToken(int bytesToTransfer, in RawStreamPacketHeader? header)

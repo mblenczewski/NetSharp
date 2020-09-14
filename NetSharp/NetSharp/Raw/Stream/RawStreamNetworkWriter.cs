@@ -10,9 +10,14 @@ namespace NetSharp.Raw.Stream
     /// </summary>
     public sealed class RawStreamNetworkWriter : RawNetworkWriterBase
     {
-        /// <inheritdoc />
-        public RawStreamNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledMessageSize = DefaultMaxPooledBufferSize, int pooledBuffersPerBucket = 50,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledMessageSize, pooledBuffersPerBucket, preallocatedStateObjects)
+        /// <inheritdoc cref="RawNetworkWriterBase(ref Socket, EndPoint, int, int, uint)" />
+        public RawStreamNetworkWriter(
+            ref Socket rawConnection,
+            EndPoint defaultEndPoint,
+            int maxPooledMessageSize = DefaultMaxPooledBufferSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
+            : base(ref rawConnection, defaultEndPoint, maxPooledMessageSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             if (maxPooledMessageSize <= 0)
             {
@@ -20,8 +25,136 @@ namespace NetSharp.Raw.Stream
             }
         }
 
-        private static void ConfigureAsyncSendPacket(SocketAsyncEventArgs args, ref byte[] pendingPacketBuffer, in RawStreamPacketHeader pendingPacketHeader,
-            in ReadOnlyMemory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
+        /// <inheritdoc />
+        public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            static int ReadBytesIntoBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
+            {
+                int readBytes = 0;
+
+                do
+                {
+                    readBytes += connection.Receive(buffer, readBytes, count - readBytes, flags);
+                }
+                while (readBytes < count && readBytes > 0);
+
+                return readBytes;
+            }
+
+            byte[] pendingHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
+
+            _ = ReadBytesIntoBuffer(Connection, ref pendingHeaderBuffer, RawStreamPacketHeader.TotalSize, flags);
+
+            RawStreamPacketHeader packetHeader = RawStreamPacketHeader.Deserialise(pendingHeaderBuffer);
+            BufferPool.Return(pendingHeaderBuffer, true);  // return and clear the pendingHeaderBuffer (as it was already parsed)
+
+            byte[] pendingPacketDataBuffer = BufferPool.Rent(packetHeader.DataSize);
+
+            int bodyBytes = ReadBytesIntoBuffer(Connection, ref pendingPacketDataBuffer, packetHeader.DataSize, flags);
+
+            pendingPacketDataBuffer.AsMemory(0, readBuffer.Length).CopyTo(readBuffer);
+            BufferPool.Return(pendingPacketDataBuffer, true);  // return and clear the pendingDataBuffer (as it was already copied)
+
+            return bodyBytes;  // we only return the number of bytes of user data that were read
+        }
+
+        /// <inheritdoc />
+        public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
+
+            ConfigureAsyncReceiveHeader(args, in readBuffer, tcs);
+
+            args.RemoteEndPoint = remoteEndPoint;
+            args.SocketFlags = flags;
+
+            StartReceive(args);
+
+            return new ValueTask<int>(tcs.Task);
+        }
+
+        /// <inheritdoc />
+        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            static int WriteBytesFromBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
+            {
+                int writtenBytes = 0;
+
+                do
+                {
+                    writtenBytes += connection.Send(buffer, writtenBytes, count - writtenBytes, flags);
+                }
+                while (writtenBytes < count && writtenBytes > 0);
+
+                return writtenBytes;
+            }
+
+            RawStreamPacketHeader pendingPacketHeader = new RawStreamPacketHeader(writeBuffer.Length);
+            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
+            byte[] pendingPacketBuffer = BufferPool.Rent(totalPacketSize);
+
+            RawStreamPacket.Serialise(pendingPacketBuffer, in pendingPacketHeader, in writeBuffer);
+
+            _ = WriteBytesFromBuffer(Connection, ref pendingPacketBuffer, totalPacketSize, flags);
+            BufferPool.Return(pendingPacketBuffer, true);  // return and clear the pendingPacketBuffer (as it was already cleared)
+
+            return pendingPacketHeader.DataSize;  // we only return the number of bytes of user data that were written
+        }
+
+        /// <inheritdoc />
+        public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
+        {
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+            SocketAsyncEventArgs args = ArgsPool.Rent();
+
+            RawStreamPacketHeader pendingPacketHeader = new RawStreamPacketHeader(writeBuffer.Length);
+            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
+            byte[] pendingPacketBuffer = BufferPool.Rent(totalPacketSize);
+
+            ConfigureAsyncSendPacket(args, ref pendingPacketBuffer, in pendingPacketHeader, in writeBuffer, tcs);
+
+            args.RemoteEndPoint = remoteEndPoint;
+            args.SocketFlags = flags;
+
+            StartSend(args);
+
+            return new ValueTask<int>(tcs.Task);
+        }
+
+        /// <inheritdoc />
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateStateObject()
+        {
+            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
+            args.Completed += HandleIoCompleted;
+
+            return args;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
+        {
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        {
+        }
+
+        private static void ConfigureAsyncSendPacket(
+            SocketAsyncEventArgs args,
+            ref byte[] pendingPacketBuffer,
+            in RawStreamPacketHeader pendingPacketHeader,
+            in ReadOnlyMemory<byte> userDataBuffer,
+            TaskCompletionSource<int> tcs)
         {
             RawStreamPacket.Serialise(pendingPacketBuffer, in pendingPacketHeader, in userDataBuffer);
 
@@ -32,7 +165,7 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteReceive(SocketAsyncEventArgs args)
         {
-            PacketReadToken readToken = (PacketReadToken) args.UserToken;
+            PacketReadToken readToken = (PacketReadToken)args.UserToken;
 
             bool receivingHeader = readToken.BytesToTransfer == RawStreamPacketHeader.TotalSize;
 
@@ -55,10 +188,11 @@ namespace NetSharp.Raw.Stream
                             CompleteReceiveData(args, in readToken);
                             break;
                     }
+
                     break;
 
                 default:
-                    readToken.CompletionSource.SetException(new SocketException((int) args.SocketError));
+                    readToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
                     CleanupTransmissionBufferAndState(args);
                     break;
@@ -72,8 +206,9 @@ namespace NetSharp.Raw.Stream
                 totalReceivedBytes = previousReceivedBytes + receivedBytes,
                 expectedBytes = readToken.BytesToTransfer;
 
-            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            if (totalReceivedBytes == expectedBytes)
             {
+                // transmission complete
                 args.Buffer.AsMemory(0, readToken.UserDataBuffer.Length).CopyTo(readToken.UserDataBuffer);
 
                 // we only return the number of bytes of user data that were read
@@ -81,15 +216,17 @@ namespace NetSharp.Raw.Stream
 
                 CleanupTransmissionBufferAndState(args);
             }
-            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            else if (totalReceivedBytes > 0 && totalReceivedBytes < expectedBytes)
             {
+                // transmission not complete
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
                 ContinueReceive(args);
             }
-            else if (receivedBytes == 0)  // connection is dead
+            else if (receivedBytes == 0)
             {
-                readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
+                // connection is dead
+                readToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
 
                 CleanupTransmissionBufferAndState(args);
             }
@@ -102,8 +239,9 @@ namespace NetSharp.Raw.Stream
                 totalReceivedBytes = previousReceivedBytes + receivedBytes,
                 expectedBytes = readToken.BytesToTransfer;
 
-            if (totalReceivedBytes == expectedBytes)  // transmission complete
+            if (totalReceivedBytes == expectedBytes)
             {
+                // transmission complete
                 Memory<byte> headerBuffer = args.Buffer.AsMemory(0, RawStreamPacketHeader.TotalSize);
                 RawStreamPacketHeader header = RawStreamPacketHeader.Deserialise(in headerBuffer);
 
@@ -111,15 +249,17 @@ namespace NetSharp.Raw.Stream
 
                 StartReceive(args);
             }
-            else if (0 < totalReceivedBytes && totalReceivedBytes < expectedBytes)  // transmission not complete
+            else if (totalReceivedBytes > 0 && totalReceivedBytes < expectedBytes)
             {
+                // transmission not complete
                 args.SetBuffer(totalReceivedBytes, expectedBytes - totalReceivedBytes);
 
                 ContinueReceive(args);
             }
-            else if (receivedBytes == 0)  // connection is dead
+            else if (receivedBytes == 0)
             {
-                readToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
+                // connection is dead
+                readToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
 
                 CleanupTransmissionBufferAndState(args);
             }
@@ -127,7 +267,7 @@ namespace NetSharp.Raw.Stream
 
         private void CompleteSend(SocketAsyncEventArgs args)
         {
-            PacketWriteToken writeToken = (PacketWriteToken) args.UserToken;
+            PacketWriteToken writeToken = (PacketWriteToken)args.UserToken;
 
             int sentBytes = args.BytesTransferred,
                 previousSentBytes = args.Offset,
@@ -143,36 +283,42 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 case SocketError.Success:
-                    if (totalSentBytes == expectedBytes) // transmission complete
+                    if (totalSentBytes == expectedBytes)
                     {
-                        // we only return the number of bytes of user data that were written
+                        // transmission complete we only return the number of bytes of user data that were written
                         writeToken.CompletionSource.SetResult(totalSentBytes - RawStreamPacketHeader.TotalSize);
 
                         CleanupTransmissionBufferAndState(args);
                     }
-                    else if (0 < totalSentBytes && totalSentBytes < expectedBytes)  // transmission not complete
+                    else if (totalSentBytes > 0 && totalSentBytes < expectedBytes)
                     {
+                        // transmission not complete
                         args.SetBuffer(totalSentBytes, expectedBytes - totalSentBytes);
 
                         ContinueSend(args);
                     }
-                    else if (sentBytes == 0)  // connection is dead
+                    else if (sentBytes == 0)
                     {
-                        writeToken.CompletionSource.SetException(new SocketException((int) SocketError.HostDown));
+                        // connection is dead
+                        writeToken.CompletionSource.SetException(new SocketException((int)SocketError.HostDown));
 
                         CleanupTransmissionBufferAndState(args);
                     }
+
                     break;
 
                 default:
-                    writeToken.CompletionSource.SetException(new SocketException((int) args.SocketError));
+                    writeToken.CompletionSource.SetException(new SocketException((int)args.SocketError));
 
                     CleanupTransmissionBufferAndState(args);
                     break;
             }
         }
 
-        private void ConfigureAsyncReceiveData(SocketAsyncEventArgs args, in RawStreamPacketHeader receivedPacketHeader, in Memory<byte> userDataBuffer,
+        private void ConfigureAsyncReceiveData(
+            SocketAsyncEventArgs args,
+            in RawStreamPacketHeader receivedPacketHeader,
+            in Memory<byte> userDataBuffer,
             TaskCompletionSource<int> tcs)
         {
             BufferPool.Return(args.Buffer, true);  // return and clear the requestHeaderBuffer (as it was already parsed)
@@ -246,133 +392,14 @@ namespace NetSharp.Raw.Stream
             CompleteSend(args);
         }
 
-        /// <inheritdoc />
-        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        protected override SocketAsyncEventArgs CreateStateObject()
-        {
-            SocketAsyncEventArgs args = new SocketAsyncEventArgs();
-            args.Completed += HandleIoCompleted;
-
-            return args;
-        }
-
-        /// <inheritdoc />
-        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
-        {
-            instance.Completed -= HandleIoCompleted;
-            instance.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
-        {
-        }
-
-        /// <inheritdoc />
-        public override int Read(ref EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
-        {
-            static int ReadBytesIntoBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
-            {
-                int readBytes = 0;
-
-                do
-                {
-                    readBytes += connection.Receive(buffer, readBytes, count - readBytes, flags);
-                } while (readBytes < count && readBytes > 0);
-
-                return readBytes;
-            }
-
-            byte[] pendingHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
-
-            int _ = ReadBytesIntoBuffer(Connection, ref pendingHeaderBuffer, RawStreamPacketHeader.TotalSize, flags);
-
-            RawStreamPacketHeader packetHeader = RawStreamPacketHeader.Deserialise(pendingHeaderBuffer);
-            BufferPool.Return(pendingHeaderBuffer, true);  // return and clear the pendingHeaderBuffer (as it was already parsed)
-
-            byte[] pendingPacketDataBuffer = BufferPool.Rent(packetHeader.DataSize);
-
-            int bodyBytes = ReadBytesIntoBuffer(Connection, ref pendingPacketDataBuffer, packetHeader.DataSize, flags);
-
-            pendingPacketDataBuffer.AsMemory(0, readBuffer.Length).CopyTo(readBuffer);
-            BufferPool.Return(pendingPacketDataBuffer, true);  // return and clear the pendingDataBuffer (as it was already copied)
-
-            return bodyBytes;  // we only return the number of bytes of user data that were read
-        }
-
-        /// <inheritdoc />
-        public override ValueTask<int> ReadAsync(EndPoint remoteEndPoint, Memory<byte> readBuffer, SocketFlags flags = SocketFlags.None)
-        {
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = ArgsPool.Rent();
-
-            ConfigureAsyncReceiveHeader(args, in readBuffer, tcs);
-
-            args.RemoteEndPoint = remoteEndPoint;
-            args.SocketFlags = flags;
-
-            StartReceive(args);
-
-            return new ValueTask<int>(tcs.Task);
-        }
-
-        /// <inheritdoc />
-        public override int Write(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
-        {
-            static int WriteBytesFromBuffer(Socket connection, ref byte[] buffer, int count, SocketFlags flags)
-            {
-                int writtenBytes = 0;
-
-                do
-                {
-                    writtenBytes += connection.Send(buffer, writtenBytes, count - writtenBytes, flags);
-                } while (writtenBytes < count && writtenBytes > 0);
-
-                return writtenBytes;
-            }
-
-            RawStreamPacketHeader pendingPacketHeader = new RawStreamPacketHeader(writeBuffer.Length);
-            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
-            byte[] pendingPacketBuffer = BufferPool.Rent(totalPacketSize);
-
-            RawStreamPacket.Serialise(pendingPacketBuffer, in pendingPacketHeader, in writeBuffer);
-
-            int _ = WriteBytesFromBuffer(Connection, ref pendingPacketBuffer, totalPacketSize, flags);
-            BufferPool.Return(pendingPacketBuffer, true);  // return and clear the pendingPacketBuffer (as it was already cleared)
-
-            return pendingPacketHeader.DataSize;  // we only return the number of bytes of user data that were written
-        }
-
-        /// <inheritdoc />
-        public override ValueTask<int> WriteAsync(EndPoint remoteEndPoint, ReadOnlyMemory<byte> writeBuffer, SocketFlags flags = SocketFlags.None)
-        {
-            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
-            SocketAsyncEventArgs args = ArgsPool.Rent();
-
-            RawStreamPacketHeader pendingPacketHeader = new RawStreamPacketHeader(writeBuffer.Length);
-            int totalPacketSize = RawStreamPacket.TotalPacketSize(in pendingPacketHeader);
-            byte[] pendingPacketBuffer = BufferPool.Rent(totalPacketSize);
-
-            ConfigureAsyncSendPacket(args, ref pendingPacketBuffer, in pendingPacketHeader, in writeBuffer, tcs);
-
-            args.RemoteEndPoint = remoteEndPoint;
-            args.SocketFlags = flags;
-
-            StartSend(args);
-
-            return new ValueTask<int>(tcs.Task);
-        }
-
         private readonly struct PacketReadToken
         {
             internal readonly int BytesToTransfer;
+
             internal readonly TaskCompletionSource<int> CompletionSource;
+
             internal readonly RawStreamPacketHeader? Header;
+
             internal readonly Memory<byte> UserDataBuffer;
 
             internal PacketReadToken(int bytesToTransfer, in RawStreamPacketHeader? header, in Memory<byte> userDataBuffer, TaskCompletionSource<int> tcs)
@@ -390,6 +417,7 @@ namespace NetSharp.Raw.Stream
         private readonly struct PacketWriteToken
         {
             internal readonly int BytesToTransfer;
+
             internal readonly TaskCompletionSource<int> CompletionSource;
 
             internal PacketWriteToken(int bytesToTransfer, TaskCompletionSource<int> tcs)

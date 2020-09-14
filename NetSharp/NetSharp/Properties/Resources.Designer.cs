@@ -8,10 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NetSharp.Properties {
-    using System;
-    
-    
+namespace NetSharp.Properties
+{
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,68 +20,81 @@ namespace NetSharp.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
-        
-        private static global::System.Resources.ResourceManager resourceMan;
-        
+    internal class Resources
+    {
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
+        private static global::System.Resources.ResourceManager resourceMan;
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal Resources()
+        {
         }
-        
-        /// <summary>
-        ///   Returns the cached ResourceManager instance used by this class.
-        /// </summary>
-        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NetSharp.Properties.Resources", typeof(Resources).Assembly);
-                    resourceMan = temp;
-                }
-                return resourceMan;
-            }
-        }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
-            get {
+        internal static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
                 return resourceCulture;
             }
-            set {
+            set
+            {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes.
         /// </summary>
-        internal static string RawDatagramNetworkReaderRentedBufferSizeError {
-            get {
+        internal static string RawDatagramNetworkReaderRentedBufferSizeError
+        {
+            get
+            {
                 return ResourceManager.GetString("RawDatagramNetworkReaderRentedBufferSizeError", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
         /// </summary>
-        internal static string RawDatagramSizeError {
-            get {
+        internal static string RawDatagramSizeError
+        {
+            get
+            {
                 return ResourceManager.GetString("RawDatagramSizeError", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
         /// </summary>
-        internal static string RawStreamMessageSizeUnderflow {
-            get {
+        internal static string RawStreamMessageSizeUnderflow
+        {
+            get
+            {
                 return ResourceManager.GetString("RawStreamMessageSizeUnderflow", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Returns the cached ResourceManager instance used by this class.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        internal static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(resourceMan, null))
+                {
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NetSharp.Properties.Resources", typeof(Resources).Assembly);
+                    resourceMan = temp;
+                }
+                return resourceMan;
             }
         }
     }

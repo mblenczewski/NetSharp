@@ -12,11 +12,17 @@ namespace NetSharp.Raw
     public abstract class RawNetworkReaderBase : RawNetworkConnectionBase, IRawNetworkReader
     {
         private readonly CancellationToken shutdownToken;
+
         private readonly CancellationTokenSource shutdownTokenSource;
 
-        /// <inheritdoc />
-        private protected RawNetworkReaderBase(ref Socket rawConnection, EndPoint defaultEndPoint, int maxPooledBufferSize, int pooledBuffersPerBucket = 50,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
+        /// <inheritdoc cref="RawNetworkConnectionBase(ref Socket, EndPoint, int, int, uint)"/>
+        private protected RawNetworkReaderBase(
+            ref Socket rawConnection,
+            EndPoint defaultEndPoint,
+            int maxPooledBufferSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
+            : base(ref rawConnection, defaultEndPoint, maxPooledBufferSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
             shutdownTokenSource = new CancellationTokenSource();
             shutdownToken = shutdownTokenSource.Token;
@@ -26,6 +32,15 @@ namespace NetSharp.Raw
         /// The <see cref="CancellationToken" /> for the network reader.
         /// </summary>
         protected ref readonly CancellationToken ShutdownToken => ref shutdownToken;
+
+        /// <inheritdoc />
+        public void Shutdown()
+        {
+            shutdownTokenSource.Cancel();
+        }
+
+        /// <inheritdoc />
+        public abstract void Start(ushort concurrentReadTasks);
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
@@ -40,14 +55,5 @@ namespace NetSharp.Raw
 
             base.Dispose(disposing);
         }
-
-        /// <inheritdoc />
-        public void Shutdown()
-        {
-            shutdownTokenSource.Cancel();
-        }
-
-        /// <inheritdoc />
-        public abstract void Start(ushort concurrentReadTasks);
     }
 }

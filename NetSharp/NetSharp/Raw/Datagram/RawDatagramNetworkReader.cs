@@ -24,7 +24,10 @@ namespace NetSharp.Raw.Datagram
     /// Whether there exists a response to be sent back to the remote endpoint.
     /// </returns>
     // TODO implement this in a better, more robust and extensible way
-    public delegate bool RawDatagramRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+    public delegate bool RawDatagramRequestHandler(
+        EndPoint remoteEndPoint,
+        in ReadOnlyMemory<byte> requestBuffer,
+        int receivedRequestBytes,
         in Memory<byte> responseBuffer);
 
     /// <summary>
@@ -36,12 +39,17 @@ namespace NetSharp.Raw.Datagram
 
         private readonly RawDatagramRequestHandler requestHandler;
 
-        /// <inheritdoc />
-        public RawDatagramNetworkReader(ref Socket rawConnection, RawDatagramRequestHandler? requestHandler, EndPoint defaultEndPoint, int datagramSize,
-            int pooledBuffersPerBucket = 50, uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, datagramSize,
-            pooledBuffersPerBucket, preallocatedStateObjects)
+        /// <inheritdoc cref="RawNetworkReaderBase(ref Socket, EndPoint, int, int, uint)" />
+        public RawDatagramNetworkReader(
+            ref Socket rawConnection,
+            RawDatagramRequestHandler? requestHandler,
+            EndPoint defaultEndPoint,
+            int datagramSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
+            : base(ref rawConnection, defaultEndPoint, datagramSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
-            if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
+            if (datagramSize <= 0 || datagramSize > MaxDatagramSize)
             {
                 throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Properties.Resources.RawDatagramSizeError);
             }
@@ -51,7 +59,47 @@ namespace NetSharp.Raw.Datagram
             this.requestHandler = requestHandler ?? DefaultRequestHandler;
         }
 
-        private static bool DefaultRequestHandler(EndPoint remoteEndPoint, in ReadOnlyMemory<byte> requestBuffer, int receivedRequestBytes,
+        /// <inheritdoc />
+        public override void Start(ushort concurrentReadTasks)
+        {
+            for (ushort i = 0; i < concurrentReadTasks; i++)
+            {
+                StartDefaultReceiveFrom();
+            }
+        }
+
+        /// <inheritdoc />
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateStateObject()
+        {
+            SocketAsyncEventArgs instance = new SocketAsyncEventArgs { RemoteEndPoint = DefaultEndPoint };
+            instance.Completed += HandleIoCompleted;
+
+            return instance;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
+        {
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        {
+            instance.RemoteEndPoint = DefaultEndPoint;
+        }
+
+        private static bool DefaultRequestHandler(
+            EndPoint remoteEndPoint,
+            in ReadOnlyMemory<byte> requestBuffer,
+            int receivedRequestBytes,
             in Memory<byte> responseBuffer)
         {
             return requestBuffer.TryCopyTo(responseBuffer);
@@ -143,43 +191,6 @@ namespace NetSharp.Raw.Datagram
             }
 
             CompleteSendTo(args);
-        }
-
-        /// <inheritdoc />
-        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        protected override SocketAsyncEventArgs CreateStateObject()
-        {
-            SocketAsyncEventArgs instance = new SocketAsyncEventArgs { RemoteEndPoint = DefaultEndPoint };
-            instance.Completed += HandleIoCompleted;
-
-            return instance;
-        }
-
-        /// <inheritdoc />
-        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
-        {
-            instance.Completed -= HandleIoCompleted;
-            instance.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
-        {
-            instance.RemoteEndPoint = DefaultEndPoint;
-        }
-
-        /// <inheritdoc />
-        public override void Start(ushort concurrentReadTasks)
-        {
-            for (ushort i = 0; i < concurrentReadTasks; i++)
-            {
-                StartDefaultReceiveFrom();
-            }
         }
     }
 }

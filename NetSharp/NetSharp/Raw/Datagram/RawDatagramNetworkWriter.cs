@@ -14,108 +14,21 @@ namespace NetSharp.Raw.Datagram
     {
         private readonly int datagramSize;
 
-        /// <inheritdoc />
-        public RawDatagramNetworkWriter(ref Socket rawConnection, EndPoint defaultEndPoint, int datagramSize, int pooledBuffersPerBucket = 50,
-            uint preallocatedStateObjects = 0) : base(ref rawConnection, defaultEndPoint, datagramSize, pooledBuffersPerBucket, preallocatedStateObjects)
+        /// <inheritdoc cref="RawNetworkWriterBase(ref Socket, EndPoint, int, int, uint)"/>
+        public RawDatagramNetworkWriter(
+            ref Socket rawConnection,
+            EndPoint defaultEndPoint,
+            int datagramSize,
+            int pooledBuffersPerBucket = 50,
+            uint preallocatedStateObjects = 0)
+            : base(ref rawConnection, defaultEndPoint, datagramSize, pooledBuffersPerBucket, preallocatedStateObjects)
         {
-            if (datagramSize <= 0 || MaxDatagramSize < datagramSize)
+            if (datagramSize <= 0 || datagramSize > MaxDatagramSize)
             {
                 throw new ArgumentOutOfRangeException(nameof(datagramSize), datagramSize, Resources.RawDatagramSizeError);
             }
 
             this.datagramSize = datagramSize;
-        }
-
-        private void CompleteReceiveFrom(SocketAsyncEventArgs args)
-        {
-            PacketReadToken token = (PacketReadToken) args.UserToken;
-
-            byte[] receiveBuffer = args.Buffer;
-
-            switch (args.SocketError)
-            {
-                case SocketError.Success:
-                    receiveBuffer.CopyTo(token.UserBuffer);
-                    token.CompletionSource.SetResult(args.BytesTransferred);
-                    break;
-
-                case SocketError.OperationAborted:
-                    token.CompletionSource.SetCanceled();
-                    break;
-
-                default:
-                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
-                    break;
-            }
-
-            BufferPool.Return(receiveBuffer, true);
-            ArgsPool.Return(args);
-        }
-
-        private void CompleteSendTo(SocketAsyncEventArgs args)
-        {
-            PacketWriteToken token = (PacketWriteToken) args.UserToken;
-
-            byte[] sendBuffer = args.Buffer;
-
-            switch (args.SocketError)
-            {
-                case SocketError.Success:
-                    token.CompletionSource.SetResult(args.BytesTransferred);
-                    break;
-
-                case SocketError.OperationAborted:
-                    token.CompletionSource.SetCanceled();
-                    break;
-
-                default:
-                    token.CompletionSource.SetException(new SocketException((int) args.SocketError));
-                    break;
-            }
-
-            BufferPool.Return(sendBuffer, true);
-            ArgsPool.Return(args);
-        }
-
-        private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
-        {
-            switch (args.LastOperation)
-            {
-                case SocketAsyncOperation.SendTo:
-                    CompleteSendTo(args);
-                    break;
-
-                case SocketAsyncOperation.ReceiveFrom:
-                    CompleteReceiveFrom(args);
-                    break;
-            }
-        }
-
-        /// <inheritdoc />
-        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        protected override SocketAsyncEventArgs CreateStateObject()
-        {
-            SocketAsyncEventArgs instance = new SocketAsyncEventArgs();
-            instance.Completed += HandleIoCompleted;
-
-            return instance;
-        }
-
-        /// <inheritdoc />
-        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
-        {
-            instance.Completed -= HandleIoCompleted;
-            instance.Dispose();
-        }
-
-        /// <inheritdoc />
-        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
-        {
         }
 
         /// <inheritdoc />
@@ -126,8 +39,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
-                    nameof(readBuffer)
-                );
+                    nameof(readBuffer));
             }
 
             byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
@@ -148,8 +60,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
-                    nameof(readBuffer)
-                );
+                    nameof(readBuffer));
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
@@ -188,8 +99,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
-                    nameof(writeBuffer)
-                );
+                    nameof(writeBuffer));
             }
 
             byte[] transmissionBuffer = BufferPool.Rent(datagramSize);
@@ -210,8 +120,7 @@ namespace NetSharp.Raw.Datagram
             {
                 throw new ArgumentException(
                     string.Format(Resources.Culture, Resources.RawDatagramNetworkReaderRentedBufferSizeError, totalBytes, datagramSize),
-                    nameof(writeBuffer)
-                );
+                    nameof(writeBuffer));
             }
 
             TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
@@ -241,9 +150,102 @@ namespace NetSharp.Raw.Datagram
             return new ValueTask<int>(result);
         }
 
+        /// <inheritdoc />
+        protected override bool CanReuseStateObject(ref SocketAsyncEventArgs instance)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        protected override SocketAsyncEventArgs CreateStateObject()
+        {
+            SocketAsyncEventArgs instance = new SocketAsyncEventArgs();
+            instance.Completed += HandleIoCompleted;
+
+            return instance;
+        }
+
+        /// <inheritdoc />
+        protected override void DestroyStateObject(SocketAsyncEventArgs instance)
+        {
+            instance.Completed -= HandleIoCompleted;
+            instance.Dispose();
+        }
+
+        /// <inheritdoc />
+        protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
+        {
+        }
+
+        private void CompleteReceiveFrom(SocketAsyncEventArgs args)
+        {
+            PacketReadToken token = (PacketReadToken)args.UserToken;
+
+            byte[] receiveBuffer = args.Buffer;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    receiveBuffer.CopyTo(token.UserBuffer);
+                    token.CompletionSource.SetResult(args.BytesTransferred);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    token.CompletionSource.SetException(new SocketException((int)args.SocketError));
+                    break;
+            }
+
+            BufferPool.Return(receiveBuffer, true);
+            ArgsPool.Return(args);
+        }
+
+        private void CompleteSendTo(SocketAsyncEventArgs args)
+        {
+            PacketWriteToken token = (PacketWriteToken)args.UserToken;
+
+            byte[] sendBuffer = args.Buffer;
+
+            switch (args.SocketError)
+            {
+                case SocketError.Success:
+                    token.CompletionSource.SetResult(args.BytesTransferred);
+                    break;
+
+                case SocketError.OperationAborted:
+                    token.CompletionSource.SetCanceled();
+                    break;
+
+                default:
+                    token.CompletionSource.SetException(new SocketException((int)args.SocketError));
+                    break;
+            }
+
+            BufferPool.Return(sendBuffer, true);
+            ArgsPool.Return(args);
+        }
+
+        private void HandleIoCompleted(object sender, SocketAsyncEventArgs args)
+        {
+            switch (args.LastOperation)
+            {
+                case SocketAsyncOperation.SendTo:
+                    CompleteSendTo(args);
+                    break;
+
+                case SocketAsyncOperation.ReceiveFrom:
+                    CompleteReceiveFrom(args);
+                    break;
+            }
+        }
+
         private readonly struct PacketReadToken
         {
             public readonly TaskCompletionSource<int> CompletionSource;
+
             public readonly Memory<byte> UserBuffer;
 
             public PacketReadToken(TaskCompletionSource<int> completionSource, in Memory<byte> userBuffer)

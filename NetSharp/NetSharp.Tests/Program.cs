@@ -1,10 +1,7 @@
 ﻿using System.Net;
-using System.Resources;
 using System.Text;
 
 using Xunit;
-
-[assembly: NeutralResourcesLanguage("en")]
 
 namespace NetSharp.Tests
 {

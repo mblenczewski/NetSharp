@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "documentationRules": {
+      "companyName": "",
+      "copyrightText": "",
+      "documentationCulture": "en-GB",
+      "documentExposedElements": true,
+      "documentInterfaces": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentPrivateFields": false,
+      "excludeFromPunctuationCheck": [
+        "seealso"
+      ],
+      "fileNamingConvention": "stylecop",
+      "headerDecoration": "",
+      "variables": {},
+      "xmlHeader": true
+    },
+    "indentation": {
+      "indentationSize": 4,
+      "tabSize": 4,
+      "useTabs": false
+    },
+    "layoutRules": {
+      "allowConsecutiveUsings": true,
+      "newlineAtEndOfFile": "require"
+    },
+    "maintainabilityRules": {
+      "topLevelTypes": [
+        "class"
+      ]
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": true,
+      "allowedHungarianPrefixes": [],
+      "allowedNamespaceComponents": [],
+      "includeInferredTupleElementNames": false,
+      "tupleElementNameCasing": "PascalCase"
+    },
+    "orderingRules": {
+      "blankLinesBetweenUsingGroups": "require",
+      "elementOrder": [
+        "kind",
+        "accessibility",
+        "constant",
+        "static",
+        "readonly"
+      ],
+      "systemUsingDirectivesFirst": true,
+      "usingDirectivesPlacement": "outsideNamespace"
+    },
+    "readabilityRules": {
+      "allowBuiltInTypeAliases": false
+    },
+    "spacingRules": {
+
+    }
+  }
+}

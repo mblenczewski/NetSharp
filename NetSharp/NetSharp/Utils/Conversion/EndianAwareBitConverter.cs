@@ -8,20 +8,6 @@ namespace NetSharp.Utils.Conversion
     /// </summary>
     internal static class EndianAwareBitConverter
     {
-        /// <summary>
-        /// Reverses the given bytes if the endian-nes doesn't match.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Span<byte> ReverseAsNeeded(Span<byte> bytes, bool toLittleEndian)
-        {
-            if (toLittleEndian != BitConverter.IsLittleEndian)
-            {
-                bytes.Reverse();
-            }
-
-            return bytes;
-        }
-
         /// <inheritdoc cref="BitConverter.GetBytes(bool)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Span<byte> GetBytes(bool value, bool littleEndian = false)
@@ -160,6 +146,20 @@ namespace NetSharp.Utils.Conversion
         internal static ulong ToUInt64(Span<byte> bytes, bool littleEndian = false)
         {
             return BitConverter.ToUInt64(ReverseAsNeeded(bytes, littleEndian));
+        }
+
+        /// <summary>
+        /// Reverses the given bytes if the endian-nes doesn't match.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Span<byte> ReverseAsNeeded(Span<byte> bytes, bool toLittleEndian)
+        {
+            if (toLittleEndian != BitConverter.IsLittleEndian)
+            {
+                bytes.Reverse();
+            }
+
+            return bytes;
         }
     }
 }

@@ -13,13 +13,17 @@ namespace NetSharp.Utils
     public sealed class SlimObjectPool<T> : IDisposable
     {
         private readonly CanReuseObjectPredicate canObjectBeRebufferedPredicate;
+
         private readonly CreateObjectDelegate createObjectDelegate;
+
         private readonly DestroyObjectDelegate destroyObjectDelegate;
+
         private readonly IProducerConsumerCollection<T> objectBuffer;
+
         private readonly ResetObjectDelegate resetObjectDelegate;
 
         /// <summary>
-        /// Constructs a new instance of the <see cref="SlimObjectPool{T}" /> class.
+        /// Initialises a new instance of the <see cref="SlimObjectPool{T}"/> class.
         /// </summary>
         /// <param name="createDelegate">
         /// The delegate method to use to create new pooled object instances.
@@ -33,12 +37,11 @@ namespace NetSharp.Utils
         /// <param name="rebufferPredicate">
         /// The delegate method to use to decide whether an instance can be reused.
         /// </param>
-        /// <param name="baseCollection">
-        /// The underlying pooled object buffer to use.
-        /// </param>
-        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
-            in DestroyObjectDelegate destroyDelegate, in CanReuseObjectPredicate rebufferPredicate,
-            in IProducerConsumerCollection<T> baseCollection)
+        public SlimObjectPool(
+            CreateObjectDelegate createDelegate,
+            ResetObjectDelegate resetDelegate,
+            DestroyObjectDelegate destroyDelegate,
+            CanReuseObjectPredicate rebufferPredicate)
         {
             createObjectDelegate = createDelegate;
 
@@ -48,28 +51,7 @@ namespace NetSharp.Utils
 
             canObjectBeRebufferedPredicate = rebufferPredicate;
 
-            objectBuffer = baseCollection;
-        }
-
-        /// <summary>
-        /// Constructs a new instance of the <see cref="SlimObjectPool{T}" /> class.
-        /// </summary>
-        /// <param name="createDelegate">
-        /// The delegate method to use to create new pooled object instances.
-        /// </param>
-        /// <param name="resetDelegate">
-        /// The delegate method to use to reset used pooled object instances.
-        /// </param>
-        /// <param name="destroyDelegate">
-        /// The delegate method to use to destroy pooled object instances that cannot be reused.
-        /// </param>
-        /// <param name="rebufferPredicate">
-        /// The delegate method to use to decide whether an instance can be reused.
-        /// </param>
-        public SlimObjectPool(in CreateObjectDelegate createDelegate, in ResetObjectDelegate resetDelegate,
-            in DestroyObjectDelegate destroyDelegate, in CanReuseObjectPredicate rebufferPredicate)
-            : this(in createDelegate, in resetDelegate, in destroyDelegate, in rebufferPredicate, new ConcurrentBag<T>())
-        {
+            objectBuffer = new ConcurrentBag<T>();
         }
 
         /// <summary>
@@ -146,12 +128,12 @@ namespace NetSharp.Utils
 
                 objectBuffer.TryAdd(instance);
 
-                //bool couldRebuffer = false;
+                // bool couldRebuffer = false;
 
-                //while (!couldRebuffer)
-                //{
+                // while (!couldRebuffer)
+                // {
                 //    couldRebuffer = objectBuffer.TryAdd(instance);
-                //}
+                // }
             }
             else
             {

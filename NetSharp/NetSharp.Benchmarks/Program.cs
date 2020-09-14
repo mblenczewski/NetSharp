@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Resources;
 using System.Text;
-
-[assembly: NeutralResourcesLanguage("en")]
 
 namespace NetSharp.Benchmarks
 {
@@ -28,7 +25,7 @@ namespace NetSharp.Benchmarks
                 Type[] interfaces = type.GetInterfaces();
                 if (interfaces.Contains(typeof(INetSharpBenchmark)))
                 {
-                    Benchmarks.Add((INetSharpBenchmark) Activator.CreateInstance(type));
+                    Benchmarks.Add((INetSharpBenchmark)Activator.CreateInstance(type));
                 }
             }
         }
@@ -116,7 +113,8 @@ namespace NetSharp.Benchmarks
             private static readonly IPAddress DefaultAddress = IPAddress.Loopback;
 
 #if DEBUG
-            public const int PacketSize = 4096, PacketCount = 10, ClientCount = 1;
+            // Packet counts of over 10_000 can take a long time, depending on the packet size and number of clients
+            public const int PacketSize = 4096, PacketCount = 10_000, ClientCount = 1;
 #else // RELEASE
             public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 10;
 #endif
