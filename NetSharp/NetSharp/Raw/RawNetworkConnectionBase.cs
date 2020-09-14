@@ -72,7 +72,9 @@ namespace NetSharp.Raw
             // TODO implement pooling in better way
             for (uint i = 0; i < preallocatedStateObjects; i++)
             {
+#pragma warning disable CA2214 // Nie wywołuj w konstruktorach metod, które można przesłaniać
                 argsPool.Return(CreateStateObject());
+#pragma warning restore CA2214 // Nie wywołuj w konstruktorach metod, które można przesłaniać
             }
         }
 
@@ -110,7 +112,12 @@ namespace NetSharp.Raw
         {
             if (args != default)
             {
-                bufferPool.Return(args.Buffer, true);
+                if (args.Buffer != default)
+                {
+                    bufferPool.Return(args.Buffer, true);
+                    args.SetBuffer(null, 0, 0);
+                }
+
                 argsPool.Return(args);
             }
         }

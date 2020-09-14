@@ -116,7 +116,7 @@ namespace NetSharp.Benchmarks
             private static readonly IPAddress DefaultAddress = IPAddress.Loopback;
 
 #if DEBUG
-            public const int PacketSize = 4096, PacketCount = 100_000, ClientCount = 8;
+            public const int PacketSize = 4096, PacketCount = 10, ClientCount = 1;
 #else // RELEASE
             public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 10;
 #endif

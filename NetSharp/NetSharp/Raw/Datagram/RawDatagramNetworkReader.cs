@@ -95,6 +95,7 @@ namespace NetSharp.Raw.Datagram
         private void ConfigureAsyncReceiveFrom(SocketAsyncEventArgs args)
         {
             byte[] receiveBuffer = BufferPool.Rent(datagramSize);
+
             args.SetBuffer(receiveBuffer, 0, datagramSize);
         }
 
@@ -116,11 +117,6 @@ namespace NetSharp.Raw.Datagram
 
         private void StartDefaultReceiveFrom()
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                return;
-            }
-
             SocketAsyncEventArgs args = ArgsPool.Rent();
 
             ConfigureAsyncReceiveFrom(args);
@@ -130,12 +126,6 @@ namespace NetSharp.Raw.Datagram
 
         private void StartReceiveFrom(SocketAsyncEventArgs args)
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                ArgsPool.Return(args);
-                return;
-            }
-
             if (Connection.ReceiveFromAsync(args))
             {
                 return;
@@ -147,12 +137,6 @@ namespace NetSharp.Raw.Datagram
 
         private void StartSendTo(SocketAsyncEventArgs args)
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CleanupTransmissionBufferAndState(args);
-                return;
-            }
-
             if (Connection.SendToAsync(args))
             {
                 return;

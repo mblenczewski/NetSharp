@@ -144,12 +144,14 @@ namespace NetSharp.Utils
             {
                 resetObjectDelegate(ref instance);
 
-                bool couldRebuffer = false;
+                objectBuffer.TryAdd(instance);
 
-                while (!couldRebuffer)
-                {
-                    couldRebuffer = objectBuffer.TryAdd(instance);
-                }
+                //bool couldRebuffer = false;
+
+                //while (!couldRebuffer)
+                //{
+                //    couldRebuffer = objectBuffer.TryAdd(instance);
+                //}
             }
             else
             {

@@ -54,8 +54,6 @@ namespace NetSharp.Raw.Stream
 
         private void CloseClientConnection(SocketAsyncEventArgs args)
         {
-            BufferPool.Return(args.Buffer, true);
-
             Socket serversideClient = args.AcceptSocket;
 
             serversideClient.Disconnect(false);
@@ -63,7 +61,7 @@ namespace NetSharp.Raw.Stream
             serversideClient.Close();
             serversideClient.Dispose();
 
-            ArgsPool.Return(args);
+            CleanupTransmissionBufferAndState(args);
         }
 
         private void CompleteAccept(SocketAsyncEventArgs args)
@@ -84,7 +82,7 @@ namespace NetSharp.Raw.Stream
                     break;
 
                 default:
-                    ArgsPool.Return(args);
+                    CleanupTransmissionBufferAndState(args);
                     break;
             }
         }
@@ -149,7 +147,7 @@ namespace NetSharp.Raw.Stream
 
                     case false:
                         // we manually returns the response buffer, as it wasnt set to be the args.Buffer, and since we dont have a response packet we
-                        // can reuse it as a packet header buffer in the below ConfigureReceiveHeader() call
+                        // can reuse it as a packet header buffer in the below ConfigureAsyncReceiveHeader() call
                         BufferPool.Return(responseBuffer, true);
 
                         ConfigureAsyncReceiveHeader(args);
@@ -285,11 +283,6 @@ namespace NetSharp.Raw.Stream
 
         private void StartAccept(SocketAsyncEventArgs args)
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                return;
-            }
-
             if (Connection.AcceptAsync(args))
             {
                 return;
@@ -301,23 +294,13 @@ namespace NetSharp.Raw.Stream
 
         private void StartDefaultAccept()
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                return;
-            }
-
             SocketAsyncEventArgs args = ArgsPool.Rent();
+
             StartAccept(args);
         }
 
         private void StartOrContinueReceive(SocketAsyncEventArgs args)
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
             Socket serversideClient = args.AcceptSocket;
 
             if (serversideClient.ReceiveAsync(args))
@@ -330,12 +313,6 @@ namespace NetSharp.Raw.Stream
 
         private void StartOrContinueSend(SocketAsyncEventArgs args)
         {
-            if (ShutdownToken.IsCancellationRequested)
-            {
-                CloseClientConnection(args);
-                return;
-            }
-
             Socket serversideClient = args.AcceptSocket;
 
             if (serversideClient.SendAsync(args))
@@ -371,8 +348,6 @@ namespace NetSharp.Raw.Stream
         /// <inheritdoc />
         protected override void ResetStateObject(ref SocketAsyncEventArgs instance)
         {
-            instance.SetBuffer(null, 0, 0);
-
             instance.AcceptSocket = null;
         }
 
