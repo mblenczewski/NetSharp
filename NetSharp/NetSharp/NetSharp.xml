@@ -493,65 +493,11 @@
             Wraps the <see cref="T:System.BitConverter" /> class to provide conversion that is endian-aware.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Boolean,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Boolean)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Char,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Char)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Double,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Double)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Single,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Single)" />
-        </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)" />
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int64,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int64)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int16,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int16)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt32,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt32)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt64,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt64)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.UInt16,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.UInt16)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToBoolean(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToBoolean(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToChar(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToChar(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToDouble(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToDouble(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt16(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt16(System.ReadOnlySpan{System.Byte})" />
-        </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
             <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt64(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt64(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToSingle(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToSingle(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt16(System.Byte[],System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt16(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt32(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt32(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToUInt64(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToUInt64(System.ReadOnlySpan{System.Byte})" />
         </member>
         <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
             <summary>

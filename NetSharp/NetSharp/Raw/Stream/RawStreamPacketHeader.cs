@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-
-using NetSharp.Utils.Conversion;
+using System.Runtime.InteropServices;
 
 namespace NetSharp.Raw.Stream
 {
@@ -43,8 +42,7 @@ namespace NetSharp.Raw.Stream
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static RawStreamPacketHeader Deserialise(in Memory<byte> buffer)
         {
-            Span<byte> serialisedDataSize = buffer.Slice(0, sizeof(int)).Span;
-            int dataSize = EndianAwareBitConverter.ToInt32(serialisedDataSize);
+            int dataSize = MemoryMarshal.Read<int>(buffer.Span.Slice(0, sizeof(int)));
 
             return new RawStreamPacketHeader(dataSize);
         }
@@ -58,8 +56,9 @@ namespace NetSharp.Raw.Stream
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Serialise(in Memory<byte> buffer)
         {
-            Span<byte> serialisedDataSize = EndianAwareBitConverter.GetBytes(DataSize);
-            serialisedDataSize.CopyTo(buffer.Slice(0, sizeof(int)).Span);
+            int dataSize = DataSize;
+
+            MemoryMarshal.Write(buffer.Span.Slice(0, sizeof(int)), ref dataSize);
         }
     }
 }

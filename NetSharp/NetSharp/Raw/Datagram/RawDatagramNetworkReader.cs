@@ -80,6 +80,8 @@ namespace NetSharp.Raw.Datagram
             SocketAsyncEventArgs instance = new SocketAsyncEventArgs { RemoteEndPoint = DefaultEndPoint };
             instance.Completed += HandleIoCompleted;
 
+            instance.RemoteEndPoint = DefaultEndPoint;
+
             return instance;
         }
 
@@ -112,6 +114,8 @@ namespace NetSharp.Raw.Datagram
             switch (args.SocketError)
             {
                 case SocketError.Success:
+                    byte[] testBuffer = Array.Empty<byte>();
+
                     byte[] responseBuffer = BufferPool.Rent(datagramSize);
 
                     bool responseExists = requestHandler(args.RemoteEndPoint, receiveBuffer, args.BytesTransferred, responseBuffer);
@@ -136,7 +140,12 @@ namespace NetSharp.Raw.Datagram
 
         private void CompleteSendTo(SocketAsyncEventArgs args)
         {
-            CleanupTransmissionBufferAndState(args);
+            switch (args.SocketError)
+            {
+                default:
+                    CleanupTransmissionBufferAndState(args);
+                    break;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

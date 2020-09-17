@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -76,33 +77,33 @@ namespace NetSharp.Raw
             argsPool = new SlimObjectPool<SocketAsyncEventArgs>(CreateStateObject, ResetStateObject, DestroyStateObject, CanReuseStateObject);
 
             // TODO implement pooling in better way
+            /*
             for (uint i = 0; i < preallocatedStateObjects; i++)
             {
-#pragma warning disable CA2214 // Nie wywołuj w konstruktorach metod, które można przesłaniać
                 argsPool.Return(CreateStateObject());
-#pragma warning restore CA2214 // Nie wywołuj w konstruktorach metod, które można przesłaniać
             }
+            */
         }
 
         /// <summary>
         /// The object pool to use to pool <see cref="SocketAsyncEventArgs" /> instances.
         /// </summary>
-        protected ref readonly SlimObjectPool<SocketAsyncEventArgs> ArgsPool => ref argsPool;
+        protected SlimObjectPool<SocketAsyncEventArgs> ArgsPool => argsPool;
 
         /// <summary>
         /// The object pool to use to pool byte buffer instance.
         /// </summary>
-        protected ref readonly ArrayPool<byte> BufferPool => ref bufferPool;
+        protected ArrayPool<byte> BufferPool => bufferPool;
 
         /// <summary>
         /// The underlying connection socket.
         /// </summary>
-        protected ref readonly Socket Connection => ref connection;
+        protected Socket Connection => connection;
 
         /// <summary>
         /// The default endpoint to use to represent remote clients.
         /// </summary>
-        protected ref readonly EndPoint DefaultEndPoint => ref defaultEndPoint;
+        protected EndPoint DefaultEndPoint => defaultEndPoint;
 
         /// <inheritdoc />
         public void Dispose()
@@ -124,16 +125,15 @@ namespace NetSharp.Raw
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void CleanupTransmissionBufferAndState(SocketAsyncEventArgs args)
         {
-            if (args != default)
-            {
-                if (args.Buffer != default)
-                {
-                    bufferPool.Return(args.Buffer, true);
-                    args.SetBuffer(null, 0, 0);
-                }
+            Debug.Assert(args != default, "Attempted to cleanup \'null\' SocketAsyncEventArgs instance!");
 
-                argsPool.Return(args);
+            if (args.Buffer != default)
+            {
+                bufferPool.Return(args.Buffer, true);
+                args.SetBuffer(Array.Empty<byte>(), 0, 0);
             }
+
+            argsPool.Return(args);
         }
 
         /// <inheritdoc cref="SlimObjectPool{T}.CreateObjectDelegate" />
@@ -151,6 +151,7 @@ namespace NetSharp.Raw
         protected virtual void Dispose(bool disposing)
         {
             ConnectionDisposed = true;
+            Debug.WriteLine("Disposing of NetworkConnectionBase!");
 
             if (disposing)
             {

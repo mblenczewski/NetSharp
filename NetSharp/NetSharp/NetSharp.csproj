@@ -75,4 +75,8 @@
 			<LastGenOutput>Resources.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
 	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Deprecated\" />
+			</ItemGroup>
 </Project>

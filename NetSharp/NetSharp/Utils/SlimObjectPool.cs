@@ -110,12 +110,7 @@ namespace NetSharp.Utils
         {
             bool successfullyRentedInstance = objectBuffer.TryTake(out T instance);
 
-            if (successfullyRentedInstance)
-            {
-                return instance;
-            }
-
-            return createObjectDelegate();
+            return successfullyRentedInstance ? instance : createObjectDelegate();
         }
 
         /// <summary>

@@ -293,7 +293,7 @@ namespace NetSharp.Raw.Stream
             byte[] pendingPacketDataBuffer = BufferPool.Rent(receivedPacketHeader.DataSize);
 
             args.SetBuffer(pendingPacketDataBuffer, 0, receivedPacketHeader.DataSize);
-            args.UserToken = new PacketReadToken(receivedPacketHeader.DataSize, receivedPacketHeader);
+            args.UserToken = new PacketReadToken(receivedPacketHeader.DataSize);
         }
 
         private void ConfigureAsyncReceiveHeader(SocketAsyncEventArgs args)
@@ -303,7 +303,7 @@ namespace NetSharp.Raw.Stream
             byte[] pendingPacketHeaderBuffer = BufferPool.Rent(RawStreamPacketHeader.TotalSize);
 
             args.SetBuffer(pendingPacketHeaderBuffer, 0, RawStreamPacketHeader.TotalSize);
-            args.UserToken = new PacketReadToken(RawStreamPacketHeader.TotalSize, null);
+            args.UserToken = new PacketReadToken(RawStreamPacketHeader.TotalSize);
         }
 
         private void ConfigureAsyncSendPacket(
@@ -389,13 +389,9 @@ namespace NetSharp.Raw.Stream
         {
             public readonly int BytesToTransfer;
 
-            public readonly RawStreamPacketHeader? Header;
-
-            public PacketReadToken(int bytesToTransfer, in RawStreamPacketHeader? header)
+            public PacketReadToken(int bytesToTransfer)
             {
                 BytesToTransfer = bytesToTransfer;
-
-                Header = header;
             }
         }
 
