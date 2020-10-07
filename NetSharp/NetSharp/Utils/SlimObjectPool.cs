@@ -55,8 +55,7 @@ namespace NetSharp.Utils
         }
 
         /// <summary>
-        /// Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is
-        /// returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
+        /// Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
         /// </summary>
         /// <param name="instance">
         /// The instance to check.

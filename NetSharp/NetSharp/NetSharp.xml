@@ -98,37 +98,6 @@
             The number of bytes of data sent to the remote endpoint.
             </returns>
         </member>
-        <member name="T:NetSharp.Properties.Resources">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Properties.Resources.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Properties.Resources.RawDatagramNetworkReaderRentedBufferSizeError">
-            <summary>
-              Looks up a localized string similar to Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Properties.Resources.RawDatagramSizeError">
-            <summary>
-              Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Properties.Resources.RawStreamMessageSizeUnderflow">
-            <summary>
-              Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Properties.Resources.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
         <member name="T:NetSharp.Raw.Datagram.RawDatagramRequestHandler">
             <summary>
             Represents a method that handles a request received by a <see cref="T:NetSharp.Raw.Datagram.RawDatagramNetworkReader" />.
@@ -488,20 +457,35 @@
             The buffer into which to serialise the current instance. Must be at least of size <see cref="F:NetSharp.Raw.Stream.RawStreamPacketHeader.TotalSize" />.
             </param>
         </member>
-        <member name="T:NetSharp.Utils.Conversion.EndianAwareBitConverter">
+        <member name="T:NetSharp.Properties.Resources">
             <summary>
-            Wraps the <see cref="T:System.BitConverter" /> class to provide conversion that is endian-aware.
+              A strongly-typed resource class, for looking up localized strings, etc.
             </summary>
         </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.GetBytes(System.Int32,System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.GetBytes(System.Int32)" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ToInt32(System.Span{System.Byte},System.Boolean)">
-            <inheritdoc cref="M:System.BitConverter.ToInt32(System.ReadOnlySpan{System.Byte})" />
-        </member>
-        <member name="M:NetSharp.Utils.Conversion.EndianAwareBitConverter.ReverseAsNeeded(System.Span{System.Byte},System.Boolean)">
+        <member name="P:NetSharp.Properties.Resources.Culture">
             <summary>
-            Reverses the given bytes if the endian-nes doesn't match.
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.RawDatagramNetworkReaderRentedBufferSizeError">
+            <summary>
+              Looks up a localized string similar to Cannot rent a temporary buffer of size: {0} bytes. The maximum temporary buffer size is {1} bytes.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.RawDatagramSizeError">
+            <summary>
+              Looks up a localized string similar to The datagram size must be between 0 and 65507 bytes.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.RawStreamMessageSizeUnderflow">
+            <summary>
+              Looks up a localized string similar to The maximum pooled message size must be greater than 0 bytes.
+            </summary>
+        </member>
+        <member name="P:NetSharp.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
             </summary>
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1">
@@ -531,8 +515,7 @@
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1.CanReuseObjectPredicate">
             <summary>
-            Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is
-            returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
+            Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
             </summary>
             <param name="instance">
             The instance to check.
