@@ -1,5 +1,5 @@
-﻿using System.Resources;
+﻿using System;
+using System.Resources;
 
-
-
+[assembly: CLSCompliant(false)]
 [assembly: NeutralResourcesLanguage("en")]

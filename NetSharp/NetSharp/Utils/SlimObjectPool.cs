@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
 namespace NetSharp.Utils
 {
@@ -10,60 +9,36 @@ namespace NetSharp.Utils
     /// <typeparam name="T">
     /// The type of item stored in the pool.
     /// </typeparam>
-    public sealed class SlimObjectPool<T> : IDisposable
+    internal sealed class SlimObjectPool<T> : IDisposable
     {
-        private readonly CanReuseObjectPredicate canObjectBeRebufferedPredicate;
+        private readonly CreateObject createObject;
 
-        private readonly CreateObjectDelegate createObjectDelegate;
-
-        private readonly DestroyObjectDelegate destroyObjectDelegate;
+        private readonly DestroyObject destroyObject;
 
         private readonly IProducerConsumerCollection<T> objectBuffer;
 
-        private readonly ResetObjectDelegate resetObjectDelegate;
+        private readonly ResetObject resetObject;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SlimObjectPool{T}"/> class.
+        /// Initialises a new instance of the <see cref="SlimObjectPool{T}" /> class.
         /// </summary>
-        /// <param name="createDelegate">
+        /// <param name="create">
         /// The delegate method to use to create new pooled object instances.
         /// </param>
-        /// <param name="resetDelegate">
+        /// <param name="reset">
         /// The delegate method to use to reset used pooled object instances.
         /// </param>
-        /// <param name="destroyDelegate">
+        /// <param name="destroy">
         /// The delegate method to use to destroy pooled object instances that cannot be reused.
         /// </param>
-        /// <param name="rebufferPredicate">
-        /// The delegate method to use to decide whether an instance can be reused.
-        /// </param>
-        public SlimObjectPool(
-            CreateObjectDelegate createDelegate,
-            ResetObjectDelegate resetDelegate,
-            DestroyObjectDelegate destroyDelegate,
-            CanReuseObjectPredicate rebufferPredicate)
+        internal SlimObjectPool(CreateObject create, ResetObject reset, DestroyObject destroy)
         {
-            createObjectDelegate = createDelegate;
-
-            resetObjectDelegate = resetDelegate;
-
-            destroyObjectDelegate = destroyDelegate;
-
-            canObjectBeRebufferedPredicate = rebufferPredicate;
+            createObject = create;
+            resetObject = reset;
+            destroyObject = destroy;
 
             objectBuffer = new ConcurrentBag<T>();
         }
-
-        /// <summary>
-        /// Delegate method to check whether the given <paramref name="instance" /> can and should be placed back into the pool. If <c>true</c> is returned, the <paramref name="instance" /> is reset and placed back into the pool. Otherwise, the instance is destroyed.
-        /// </summary>
-        /// <param name="instance">
-        /// The instance to check.
-        /// </param>
-        /// <returns>
-        /// Whether the given instance should be placed back into the pool.
-        /// </returns>
-        public delegate bool CanReuseObjectPredicate(ref T instance);
 
         /// <summary>
         /// Delegate method for creating fresh <typeparamref name="T" /> instances to be stored in the pool.
@@ -71,7 +46,7 @@ namespace NetSharp.Utils
         /// <returns>
         /// A configured <typeparamref name="T" /> instance.
         /// </returns>
-        public delegate T CreateObjectDelegate();
+        internal delegate T CreateObject();
 
         /// <summary>
         /// Delegate method to destroy a used <paramref name="instance" /> which cannot be reused.
@@ -79,7 +54,7 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The instance to destroy.
         /// </param>
-        public delegate void DestroyObjectDelegate(T instance);
+        internal delegate void DestroyObject(T instance);
 
         /// <summary>
         /// Delegate method to reset a used <paramref name="instance" /> before placing it back into the pool.
@@ -87,14 +62,14 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The instance which should be reset.
         /// </param>
-        public delegate void ResetObjectDelegate(ref T instance);
+        internal delegate void ResetObject(ref T instance);
 
         /// <inheritdoc />
         public void Dispose()
         {
             foreach (T pooledObject in objectBuffer)
             {
-                destroyObjectDelegate(pooledObject);
+                destroyObject(pooledObject);
             }
         }
 
@@ -104,12 +79,11 @@ namespace NetSharp.Utils
         /// <returns>
         /// The <typeparamref name="T" /> instance which was fetched from the pool.
         /// </returns>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public T Rent()
+        internal T Rent()
         {
             bool successfullyRentedInstance = objectBuffer.TryTake(out T instance);
 
-            return successfullyRentedInstance ? instance : createObjectDelegate();
+            return successfullyRentedInstance ? instance : createObject();
         }
 
         /// <summary>
@@ -118,23 +92,15 @@ namespace NetSharp.Utils
         /// <param name="instance">
         /// The previously leased instance which should be returned.
         /// </param>
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public void Return(T instance)
+        internal void Return(T instance)
         {
-            if (canObjectBeRebufferedPredicate(ref instance))
-            {
-                resetObjectDelegate(ref instance);
+            resetObject(ref instance);
 
-                bool successfullyRebufferedInstance = objectBuffer.TryAdd(instance);
+            bool successfullyRebufferedInstance = objectBuffer.TryAdd(instance);
 
-                if (!successfullyRebufferedInstance)
-                {
-                    destroyObjectDelegate(instance);
-                }
-            }
-            else
+            if (!successfullyRebufferedInstance)
             {
-                destroyObjectDelegate(instance);
+                destroyObject(instance);
             }
         }
     }

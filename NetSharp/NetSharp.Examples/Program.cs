@@ -7,54 +7,50 @@ using System.Text;
 
 namespace NetSharp.Examples
 {
+    public static class Constants
+    {
+        public const int PacketSize = 8192, PacketCount = 1_000_000, ClientCount = 10;
+
+        public static readonly EndPoint ClientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        public static readonly EndPoint DefaultEndPoint = new IPEndPoint(IPAddress.Loopback, 0);
+        public static readonly Encoding ServerEncoding = Encoding.UTF8;
+        public static readonly EndPoint ServerEndPoint = new IPEndPoint(IPAddress.Loopback, 12345);
+    }
+
     internal class Program
     {
-        private static readonly List<INetSharpExample> Examples;
-
-        static Program()
-        {
-            Examples = new List<INetSharpExample>();
-
-            foreach (Type type in Assembly.GetCallingAssembly().GetTypes())
-            {
-                if (type.IsAbstract)
-                {
-                    continue;
-                }
-
-                Type[] interfaces = type.GetInterfaces();
-                if (interfaces.Contains(typeof(INetSharpExample)))
-                {
-                    Examples.Add((INetSharpExample)Activator.CreateInstance(type));
-                }
-            }
-        }
+        private static readonly List<INetSharpExample> Examples = new List<INetSharpExample>();
 
         private static void Main()
         {
             while (true)
             {
+                ResetBenchmarks();
+
                 GC.Collect();
 
-                PickExample();
+                PickBenchmark();
             }
         }
 
-        private static void PickExample()
+        private static void PickBenchmark()
         {
-            Console.WriteLine("Available Examples:");
-            for (int i = 0; i < Examples.Count; i++)
-            {
-                Console.WriteLine($"\t{i:D2} - {Examples[i].Name}");
-            }
+            const string allBenchmarkIdentifier = "XX";
 
             while (true)
             {
+                Console.WriteLine("Available Examples:");
+                for (int i = 0; i < Examples.Count; i++)
+                {
+                    Console.WriteLine($"\t{i:D2} - {Examples[i].Name}");
+                }
+
                 Console.Write("> ");
 
                 try
                 {
                     string rawInput = Console.ReadLine()?.ToLowerInvariant() ?? "x";
+
                     int choice = int.Parse(rawInput);
 
                     if (choice < 0 || choice >= Examples.Count)
@@ -84,14 +80,23 @@ namespace NetSharp.Examples
             Console.WriteLine();
         }
 
-        public static class Constants
+        private static void ResetBenchmarks()
         {
-            private const int DefaultExamplePort = 44232;
-            private static readonly IPAddress DefaultExampleAddress = IPAddress.Loopback;
+            Examples.Clear();
 
-            public static readonly EndPoint ClientEndPoint = new IPEndPoint(DefaultExampleAddress, 0);
-            public static readonly Encoding ServerEncoding = Encoding.UTF8;
-            public static readonly EndPoint ServerEndPoint = new IPEndPoint(DefaultExampleAddress, DefaultExamplePort);
+            foreach (Type type in Assembly.GetCallingAssembly().GetTypes())
+            {
+                if (type.IsAbstract)
+                {
+                    continue;
+                }
+
+                Type[] interfaces = type.GetInterfaces();
+                if (interfaces.Contains(typeof(INetSharpExample)))
+                {
+                    Examples.Add((INetSharpExample)Activator.CreateInstance(type));
+                }
+            }
         }
     }
 }
