@@ -37,8 +37,10 @@ namespace NetSharp.Raw.Stream
     /// </summary>
     public sealed class RawStreamConnection : RawConnectionBase, IRawStreamWriter
     {
+        private readonly SlimObjectPool<OperationStateToken> operationStatePool;
+        private readonly SlimObjectPool<ReaderStateToken> readerStatePool;
         private readonly ConcurrentDictionary<int, RawStreamPacketHandler> registeredHandlers;
-        private readonly SlimObjectPool<StateToken> stateTokenPool;
+        private readonly SlimObjectPool<WriterStateToken> writerStatePool;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="RawStreamConnection" /> class.
@@ -54,13 +56,65 @@ namespace NetSharp.Raw.Stream
         {
             registeredHandlers = new ConcurrentDictionary<int, RawStreamPacketHandler>();
 
-            static StateToken CreateStateToken() => new StateToken();
+            static OperationStateToken CreateOperationToken()
+            {
+                return new OperationStateToken();
+            }
 
-            static void ResetStateToken(ref StateToken instance) => instance.Reset();
+            static void ResetOperationToken(ref OperationStateToken instance)
+            {
+                instance.Reset();
+            }
 
-            static void DestroyStateToken(StateToken instance) => instance.Dispose();
+            static void DestroyOperationToken(OperationStateToken instance)
+            {
+                instance.Dispose();
+            }
 
-            stateTokenPool = new SlimObjectPool<StateToken>(CreateStateToken, ResetStateToken, DestroyStateToken);
+            operationStatePool = new SlimObjectPool<OperationStateToken>(
+                CreateOperationToken,
+                ResetOperationToken,
+                DestroyOperationToken);
+
+            static ReaderStateToken CreateReaderToken()
+            {
+                return new ReaderStateToken();
+            }
+
+            static void ResetReaderToken(ref ReaderStateToken instance)
+            {
+                instance.Reset();
+            }
+
+            static void DestroyReaderToken(ReaderStateToken instance)
+            {
+                instance.Dispose();
+            }
+
+            readerStatePool = new SlimObjectPool<ReaderStateToken>(
+                CreateReaderToken,
+                ResetReaderToken,
+                DestroyReaderToken);
+
+            static WriterStateToken CreateWriterToken()
+            {
+                return new WriterStateToken();
+            }
+
+            static void ResetWriterToken(ref WriterStateToken instance)
+            {
+                instance.Reset();
+            }
+
+            static void DestroyWriterToken(WriterStateToken instance)
+            {
+                instance.Dispose();
+            }
+
+            writerStatePool = new SlimObjectPool<WriterStateToken>(
+                CreateWriterToken,
+                ResetWriterToken,
+                DestroyWriterToken);
         }
 
         /// <summary>
@@ -77,10 +131,10 @@ namespace NetSharp.Raw.Stream
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             SocketAsyncEventArgs socketArgs = RentSocketArgs();
 
-            StateToken state = stateTokenPool.Rent();
-            state.OperationCompletionSource = tcs;
+            OperationStateToken operationState = operationStatePool.Rent();
+            operationState.OperationCompletionSource = tcs;
 
-            socketArgs.UserToken = state;
+            socketArgs.UserToken = operationState;
 
             socketArgs.RemoteEndPoint = remoteEndPoint;
 
@@ -123,10 +177,10 @@ namespace NetSharp.Raw.Stream
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             SocketAsyncEventArgs socketArgs = RentSocketArgs();
 
-            StateToken state = stateTokenPool.Rent();
-            state.OperationCompletionSource = tcs;
+            OperationStateToken operationState = operationStatePool.Rent();
+            operationState.OperationCompletionSource = tcs;
 
-            socketArgs.UserToken = state;
+            socketArgs.UserToken = operationState;
 
             socketArgs.DisconnectReuseSocket = leaveConnectionReusable;
 
@@ -155,9 +209,9 @@ namespace NetSharp.Raw.Stream
             RawPacketHeader header = new RawPacketHeader(type, buffer.Length);
             byte[] ownedBuffer = RentBuffer(RawPacket.TotalSize(in header));
 
-            StateToken state = stateTokenPool.Rent();
+            WriterStateToken writerState = writerStatePool.Rent();
 
-            ConfigureSendRequestAsync(socketArgs, ref ownedBuffer, in header, in buffer, state, tcs);
+            ConfigureSendRequestAsync(socketArgs, ref ownedBuffer, in header, in buffer, writerState, tcs);
 
             socketArgs.SocketFlags = flags;
 
@@ -200,12 +254,14 @@ namespace NetSharp.Raw.Stream
                 return;
             }
 
+            base.Dispose(disposing);
+
             if (disposing)
             {
-                stateTokenPool.Dispose();
+                operationStatePool.Dispose();
+                readerStatePool.Dispose();
+                writerStatePool.Dispose();
             }
-
-            base.Dispose(disposing);
         }
 
         /// <inheritdoc />
@@ -255,7 +311,7 @@ namespace NetSharp.Raw.Stream
             ref byte[] ownedBuffer,
             in RawPacketHeader pendingHeader,
             in ReadOnlyMemory<byte> pendingData,
-            StateToken state,
+            WriterStateToken writerState,
             TaskCompletionSource<int> tcs)
         {
             Memory<byte> ownedBufferMemory = new Memory<byte>(ownedBuffer);
@@ -264,10 +320,10 @@ namespace NetSharp.Raw.Stream
             int totalTransferredBytes = RawPacket.TotalSize(in pendingHeader);
             args.SetBuffer(ownedBuffer, 0, totalTransferredBytes);
 
-            state.BytesToTransfer = totalTransferredBytes;
-            state.RequestCompletionSource = tcs;
+            writerState.BytesToTransfer = totalTransferredBytes;
+            writerState.RequestCompletionSource = tcs;
 
-            args.UserToken = state;
+            args.UserToken = writerState;
         }
 
         /// <summary>
@@ -277,7 +333,20 @@ namespace NetSharp.Raw.Stream
         {
             if (cleanupUserToken)
             {
-                stateTokenPool.Return((StateToken)args.UserToken);
+                switch (args.UserToken)
+                {
+                    case OperationStateToken operationState:
+                        operationStatePool.Return(operationState);
+                        break;
+
+                    case ReaderStateToken readerState:
+                        readerStatePool.Return(readerState);
+                        break;
+
+                    case WriterStateToken writerState:
+                        writerStatePool.Return(writerState);
+                        break;
+                }
             }
 
             ReturnSocketArgs(args);
@@ -301,7 +370,7 @@ namespace NetSharp.Raw.Stream
         /// <summary>
         /// Prepares the given socket args for receiving a packet's data from the network.
         /// </summary>
-        private void ConfigureReceiveDataAsync(SocketAsyncEventArgs args, StateToken state, in RawPacketHeader header)
+        private void ConfigureReceiveDataAsync(SocketAsyncEventArgs args, ReaderStateToken readerState, in RawPacketHeader header)
         {
             ReturnBuffer(args.Buffer); // return and clear the previously parsed request header buffer
 
@@ -309,16 +378,16 @@ namespace NetSharp.Raw.Stream
 
             args.SetBuffer(pendingDataBuffer, 0, header.DataLength);
 
-            state.BytesToTransfer = header.DataLength;
-            state.RequestHeader = header;
+            readerState.BytesToTransfer = header.DataLength;
+            readerState.RequestHeader = header;
 
-            args.UserToken = state;
+            args.UserToken = readerState;
         }
 
         /// <summary>
         /// Prepares the given socket args for receiving a packet's header from the network.
         /// </summary>
-        private void ConfigureReceiveHeaderAsync(SocketAsyncEventArgs args, StateToken state)
+        private void ConfigureReceiveHeaderAsync(SocketAsyncEventArgs args, ReaderStateToken readerState)
         {
             ReturnBuffer(args.Buffer); // return and clear the previously sent response packet buffer
 
@@ -326,9 +395,9 @@ namespace NetSharp.Raw.Stream
 
             args.SetBuffer(pendingHeaderBuffer, 0, RawPacketHeader.Length);
 
-            state.BytesToTransfer = RawPacketHeader.Length;
+            readerState.BytesToTransfer = RawPacketHeader.Length;
 
-            args.UserToken = state;
+            args.UserToken = readerState;
         }
 
         /// <summary>
@@ -345,9 +414,10 @@ namespace NetSharp.Raw.Stream
                     // the ResponseDataBuffer).
                     args.SetBuffer(Array.Empty<byte>(), 0, 0);
 
-                    StateToken state = stateTokenPool.Rent();
-                    ConfigureReceiveHeaderAsync(args, state);
+                    ReaderStateToken readerState = readerStatePool.Rent();
 
+                    // TODO convert into iteration instead of recursion
+                    ConfigureReceiveHeaderAsync(args, readerState);
                     StartOrContinueReceiving(args);
                     break;
 
@@ -362,8 +432,8 @@ namespace NetSharp.Raw.Stream
         /// </summary>
         private void HandleConnected(SocketAsyncEventArgs args)
         {
-            StateToken state = (StateToken)args.UserToken;
-            TaskCompletionSource<bool>? tcs = state.OperationCompletionSource;
+            OperationStateToken readerState = (OperationStateToken)args.UserToken;
+            TaskCompletionSource<bool>? tcs = readerState.OperationCompletionSource;
 
             Debug.Assert(
                 tcs != default,
@@ -392,8 +462,8 @@ namespace NetSharp.Raw.Stream
         /// </summary>
         private void HandleDisconnected(SocketAsyncEventArgs args)
         {
-            StateToken state = (StateToken)args.UserToken;
-            TaskCompletionSource<bool>? tcs = state.OperationCompletionSource;
+            OperationStateToken readerState = (OperationStateToken)args.UserToken;
+            TaskCompletionSource<bool>? tcs = readerState.OperationCompletionSource;
 
             Debug.Assert(
                 tcs != default,
@@ -456,25 +526,26 @@ namespace NetSharp.Raw.Stream
         /// </summary>
         private void HandleReceived(SocketAsyncEventArgs args)
         {
-            StateToken state = (StateToken)args.UserToken;
+            ReaderStateToken readerState = (ReaderStateToken)args.UserToken;
 
             switch (args.SocketError)
             {
                 case SocketError.Success:
-                    switch (state.BytesToTransfer)
+                    switch (readerState.BytesToTransfer)
                     {
                         case RawPacketHeader.Length:
-                            HandleReceivedHeader(args, state);
+                            HandleReceivedHeader(args, readerState);
                             break;
 
                         default:
-                            HandleReceivedData(args, state);
+                            HandleReceivedData(args, readerState);
                             break;
                     }
 
                     break;
 
                 default:
+                    // TODO break out of iteration in HandleAccepted
                     CloseClientConnection(args);
                     break;
             }
@@ -483,26 +554,27 @@ namespace NetSharp.Raw.Stream
         /// <summary>
         /// Handles the completion of a <see cref="Socket.ReceiveAsync" /> call, when receiving a packet's data from the network.
         /// </summary>
-        private void HandleReceivedData(SocketAsyncEventArgs args, StateToken state)
+        private void HandleReceivedData(SocketAsyncEventArgs args, ReaderStateToken readerState)
         {
             int received = args.BytesTransferred;
             int previouslyReceived = args.Offset;
             int totalReceived = previouslyReceived + received;
-            int expected = state.BytesToTransfer;
+            int expected = readerState.BytesToTransfer;
 
-            RawPacketHeader header = state.RequestHeader!.Value;
+            RawPacketHeader header = readerState.RequestHeader!.Value;
 
             byte[] dataBuffer = args.Buffer;
             ReadOnlyMemory<byte> dataBufferMemory = new ReadOnlyMemory<byte>(dataBuffer, 0, header.DataLength);
 
             if (totalReceived == expected)
             {
+                // TODO switch out recursion for iteration in HandleAccepted
                 if (registeredHandlers.TryGetValue(header.Type, out RawStreamPacketHandler handler))
                 {
                     handler.Invoke(args.AcceptSocket.RemoteEndPoint, in header, in dataBufferMemory, this);
                 }
 
-                ConfigureReceiveHeaderAsync(args, state);
+                ConfigureReceiveHeaderAsync(args, readerState);
                 StartOrContinueReceiving(args);
             }
             else if (totalReceived > 0 && totalReceived < expected)
@@ -512,6 +584,7 @@ namespace NetSharp.Raw.Stream
             }
             else if (received == 0)
             {
+                // TODO break out of iteration in HandleAccepted
                 CloseClientConnection(args);
             }
         }
@@ -520,12 +593,12 @@ namespace NetSharp.Raw.Stream
         /// Handles the completion of a <see cref="Socket.ReceiveAsync" /> call, when receiving a packet's header from
         /// the network.
         /// </summary>
-        private void HandleReceivedHeader(SocketAsyncEventArgs args, StateToken state)
+        private void HandleReceivedHeader(SocketAsyncEventArgs args, ReaderStateToken readerState)
         {
             int received = args.BytesTransferred;
             int previouslyReceived = args.Offset;
             int totalReceived = previouslyReceived + received;
-            int expected = state.BytesToTransfer;
+            int expected = readerState.BytesToTransfer;
 
             byte[] headerBuffer = args.Buffer;
             ReadOnlySpan<byte> headerBufferMemory = new ReadOnlySpan<byte>(headerBuffer);
@@ -534,7 +607,7 @@ namespace NetSharp.Raw.Stream
             {
                 RawPacketHeader header = RawPacketHeader.Deserialise(in headerBufferMemory);
 
-                ConfigureReceiveDataAsync(args, state, in header);
+                ConfigureReceiveDataAsync(args, readerState, in header);
                 StartOrContinueReceiving(args);
             }
             else if (totalReceived > 0 && totalReceived < expected)
@@ -544,6 +617,7 @@ namespace NetSharp.Raw.Stream
             }
             else if (received == 0)
             {
+                // TODO break out of iteration in HandleAccepted
                 CloseClientConnection(args);
             }
         }
@@ -553,39 +627,38 @@ namespace NetSharp.Raw.Stream
         /// </summary>
         private void HandleSent(SocketAsyncEventArgs args)
         {
-            StateToken state = (StateToken)args.UserToken;
-            TaskCompletionSource<int>? tcs = state.RequestCompletionSource;
-
-            switch (tcs)
+            switch (args.UserToken)
             {
-                case null:
+                case ReaderStateToken readerState:
                     switch (args.SocketError)
                     {
                         case SocketError.Success:
-                            HandleSentResponse(args, state);
+                            HandleSentResponse(args, readerState);
                             break;
 
                         default:
+                            // TODO break out of iteration in HandleAccepted
                             CloseClientConnection(args);
                             break;
                     }
 
                     break;
 
-                default:
+                case WriterStateToken writerState:
                     switch (args.SocketError)
                     {
                         case SocketError.Success:
-                            HandleSentRequest(args, state);
+                            HandleSentRequest(args, writerState);
                             break;
 
                         case SocketError.OperationAborted:
-                            tcs.SetCanceled();
+                            writerState.RequestCompletionSource!.SetCanceled();
                             CleanupArgs(args);
                             break;
 
                         default:
-                            tcs.SetException(new SocketException((int)args.SocketError));
+                            writerState.RequestCompletionSource!.SetException(
+                                new SocketException((int)args.SocketError));
                             CleanupArgs(args);
                             break;
                     }
@@ -598,14 +671,14 @@ namespace NetSharp.Raw.Stream
         /// Handles the completion of a <see cref="Socket.SendAsync" /> call, when sending a request packet to the
         /// network. In this case, the <see cref="SocketAsyncEventArgs.ConnectSocket" /> will be used to perform the transmission.
         /// </summary>
-        private void HandleSentRequest(SocketAsyncEventArgs args, StateToken state)
+        private void HandleSentRequest(SocketAsyncEventArgs args, WriterStateToken writerState)
         {
-            TaskCompletionSource<int> tcs = state.RequestCompletionSource!;
+            TaskCompletionSource<int> tcs = writerState.RequestCompletionSource!;
 
             int sent = args.BytesTransferred;
             int previouslySent = args.Offset;
             int totalSent = previouslySent + sent;
-            int expected = state.BytesToTransfer;
+            int expected = writerState.BytesToTransfer;
 
             if (totalSent == expected)
             {
@@ -629,16 +702,17 @@ namespace NetSharp.Raw.Stream
         /// Handles the completion of a <see cref="Socket.SendAsync" /> call, when sending a response packet to the
         /// network. In this case, the <see cref="SocketAsyncEventArgs.AcceptSocket" /> will be used to perform the transmission.
         /// </summary>
-        private void HandleSentResponse(SocketAsyncEventArgs args, StateToken state)
+        private void HandleSentResponse(SocketAsyncEventArgs args, ReaderStateToken readerState)
         {
             int sent = args.BytesTransferred;
             int previouslySent = args.Offset;
             int totalSent = previouslySent + sent;
-            int expected = state.BytesToTransfer;
+            int expected = readerState.BytesToTransfer;
 
             if (totalSent == expected)
             {
-                ConfigureReceiveHeaderAsync(args, state);
+                // TODO switch out recursion for iteration in HandleAccepted
+                ConfigureReceiveHeaderAsync(args, readerState);
                 StartOrContinueReceiving(args);
             }
             else if (totalSent > 0 && totalSent < expected)
@@ -648,6 +722,7 @@ namespace NetSharp.Raw.Stream
             }
             else if (sent == 0)
             {
+                // TODO break out of iteration in HandleAccepted
                 CloseClientConnection(args);
             }
         }
@@ -680,10 +755,26 @@ namespace NetSharp.Raw.Stream
             HandleSent(args);
         }
 
-        /// <summary>
-        /// State token for the stream network connection.
-        /// </summary>
-        private sealed class StateToken : IDisposable
+        private sealed class OperationStateToken : IDisposable
+        {
+            /// <summary>
+            /// The <see cref="TaskCompletionSource{TResult}" /> for asynchronous network operations.
+            /// </summary>
+            internal TaskCompletionSource<bool>? OperationCompletionSource { get; set; }
+
+            /// <inheritdoc />
+            public void Dispose()
+            {
+                Reset();
+            }
+
+            internal void Reset()
+            {
+                OperationCompletionSource = null;
+            }
+        }
+
+        private sealed class ReaderStateToken : IDisposable
         {
             /// <summary>
             /// The number of bytes that we need to transfer over the network.
@@ -691,20 +782,11 @@ namespace NetSharp.Raw.Stream
             internal int BytesToTransfer { get; set; }
 
             /// <summary>
-            /// The <see cref="TaskCompletionSource{TResult}" /> for asynchronous network operations.
-            /// </summary>
-            internal TaskCompletionSource<bool>? OperationCompletionSource { get; set; }
-
-            /// <summary>
-            /// The <see cref="TaskCompletionSource{TResult}" /> for asynchronous packet writes.
-            /// </summary>
-            internal TaskCompletionSource<int>? RequestCompletionSource { get; set; }
-
-            /// <summary>
             /// The deserialised request packet header.
             /// </summary>
             internal RawPacketHeader? RequestHeader { get; set; }
 
+            /// <inheritdoc />
             public void Dispose()
             {
                 Reset();
@@ -713,9 +795,32 @@ namespace NetSharp.Raw.Stream
             internal void Reset()
             {
                 BytesToTransfer = 0;
-                OperationCompletionSource = null;
-                RequestCompletionSource = null;
                 RequestHeader = null;
+            }
+        }
+
+        private sealed class WriterStateToken : IDisposable
+        {
+            /// <summary>
+            /// The number of bytes that we need to transfer over the network.
+            /// </summary>
+            internal int BytesToTransfer { get; set; }
+
+            /// <summary>
+            /// The <see cref="TaskCompletionSource{TResult}" /> for asynchronous packet writes.
+            /// </summary>
+            internal TaskCompletionSource<int>? RequestCompletionSource { get; set; }
+
+            /// <inheritdoc />
+            public void Dispose()
+            {
+                Reset();
+            }
+
+            internal void Reset()
+            {
+                BytesToTransfer = 0;
+                RequestCompletionSource = null;
             }
         }
     }
