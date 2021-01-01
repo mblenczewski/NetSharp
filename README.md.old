@@ -10,9 +10,24 @@ For help with the library, feel free to visit our Discord and ask any questions 
 | ------- | ------------ |
 | Discord | [![Discord Server][discord-server-badge]](https://discord.gg/DKQhxuY) |
 | Code Quality | [![CodeFactor](https://www.codefactor.io/repository/github/mblenczewski/netsharp/badge/master)](https://www.codefactor.io/repository/github/mblenczewski/netsharp/overview/master) |
+| CI Build | [![Build Status](https://quartzstudios.visualstudio.com/NetSharp/_apis/build/status/mblenczewski.NetSharp?branchName=master)](https://quartzstudios.visualstudio.com/NetSharp/_build/latest?definitionId=7&branchName=master) |
 
-## Examples & Benchmarks (WARNING: STALE)
-#### NOTE: I'll redo these when i have time, im currently reimplementing the library due to some issues i encountered. They are still up here because i want to know what i need to beat performance-wise, and what benchmarks i included
+The latest release build can be used by searching for NetSharp in the NuGet package manager.
+
+The latest unstable build, built from master at the time of the last commit, can be used either by adding the following XML snippet to your nuget.config (in the same folder as your .csproj or .sln) and restoring the package index:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <add key="NetSharpFeed" value="https://quartzstudios.pkgs.visualstudio.com/NetSharp/_packaging/NetSharpFeed/nuget/v3/index.json" />
+  </packageSources>
+</configuration>
+```
+
+Or by adding the following package source in Visual Studio, with the source name 'NetSharpFeed' and source url 'https://quartzstudios.pkgs.visualstudio.com/NetSharp/_packaging/NetSharpFeed/nuget/v3/index.json', under Tools > Options > NuGet Package Manager > Package Sources.
+
+## Examples & Benchmarks
 
 The library comes with a .NET Core 3.1 console project containing examples and benchmarks for the components of the library. The example project and a few benchmarks can be seen below:
 
@@ -59,4 +74,3 @@ The following are the synchronous and asynchronous stream network writer (TCP) b
 
 [stream-network-reader-benchmark]: docs/stream-network-reader-benchmark.png
 [stream-network-writer-benchmark]: docs/stream-network-writer-benchmark.png
-
