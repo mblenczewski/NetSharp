@@ -18,7 +18,8 @@ namespace NetSharp.Raw
         private readonly Socket connection;
         private readonly SlimObjectPool<SocketAsyncEventArgs> socketArgsPool;
 
-        private int activeOperations; // TODO: consider removing since we have handler threads
+        private int activeOperations;
+        private readonly object activeOperationsLock = new object();
         private bool isBound;
         private bool isDisposed;
 
@@ -159,9 +160,13 @@ namespace NetSharp.Raw
             {
                 connection.Dispose();
 
-                // TODO: find better way of waiting for completion of all tasks
-                while (activeOperations > 0)
+                lock (activeOperationsLock)
                 {
+                    while (activeOperations > 0)
+                    {
+                        // will keep reacquiring the lock and blocking until we reach the activeOperations == 0 case
+                        _ = Monitor.Wait(activeOperationsLock);
+                    }
                 }
 
                 socketArgsPool.Dispose();
@@ -239,7 +244,11 @@ namespace NetSharp.Raw
         {
             socketArgsPool.Return(socketArgs);
 
-            _ = Interlocked.Decrement(ref activeOperations);
+            lock (activeOperationsLock)
+            {
+                _ = Interlocked.Decrement(ref activeOperations);
+                Monitor.Pulse(activeOperationsLock); // signals that we might have reached the activeOperations == 0 state
+            }
         }
 
         /// <summary>

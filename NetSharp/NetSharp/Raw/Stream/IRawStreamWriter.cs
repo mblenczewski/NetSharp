@@ -7,7 +7,7 @@ namespace NetSharp.Raw.Stream
     /// <summary>
     /// Describes the interface for a stream network connection that can write to the network.
     /// </summary>
-    public interface IRawStreamWriter : IRawStreamPacketHandler
+    public interface IRawStreamWriter
     {
         /// <summary>
         /// Writes the given packet header and data to the network asynchronously, using the given socket flags for the transmission.

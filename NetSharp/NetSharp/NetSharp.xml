@@ -52,7 +52,7 @@
         <member name="M:NetSharp.Raw.Datagram.RawDatagramConnection.ResetSocketArgsHook(System.Net.Sockets.SocketAsyncEventArgs@)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Datagram.RawDatagramConnection.HandlerThreadWork">
+        <member name="M:NetSharp.Raw.Datagram.RawDatagramConnection.HandlerTaskWork">
             <inheritdoc />
         </member>
         <member name="T:NetSharp.Raw.RawConnectionBase">
@@ -147,7 +147,7 @@
             Whether the <see cref="M:NetSharp.Raw.RawConnectionBase.Dispose" /> method was called.
             </param>
         </member>
-        <member name="M:NetSharp.Raw.RawConnectionBase.HandlerThreadWork">
+        <member name="M:NetSharp.Raw.RawConnectionBase.HandlerTaskWork">
             <summary>
             Handler work delegate, started when a call to <see cref="M:NetSharp.Raw.RawConnectionBase.Start(System.Int32)" /> is made.
             </summary>
@@ -389,7 +389,7 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamConnection.Dispose(System.Boolean)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandlerThreadWork">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandlerTaskWork">
             <inheritdoc />
         </member>
         <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ResetSocketArgsHook(System.Net.Sockets.SocketAsyncEventArgs@)">
@@ -398,7 +398,7 @@
         <member name="M:NetSharp.Raw.Stream.RawStreamConnection.StartHook(System.Int32)">
             <inheritdoc />
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureSendRequestAsync(System.Net.Sockets.SocketAsyncEventArgs,System.Byte[]@,NetSharp.Raw.RawPacketHeader@,System.ReadOnlyMemory{System.Byte}@,NetSharp.Raw.Stream.RawStreamConnection.StateToken,System.Threading.Tasks.TaskCompletionSource{System.Int32})">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureSendRequestAsync(System.Net.Sockets.SocketAsyncEventArgs,System.Byte[]@,NetSharp.Raw.RawPacketHeader@,System.ReadOnlyMemory{System.Byte}@,NetSharp.Raw.Stream.RawStreamConnection.WriterStateToken,System.Threading.Tasks.TaskCompletionSource{System.Int32})">
             <summary>
             Prepares the given socket args for sending a request to the network.
             </summary>
@@ -408,17 +408,12 @@
             Cleans up and returns the given socket args.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.CloseClientConnection(System.Net.Sockets.SocketAsyncEventArgs)">
-            <summary>
-            Closes the remote network connection associated with the given socket args.
-            </summary>
-        </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureReceiveDataAsync(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken,NetSharp.Raw.RawPacketHeader@)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureReceiveDataAsync(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken,NetSharp.Raw.RawPacketHeader@)">
             <summary>
             Prepares the given socket args for receiving a packet's data from the network.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureReceiveHeaderAsync(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ConfigureReceiveHeaderAsync(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken)">
             <summary>
             Prepares the given socket args for receiving a packet's header from the network.
             </summary>
@@ -448,12 +443,12 @@
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleReceivedData(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleReceivedData(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken)">
             <summary>
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call, when receiving a packet's data from the network.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleReceivedHeader(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleReceivedHeader(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken)">
             <summary>
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.ReceiveAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call, when receiving a packet's header from
             the network.
@@ -464,13 +459,13 @@
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleSentRequest(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleSentRequest(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.WriterStateToken)">
             <summary>
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call, when sending a request packet to the
             network. In this case, the <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.ConnectSocket" /> will be used to perform the transmission.
             </summary>
         </member>
-        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleSentResponse(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.StateToken)">
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.HandleSentResponse(System.Net.Sockets.SocketAsyncEventArgs,NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken)">
             <summary>
             Handles the completion of a <see cref="M:System.Net.Sockets.Socket.SendAsync(System.Net.Sockets.SocketAsyncEventArgs)" /> call, when sending a response packet to the
             network. In this case, the <see cref="P:System.Net.Sockets.SocketAsyncEventArgs.AcceptSocket" /> will be used to perform the transmission.
@@ -486,30 +481,22 @@
             Starts or continues an asynchronous network write operation using the given socket.
             </summary>
         </member>
-        <member name="T:NetSharp.Raw.Stream.RawStreamConnection.StateToken">
-            <summary>
-            State token for the stream network connection.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Raw.Stream.RawStreamConnection.StateToken.BytesToTransfer">
-            <summary>
-            The number of bytes that we need to transfer over the network.
-            </summary>
-        </member>
-        <member name="P:NetSharp.Raw.Stream.RawStreamConnection.StateToken.OperationCompletionSource">
+        <member name="P:NetSharp.Raw.Stream.RawStreamConnection.OperationStateToken.OperationCompletionSource">
             <summary>
             The <see cref="T:System.Threading.Tasks.TaskCompletionSource`1" /> for asynchronous network operations.
             </summary>
         </member>
-        <member name="P:NetSharp.Raw.Stream.RawStreamConnection.StateToken.RequestCompletionSource">
-            <summary>
-            The <see cref="T:System.Threading.Tasks.TaskCompletionSource`1" /> for asynchronous packet writes.
-            </summary>
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.OperationStateToken.Dispose">
+            <inheritdoc />
         </member>
-        <member name="P:NetSharp.Raw.Stream.RawStreamConnection.StateToken.RequestHeader">
-            <summary>
-            The deserialised request packet header.
-            </summary>
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.ReaderStateToken.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.RemoteConnectionWrapper.SendAsync(System.UInt16,System.ReadOnlyMemory{System.Byte},System.Net.Sockets.SocketFlags)">
+            <inheritdoc />
+        </member>
+        <member name="M:NetSharp.Raw.Stream.RawStreamConnection.WriterStateToken.Dispose">
+            <inheritdoc />
         </member>
         <member name="T:NetSharp.Utils.SlimObjectPool`1">
             <summary>

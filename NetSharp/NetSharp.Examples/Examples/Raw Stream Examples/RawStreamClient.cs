@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 using NetSharp.Raw.Stream;
@@ -31,6 +32,8 @@ namespace NetSharp.Examples.Examples.Raw_Stream_Examples
 
                 sentBytes = client.SendAsync(0, packet).GetAwaiter().GetResult();
                 Console.WriteLine($"[Client] Sent {sentBytes} bytes to {client.RemoteEndPoint}");
+
+                Thread.Sleep(1000);
             } while (sentBytes > 0);
 
             client.DisconnectAsync().GetAwaiter().GetResult();

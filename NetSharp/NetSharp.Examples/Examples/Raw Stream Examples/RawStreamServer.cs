@@ -37,8 +37,9 @@ namespace NetSharp.Examples.Examples.Raw_Stream_Examples
             Console.WriteLine("[Server] Press enter to stop the server...");
             Console.ReadLine();
 
-            server.DeregisterHandler(0, PacketHandler);
+            Console.WriteLine("[Server] Attempting to stop the server...");
             server.Close();
+            Console.WriteLine("[Server] Successfully shut down the server!");
 
             return Task.CompletedTask;
         }

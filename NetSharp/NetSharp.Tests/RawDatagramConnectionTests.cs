@@ -21,7 +21,7 @@ namespace NetSharp.Tests
             {
                 using RawDatagramConnection conn = ConnectionFactory();
 
-                conn.Bind(ServerLocalEndPoint);
+                conn.Bind(ClientLocalEndPoint);
                 conn.Start();
 
                 conn.Close();

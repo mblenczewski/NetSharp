@@ -22,7 +22,7 @@ namespace NetSharp.Tests
             static void Instantiate()
             {
                 using RawStreamConnection conn = ConnectionFactory();
-                conn.Bind(ServerLocalEndPoint);
+                conn.Bind(ClientLocalEndPoint);
 
                 conn.Start();
 
