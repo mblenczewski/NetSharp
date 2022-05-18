@@ -1,3 +1,5 @@
+# NOTE: This library is deprecated, and will not receive any updates
+
 # NetSharp
 
 A networking library written in C#, focusing on performance and built on top of SocketAsyncEventArgs.
@@ -8,7 +10,6 @@ For help with the library, feel free to visit our Discord and ask any questions 
 
 | Service | Status Badge |
 | ------- | ------------ |
-| Discord | [![Discord Server][discord-server-badge]](https://discord.gg/DKQhxuY) |
 | Code Quality | [![CodeFactor](https://www.codefactor.io/repository/github/mblenczewski/netsharp/badge/master)](https://www.codefactor.io/repository/github/mblenczewski/netsharp/overview/master) |
 
 ## Examples & Benchmarks (WARNING: STALE)
